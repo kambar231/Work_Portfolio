@@ -1,0 +1,438 @@
+/* =====================================================================
+   Kambar Mangibayev — portfolio v.02 (Obys-correct layout)
+   Wordmark top-left. Names column left. Center scrolling strip with
+   ( ) brackets. Description column right. Toggle bottom-left. Copy bottom-right.
+   ===================================================================== */
+
+:root {
+  --bg:    #ffffff;
+  --ink:   #000000;
+  --dim:   #c4c4c4;
+  --rule:  #ececec;
+
+  --serif: "Fraunces", "Times New Roman", Times, serif;
+  --sans:  "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+
+  --pad:   16px;
+  --t:     420ms;
+  --t-s:   220ms;
+  --ease:  cubic-bezier(.22,.61,.36,1);
+
+  --fr-axes: "opsz" 144, "SOFT" 100, "WONK" 1;
+
+  /* center-stage geometry */
+  --stage-w: clamp(220px, 24vw, 380px);   /* width of the image */
+  --gap:     clamp(.6rem, 1.2vh, 1.2rem);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+}
+body {
+  font-family: var(--sans);
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 0.005em;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  cursor: none;
+}
+
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: none; padding: 0; }
+img { display: block; max-width: 100%; height: auto; }
+ol, ul { list-style: none; }
+::selection { background: var(--ink); color: var(--bg); }
+em {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 300;
+  font-variation-settings: var(--fr-axes);
+}
+
+/* =====================================================================
+   PRELOADER (Obys: black screen, mark at center, count bottom-right)
+   ===================================================================== */
+.preload {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--ink); color: var(--bg);
+  display: grid; place-items: center;
+  transition: opacity .9s var(--ease), visibility .9s var(--ease);
+}
+.preload.is-done { opacity: 0; visibility: hidden; }
+.preload__mark svg { width: clamp(240px, 32vw, 520px); height: auto; }
+.preload__count {
+  position: absolute; right: var(--pad); top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+
+/* =====================================================================
+   CUSTOM CURSOR — small dot
+   ===================================================================== */
+.cursor {
+  position: fixed; top: 0; left: 0; z-index: 9000;
+  width: 8px; height: 8px; border-radius: 999px;
+  background: var(--ink);
+  mix-blend-mode: difference;
+  pointer-events: none;
+  transform: translate3d(-50%, -50%, 0);
+  transition: width .25s var(--ease), height .25s var(--ease);
+}
+.cursor.is-hover { width: 24px; height: 24px; }
+@media (hover: none) { .cursor { display: none; } body, button { cursor: auto; } }
+
+/* =====================================================================
+   TOP-LEFT BRAND WORDMARK (Obys: huge "OBYS®")
+   ===================================================================== */
+.brand {
+  position: fixed; top: 14px; left: var(--pad); z-index: 600;
+  font-family: var(--serif);
+  font-weight: 500;
+  font-variation-settings: var(--fr-axes);
+  font-size: clamp(2.4rem, 4.6vw, 4.8rem);
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+  user-select: none;
+}
+.brand sup {
+  font-size: 0.32em;
+  vertical-align: super;
+  line-height: 0;
+  font-weight: 400;
+  margin-left: .05em;
+}
+
+/* =====================================================================
+   TOP-RIGHT NAV + STUDIO BLURB
+   ===================================================================== */
+.topnav {
+  position: fixed; top: 14px; right: var(--pad); z-index: 600;
+  display: grid;
+  grid-template-columns: auto auto auto;
+  gap: clamp(1.4rem, 4vw, 3.2rem);
+  align-items: baseline;
+  font-family: var(--sans);
+  font-size: 11px;
+}
+.topnav__links { display: inline-flex; gap: .25em; }
+.topnav__links a u { text-underline-offset: 2px; }
+.topnav__links a.is-on { font-weight: 500; }
+.topnav__cta { font-weight: 500; }
+.topnav__clock { color: var(--ink); font-variant-numeric: tabular-nums; }
+.topnav a { transition: color var(--t-s) var(--ease); }
+.topnav a:hover { color: var(--dim); }
+
+.topnav__blurb {
+  position: fixed; top: 56px; right: var(--pad); z-index: 600;
+  width: clamp(220px, 22vw, 320px);
+  font-family: var(--sans);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+.topnav__blurb em { font-size: 1em; }
+.topnav__contactline { margin-top: .85em; }
+.topnav__contactline a {
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 1px;
+}
+
+/* =====================================================================
+   LEFT COLUMN: PROJECT NAME LIST
+   ===================================================================== */
+.names {
+  position: fixed; left: var(--pad); top: 50%;
+  transform: translateY(-50%);
+  z-index: 500;
+  width: clamp(200px, 18vw, 280px);
+  font-family: var(--sans);
+  font-size: 11px;
+  line-height: 1.25;
+}
+.names ol { display: grid; gap: 1px; }
+.names li {
+  transition: color var(--t-s) var(--ease), opacity var(--t-s) var(--ease);
+  color: var(--dim);
+}
+.names li a {
+  display: block;
+  padding: 2px 0;
+  position: relative;
+  letter-spacing: 0;
+}
+.names li.is-on {
+  color: var(--ink);
+  font-weight: 500;
+}
+.names li:hover { color: var(--ink); }
+
+/* =====================================================================
+   RIGHT COLUMN: PROJECT INFO PANEL
+   ===================================================================== */
+.info {
+  position: fixed; right: var(--pad); top: 50%;
+  transform: translateY(-50%);
+  z-index: 500;
+  width: clamp(220px, 22vw, 320px);
+  font-family: var(--sans);
+  font-size: 11px;
+  line-height: 1.45;
+}
+.info__title {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 300;
+  font-variation-settings: var(--fr-axes);
+  font-size: clamp(1.05rem, 1.6vw, 1.45rem);
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  margin-bottom: 1rem;
+}
+.info__row {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr;
+  gap: .8rem;
+  padding: .35rem 0;
+  border-top: 1px solid var(--rule);
+}
+.info__row:last-of-type { border-bottom: 1px solid var(--rule); }
+.info__row span:first-child { color: var(--dim); }
+.info__row--n span:last-child { font-variant-numeric: tabular-nums; }
+.info__lede {
+  margin-top: 1rem;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+/* =====================================================================
+   CENTER STAGE — the vertical image strip
+   The body scrolls; each item snaps to vertical center; brackets stay fixed.
+   ===================================================================== */
+.stage {
+  width: 100vw;
+  padding: 50vh 0;          /* so first/last items can be centered */
+  display: grid;
+  place-items: center;
+}
+.strip {
+  display: grid;
+  gap: 50vh;                /* big air between projects so scroll feels like a film reel */
+  width: var(--stage-w);
+}
+.strip__item {
+  width: var(--stage-w);
+  aspect-ratio: 1 / 1;
+  position: relative;
+  scroll-snap-align: center;
+  transition: opacity var(--t) var(--ease), transform var(--t) var(--ease);
+}
+.strip__item a {
+  display: block;
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: #f0f0f0;
+}
+.strip__item img {
+  width: 100%; height: 100%; object-fit: cover;
+  display: block;
+  transition: transform 1.4s var(--ease);
+}
+.strip__item a:hover img { transform: scale(1.04); }
+
+/* dim non-focused items so the centered one stands out */
+.strip__item:not(.is-on) { opacity: .35; }
+.strip__item.is-on { opacity: 1; }
+
+/* =====================================================================
+   CENTER SELECTOR — the giant ( ) brackets framing the focused image
+   Built from real typographic glyphs so they breathe with the serif system.
+   ===================================================================== */
+.selector {
+  position: fixed; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 600;                       /* above strip, sits in front */
+  width: calc(var(--stage-w) + clamp(140px, 14vw, 240px));
+  height: var(--stage-w);
+  pointer-events: none;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  color: var(--ink);
+}
+.selector__b {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-variation-settings: "opsz" 144, "SOFT" 100, "WONK" 1;
+  font-style: normal;
+  font-size: clamp(20rem, 30vw, 38rem);
+  line-height: 0;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+  user-select: none;
+}
+.selector__b svg { display: none; }     /* fallback path no longer used */
+.selector__b::before { content: "("; }
+.selector__b--r::before { content: ")"; }
+
+/* =====================================================================
+   BOTTOM-LEFT: VIEW MODE TOGGLE
+   ===================================================================== */
+.modes {
+  position: fixed; left: var(--pad); bottom: 14px; z-index: 600;
+  font-family: var(--sans);
+  font-size: 11px;
+  display: inline-flex; gap: .2em;
+}
+.modes__b {
+  position: relative;
+  padding: 0;
+  transition: color var(--t-s) var(--ease);
+}
+.modes__b u { text-underline-offset: 2px; }
+.modes__b.is-on { font-weight: 500; }
+.modes__b:not(.is-on) { color: var(--dim); }
+.modes__b:hover { color: var(--ink); }
+
+/* =====================================================================
+   BOTTOM-RIGHT: COPYRIGHT
+   ===================================================================== */
+.copy {
+  position: fixed; right: var(--pad); bottom: 14px; z-index: 600;
+  font-family: var(--sans);
+  font-size: 11px;
+  color: var(--ink);
+}
+
+/* =====================================================================
+   ALTERNATIVE VIEW MODES (horizontal / grid)
+   ===================================================================== */
+.alt {
+  position: fixed;
+  inset: 180px var(--pad) 36px var(--pad);    /* clear brand + topnav blurb */
+  z-index: 450;
+  background: var(--bg);
+  overflow: hidden;
+}
+.alt[hidden] { display: none; }
+body.is-horizontal .stage,
+body.is-horizontal .selector,
+body.is-horizontal .names,
+body.is-horizontal .info,
+body.is-grid .stage,
+body.is-grid .selector,
+body.is-grid .names,
+body.is-grid .info { display: none; }
+
+/* horizontal — paddled card list, scroll-snap */
+.alt__h {
+  display: flex; flex-direction: row; align-items: center;
+  gap: clamp(1rem, 2vw, 2.2rem);
+  height: 100%;
+  padding: 0 25vw;             /* large outer space so cards start centered */
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+}
+.alt__h li {
+  flex: 0 0 clamp(280px, 28vw, 460px);
+  height: min(70%, 480px);
+  scroll-snap-align: center;
+}
+.alt__h li a {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: .8rem;
+  height: 100%;
+}
+.alt__h figure {
+  width: 100%; height: 100%;
+  overflow: hidden; background: #f0f0f0;
+  position: relative;
+}
+.alt__h img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform 1.4s var(--ease);
+}
+.alt__h li a:hover img { transform: scale(1.05); }
+.alt__h li a > b,
+.alt__h li a > span,
+.alt__h li a > em {
+  display: inline-block;
+  vertical-align: baseline;
+}
+.alt__h li a > b   { color: var(--dim); font-weight: 400; margin-right: .7em; }
+.alt__h li a > span {
+  font-family: var(--serif);
+  font-size: clamp(1rem, 1.3vw, 1.4rem);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.alt__h li a > em {
+  display: block; margin-top: .25em;
+  color: var(--dim); font-style: normal; font-family: var(--sans);
+  font-size: 11px;
+}
+
+/* grid */
+.alt__g {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-auto-rows: 1fr;
+  gap: clamp(.6rem, 1vw, 1.2rem);
+  height: 100%;
+}
+.alt__g li {
+  position: relative; aspect-ratio: 4/5;
+  overflow: hidden; background: #f0f0f0;
+}
+.alt__g li a { display: block; width: 100%; height: 100%; }
+.alt__g figure { width: 100%; height: 100%; }
+.alt__g img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform 1.4s var(--ease);
+}
+.alt__g li a:hover img { transform: scale(1.05); }
+.alt__g b {
+  position: absolute; top: 10px; left: 10px; z-index: 2;
+  color: var(--bg); mix-blend-mode: difference;
+  font-weight: 400; font-size: 11px;
+}
+.alt__g span {
+  position: absolute; left: 10px; bottom: 10px; z-index: 2;
+  color: var(--bg); mix-blend-mode: difference;
+  font-family: var(--serif);
+  font-size: clamp(.95rem, 1.1vw, 1.15rem);
+  letter-spacing: -0.02em;
+}
+
+@media (max-width: 980px) {
+  .alt__g { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* =====================================================================
+   RESPONSIVE — collapse side columns on narrow screens
+   ===================================================================== */
+@media (max-width: 900px) {
+  :root { --stage-w: 70vw; }
+  .topnav__blurb, .names, .info { display: none; }
+  .brand { font-size: 2rem; }
+  .strip { gap: 30vh; }
+  .stage { padding: 35vh 0; }
+}
+
+/* =====================================================================
+   MOTION-REDUCE
+   ===================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  .preload { display: none; }
+  .cursor { display: none; }
+  body, button { cursor: auto; }
+}

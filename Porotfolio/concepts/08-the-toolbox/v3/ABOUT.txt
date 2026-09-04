@@ -1,0 +1,14 @@
+CONCEPT 08 — THE TOOLBOX  ·  v3  (flashlight removed)
+Created 2026-06-22
+
+Same as v2 but WITHOUT the cursor-follows inspection-lamp ("flashlight") effect.
+The scene is now fully lit on a dark teal (CineStill) base with a soft STATIC warm
+glow up top (not cursor-driven). Everything else from v2 is kept:
+  - DRAG drawers open (pointer + momentum + snap)
+  - PICK UP a tool, DROP it in the vise to reveal the projects built with it
+  - live ambient double-pendulum, step-response detail overlays
+  - Archivo + Fraunces + Plex Mono; real warm-graded project photos
+Removed: #dark/#warm/#halo overlays, the light-follows-cursor JS, the
+"hit the lights" toggle, and the crosshair cursor.
+
+v2 (with the lamp) is preserved untouched. Iterate by copying to ../v4/.

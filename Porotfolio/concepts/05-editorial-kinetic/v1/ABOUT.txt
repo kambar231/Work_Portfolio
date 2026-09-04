@@ -1,0 +1,119 @@
+CONCEPT 05 — "EDITORIAL KINETIC"
+================================
+Kambar Mangibayev · Mechanical Systems & Controls Engineer
+Single-file site: index.html (self-contained, no build step)
+
+
+THE IDEA
+--------
+An award-show-grade engineering magazine. The hook is the contrast: a
+genuinely beautiful, "expensive magazine" treatment applied to a
+mechanical/controls engineer. Reading-first, motion-second — every
+motion eased and intentional. The whole site is framed as an issue of
+"The Control Loop Quarterly," and the editorial throughline is the
+engineer's own thesis: SENSE. DECIDE. RESPOND.
+
+It serves two readers at once:
+  - the 30-second skimmer  -> enormous headlines + big numeric callouts
+  - the deep reader        -> full body copy in every feature
+
+
+DESIGN SYSTEM
+-------------
+Palette: deep near-black (committed, not warm-paper).
+  bg #0a0b0d · ink #eef2f6 · soft #9aa3ac · faint #5a626b · lines #232830
+Accent (one, restrained): scope green #5ee6a8 — used for the third hero
+  word, pull-quote emphasis, stat suffixes, loop diagrams, links/rules.
+
+Type (variable fonts via Google Fonts CDN):
+  - Display/UI: Roboto Flex (true weight + width axes — wght 100..1000,
+    wdth 25..151, opsz). Drives all kinetic weight/width animation.
+  - Body/editorial serif: Newsreader (pull-quotes, deks, lede copy).
+  - Mono tags: JetBrains Mono (domain tags, folios, captions, colophon).
+
+Texture: persistent fine film grain (animated SVG fractal noise,
+  screen blend) + a soft radial vignette. Lots of negative space.
+
+
+SECTIONS
+--------
+1. HERO / manifesto — massive "SENSE. DECIDE. RESPOND." that animates
+   its weight + width on load (each word arriving on a beat, tightening
+   from condensed/light to its heavy equilibrium) and reacts to scroll
+   (type expands/tightens like a system settling). Small caps identity:
+   Kambar Mangibayev / Mechanical Systems & Controls Engineer /
+   Rochester, NY. Thesis quote set in serif.
+
+2. ABOUT — magazine pull-quote spread. Giant pull-quote on the philosophy
+   (left), elegant serif body column on the Semey -> Rochester arc (right).
+   Four stat callouts count up on scroll:
+     2 degrees · 8+ systems · 9 aircraft modeled · 7.5M lb thrust analyzed.
+
+3. WORK INDEX — typographic table of contents. Project names set huge;
+   each line is a kinetic hover (title shifts weight + width, a thin
+   accent rule draws across) with a small mono domain tag
+   (CONTROLS / SIMULATION / FEA / ADDITIVE / etc.).
+
+4. PROJECT FEATURES (8) — each a true editorial feature:
+   full-bleed title page (display name + one-line dek) ->
+   lede (the problem) -> approach -> "how the loop works" with a clean
+   self-drawing SVG diagram -> results as big numeric callouts ->
+   stack/colophon. Projects:
+     01 Pedestrian Detection / Automated Braking — The Raymond Corp
+     02 Flight Dynamics Simulation — RIT (9 aircraft, quaternions)
+     03 Double Pendulum — RIT (chaos, validated vs. physical rig)
+     04 Vacuum Cannon — RIT (1.52 m barrel exit-velocity sim)
+     05 Saturn V F-1 Nozzle FEA — RIT / Ansys (7.5M lb thrust)
+     06 PrintNC CNC Router — personal (steel + 3D-printed, self-built)
+     07 3D Slicer & G-code Generator — personal / Python (STL->G-code)
+     08 Lab Research — RIT AMPrint (casting/additive/CFD; LAMMPS)
+   (3D Printing / MagSafe-stand detail folded into the additive thread.)
+
+5. CONTACT / back cover — confident closing spread. Oversized
+   "Let's build the loop." with the second line in accent; email set
+   large as the hero element; links + phone + colophon at the foot.
+
+
+KINETICS (all eased, all reduced-motion safe)
+---------------------------------------------
+- Lenis smooth scroll (CDN) + GSAP/ScrollTrigger (CDN).
+- Hero: GSAP timeline animates font-variation-settings (wght/wdth) on
+  load; ScrollTrigger scrubs further weight/width as you scroll.
+- Stat & result numbers: count-up on scroll (GSAP tween, rAF fallback).
+- Each "how the loop works" SVG is SELF-DRAWING: nodes fade/scale in,
+  labels appear, stroke-dashoffset draws the connecting paths, arrows
+  resolve, a pulse travels the loop — once, on enter.
+- Work-index hover: variable-font weight/width shift + accent rule draw.
+- Feature titles: subtle weight/width scrub as they enter.
+- Scroll-progress hairline (accent) at the very top.
+
+
+ACCESSIBILITY / RESPONSIVE
+--------------------------
+- Strong prefers-reduced-motion: ALL animation/transition disabled,
+  grain frozen, reveals shown, counters render final values, SVG paths
+  drawn statically. Content is fully intact with zero motion.
+- Fully responsive via clamp()-based fluid type; grids collapse to a
+  single column on small screens; nav hides on mobile; kinetics
+  simplify to fades; scroll stays vertical.
+- Semantic landmarks (header/section/article), aria-labels on the
+  decorative SVG diagrams, real <a> for email/phone/anchors.
+
+
+TECH / CONSTRAINTS MET
+----------------------
+- ONE self-contained index.html. All CSS + JS inline. No build step.
+- CDNs only: Google Fonts (variable), GSAP + ScrollTrigger (cdnjs),
+  Lenis (jsdelivr).
+- All visuals are SVG/CSS only — no external images. Grain is inline SVG.
+- Inline JS verified to parse with no syntax errors (node --check).
+- Full real content, no lorem, no fabricated metrics. Numbers used are
+  only those provided (2, 8+, 9, 7.5M, 1.52 m, 3x graded response, etc.);
+  loop diagrams use schematic/illustrative labels, not invented results.
+
+
+GRACEFUL DEGRADATION
+--------------------
+If Lenis or GSAP fail to load, the site still works: native smooth
+scroll for anchors, IntersectionObserver-based reveals, and a rAF
+count-up fallback keep everything functional and legible.

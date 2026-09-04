@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Double Pendulum Experiment — Kambar Mangibayev</title>
+  <meta name="description" content="Build a theoretical model of a chaotic system. Build the physical thing. Release them from the same starting condition. See where they disagree, then figure out what your simulation is missing." />
+  <meta name="theme-color" content="#f4ede0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..900,0..100,0..1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="cursor" aria-hidden="true"></div>
+  <div class="cursor-dot" aria-hidden="true"></div>
+
+  <header class="nav">
+    <a href="../index.html" class="nav__brand">
+      <span class="nav__mono">KM</span>
+      <span class="nav__sep">/</span>
+      <span class="nav__name">Kambar Mangibayev</span>
+    </a>
+    <nav class="nav__links" aria-label="primary">
+      <a href="../index.html#work">Work</a>
+      <a href="../index.html#projects">Projects</a>
+      <a href="../index.html#reel">Reel</a>
+      <a href="../index.html#about">About</a>
+      <a href="../index.html#contact" class="nav__cta">Contact</a>
+    </nav>
+    <div class="nav__time" aria-hidden="true">
+      <span class="dot"></span><span id="clock">— —</span>
+    </div>
+  </header>
+
+  <main class="case-wrap">
+    <a href="../index.html#projects" class="case__back mono" data-reveal>
+      ← Personal &amp; Academic
+    </a>
+    <header class="case__head">
+      <span class="mono dim" data-reveal>P·07 &nbsp;·&nbsp; Dynamics · Validation</span>
+      <h1 class="case__title" data-reveal>Double Pendulum Experiment</h1>
+      <p class="case__tagline" data-reveal><em>Theoretical model vs. physical rig — under 10% error for the first two seconds.</em></p>
+    </header>
+    <p class="case__lede" data-reveal>Build a theoretical model of a chaotic system. Build the physical thing. Release them from the same starting condition. See where they disagree, then figure out what your simulation is missing.</p>
+
+    <figure class="case__hero" data-reveal>
+      <img src="../assets/img/pendulum-1.jpg" alt="Double Pendulum Experiment" loading="eager" />
+      <figcaption class="case__media-cap mono dim">The rig. Two arms, bearings at every pivot, a stopper to set the start angle.</figcaption>
+    </figure>
+    <div class="case__body">
+      <div class="case__prose">
+      <section class="case__sec" data-reveal>
+        <h2 class="case__sec-h">The system</h2>
+        <p>The pendulum is two solid arms connected with bearings and shoulder bolts. The bottom arm hangs free. The top arm starts at 45° from vertical against a hard stopper, then is released. The whole motion gets captured at 120 fps so we can recover the angles frame-by-frame later. Goal: under 10% error for the first two seconds.</p>
+        
+      </section>
+      <section class="case__sec" data-reveal>
+        <h2 class="case__sec-h">Tracking the motion</h2>
+        <p>Coloured dots get tracked in Kinovea — one per arm. We then compute the angle of each arm from the dot positions, and feed the angles into MATLAB.</p>
+        
+        <figure class="case__sec-fig">
+          <img src="../assets/img/pendulum-2.jpg" alt="Tracking points: the fixed pivot in green, the rod-1 / rod-2 connection in black, and the rod-2 dot in blue. Coordinate system zeroed at the fixed pivot." loading="lazy" />
+          <figcaption class="case__media-cap mono dim">Tracking points: the fixed pivot in green, the rod-1 / rod-2 connection in black, and the rod-2 dot in blue. Coordinate system zeroed at the fixed pivot.</figcaption>
+        </figure>
+      </section>
+      <section class="case__sec" data-reveal>
+        <h2 class="case__sec-h">Comparison</h2>
+        <p>MATLAB gets the measured angles, interpolated onto the simulation timeline. Then a Mean Squared Error per angle, and a visual overlay of measured-vs-simulated. If the measured trace falls outside the simulation's error band, the simulation gets reviewed.</p>
+        
+        <figure class="case__sec-fig">
+          <img src="../assets/img/pendulum-3.jpg" alt="Simulation (line) vs. measured (line) for θ₁ and θ₂ at the nominal start. Grey band is the Monte Carlo envelope from 1000 runs varying the parameters by their uncertainties." loading="lazy" />
+          <figcaption class="case__media-cap mono dim">Simulation (line) vs. measured (line) for θ₁ and θ₂ at the nominal start. Grey band is the Monte Carlo envelope from 1000 runs varying the parameters by their uncertainties.</figcaption>
+        </figure>
+      </section>
+      <section class="case__sec" data-reveal>
+        <h2 class="case__sec-h">What you learn</h2>
+        <p>The model and the rig agree for about a second and a half. Then they don't, and they don't keep agreeing — chaotic systems are like that. The point isn't that the model is broken; it's that you can quantify how much you don't know about the friction in the bearings and the imperfection of the initial release, by reading the disagreement.</p>
+        
+      </section>
+
+      <aside class="case__todos" data-reveal>
+        <h3 class="mono">Notes for Kambar</h3>
+        <p class="dim">Kept inline so they're easy to spot; remove these before sharing the link.</p>
+        <ul><li>Optional: short clip of the pendulum running</li></ul>
+      </aside>
+      </div>
+      <aside class="case__specs" data-reveal>
+        <h3 class="mono dim">Spec sheet</h3>
+        <div class="case__spec"><span class="dim">Year</span><span>RIT coursework</span></div>
+        <div class="case__spec"><span class="dim">Method</span><span>Lagrangian + ODE integration</span></div>
+        <div class="case__spec"><span class="dim">Validation</span><span>Physical rig + Kinovea tracking</span></div>
+        <div class="case__spec"><span class="dim">Target</span><span>&lt; 10% error, first 2 s</span></div>
+      </aside>
+    </div>
+
+      <nav class="case__nav" data-reveal>
+        <a class="case__nav-prev" href="./flight-dynamics.html">
+          <span class="mono dim">← Previous</span>
+          <span class="case__nav-title">Flight Dynamics Simulation</span>
+        </a>
+        <a class="case__nav-next" href="./vacuum-cannon.html">
+          <span class="mono dim">Next →</span>
+          <span class="case__nav-title">Vacuum Cannon Experiment</span>
+        </a>
+      </nav>
+    <footer class="foot">
+      <div class="foot__col"><span class="mono dim">© 2026 Kambar Mangibayev</span></div>
+      <div class="foot__col mono"><a href="../index.html" class="dim">Back to home</a></div>
+      <button class="foot__top mono" id="toTop" aria-label="Back to top">Back to top ↑</button>
+    </footer>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+  <script src="../assets/js/main.js" defer></script>
+</body>
+</html>

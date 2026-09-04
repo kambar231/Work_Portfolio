@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Kambar Mangibayev — Drawing Set KM-26</title>
+<meta name="description" content="Engineering portfolio of Kambar Mangibayev — vehicle systems and controls. Five flagship drawings, then the full index. Built to read in about a minute."/>
+<meta name="theme-color" content="#0b1f3a"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+/* ============================================================
+   KM-26 — REV D. Cover → 5 flagships → full index → contact.
+   Type: Archivo Black (titles) · Fraunces (reading/voice) ·
+   Plex Mono (data/labels). Color: navy / paper / ink / red.
+   Hero is a self-drawing closed-loop control diagram.
+   ============================================================ */
+:root{
+  --navy:#0b1f3a;
+  --navy-2:#0e2545;
+  --navy-line:#3d5a80;
+  --navy-bright:#bcd7f5;
+  --paper:#f4f1e9;
+  --ink:#15191e;
+  --ink-soft:#4a5260;
+  --rule:#aab2bc;
+  --red:#c2382e;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --serif:"Fraunces",Georgia,serif;
+  --disp:"Archivo Black",sans-serif;
+  --frame:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+@media (min-width:861px){html{scroll-snap-type:y proximity}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{background:var(--paper);color:var(--ink);font-family:var(--mono);font-size:13px;line-height:1.6;-webkit-font-smoothing:antialiased;cursor:crosshair}
+::selection{background:var(--red);color:#fff}
+a{color:inherit}
+
+.sheet--paper{background:
+  linear-gradient(rgba(141,153,166,.09) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(141,153,166,.09) 1px,transparent 1px),
+  var(--paper);background-size:96px 96px}
+
+/* ---------- sheet base ---------- */
+.sheet{position:relative;min-height:100svh;display:flex;flex-direction:column;justify-content:center;
+  padding:calc(var(--frame) + 46px) calc(var(--frame) + 50px) calc(var(--frame) + 78px);
+  scroll-snap-align:start;box-shadow:0 -16px 40px rgba(11,21,38,.16)}
+.sheet::before{content:"";position:absolute;inset:var(--frame);border:1.25px solid var(--ink);pointer-events:none}
+.sheet--dark{background:radial-gradient(120% 120% at 78% 8%,var(--navy-2),var(--navy) 60%);color:#eef3fa}
+.sheet--dark::before{border-color:var(--navy-line)}
+
+/* ---------- footer strip ---------- */
+.strip{position:absolute;left:var(--frame);right:var(--frame);bottom:var(--frame);
+  display:flex;align-items:center;border-top:1.25px solid var(--ink);
+  font-size:9.5px;letter-spacing:.14em;background:inherit;height:44px;white-space:nowrap}
+.sheet--dark .strip{border-color:var(--navy-line)}
+.strip>span{padding:0 16px;border-right:.75px solid var(--rule);display:flex;align-items:center;height:100%;overflow:hidden;text-overflow:ellipsis}
+.sheet--dark .strip>span{border-color:var(--navy-line)}
+.strip .s-name{font-family:var(--disp);font-size:11px;letter-spacing:.04em;flex:none}
+.strip .s-title{color:var(--ink-soft);flex:1;min-width:0}
+.sheet--dark .strip .s-title{color:var(--navy-bright)}
+.strip .s-mail{flex:none}.strip .s-mail a{text-decoration:none}.strip .s-mail a:hover{color:var(--red)}
+.strip .s-no{color:var(--red);font-weight:600;flex:none;border-right:none}
+
+/* ---------- HUD + crosshair + rail ---------- */
+.hud{position:fixed;z-index:60;font-size:9.5px;letter-spacing:.14em;display:flex;gap:10px;align-items:center;background:var(--paper);border:1px solid var(--ink);padding:6px 10px;color:var(--ink)}
+.hud--nav{right:18px;bottom:80px}
+.hud--coord{top:18px;right:18px;border-color:var(--rule);color:var(--ink-soft)}
+.hud button{font:inherit;background:none;border:1px solid currentColor;color:inherit;padding:2px 8px;cursor:pointer}
+.hud button:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+#shtNow{color:var(--red);font-weight:600}
+@media (hover:none){.hud--coord{display:none}}
+.xh{position:fixed;z-index:55;pointer-events:none;background:rgba(194,56,46,.20)}
+.xh--v{top:0;bottom:0;width:1px}.xh--h{left:0;right:0;height:1px}
+@media (hover:none){.xh{display:none}}
+.rail{position:fixed;left:8px;top:50%;transform:translateY(-50%);z-index:60;display:flex;flex-direction:column;gap:11px;align-items:flex-start}
+.rail b{display:flex;align-items:center;gap:8px;cursor:pointer;background:none;border:none;padding:0}
+.rail i{width:7px;height:7px;border:1px solid var(--ink-soft);border-radius:50%;transition:.25s;flex:none}
+.rail b.on i{background:var(--red);border-color:var(--red);transform:scale(1.3)}
+.rail u{font-style:normal;text-decoration:none;font-size:8px;letter-spacing:.12em;color:var(--ink-soft);opacity:0;transform:translateX(-4px);transition:.25s;white-space:nowrap}
+.rail b:hover u{opacity:1;transform:none}
+@media (max-width:980px){.rail{display:none}}
+
+/* ============================================================
+   COVER
+   ============================================================ */
+.cover{max-width:1240px;margin:0 auto;width:100%;display:grid;grid-template-columns:1.04fr .96fr;gap:clamp(24px,4vw,56px);align-items:center}
+.cover__l{min-width:0}
+.cover__kick{display:flex;gap:18px;font-size:10px;letter-spacing:.2em;color:var(--navy-bright);margin-bottom:26px;flex-wrap:wrap}
+.cover__name{font-family:var(--disp);text-transform:uppercase;color:#fff;font-size:clamp(40px,6.6vw,96px);line-height:.92;letter-spacing:-.005em}
+.cover__name span{display:block}.cover__name .dot{color:var(--red)}
+.cover__sub{font-family:var(--serif);font-style:italic;font-weight:340;font-size:clamp(15px,1.7vw,20px);color:var(--navy-bright);margin:24px 0 14px;max-width:30ch}
+.cover__sub b{color:#fff;font-style:normal;font-weight:560}
+.cover__place{font-size:10px;letter-spacing:.18em;color:var(--navy-line)}
+.cover__place b{color:var(--navy-bright);font-weight:500}
+.cover__cue{font-size:10px;letter-spacing:.2em;color:var(--navy-line);margin-top:30px;animation:bob 2.6s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+
+/* boot timing */
+.b{opacity:0;animation:fadeup .8s cubic-bezier(.2,.7,.2,1) forwards}
+@keyframes fadeup{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.b1{animation-delay:.1s}.b2{animation-delay:.35s}.b3{animation-delay:.55s}.b4{animation-delay:.8s}.b5{animation-delay:1s}.b6{animation-delay:3.1s}
+.stamp{position:absolute;right:6.5%;top:10%;transform:rotate(-8deg);border:3px solid var(--red);color:var(--red);padding:9px 20px;font-weight:600;letter-spacing:.28em;font-size:13px;text-align:center;pointer-events:none;opacity:0;animation:slam .45s cubic-bezier(.2,1.6,.3,1) 2.5s forwards}
+.stamp small{display:block;font-size:8px;letter-spacing:.2em;margin-top:3px;font-weight:500}
+@keyframes slam{0%{opacity:0;transform:rotate(-8deg) scale(2)}70%{opacity:1;transform:rotate(-8deg) scale(.96)}100%{opacity:.9;transform:rotate(-8deg) scale(1)}}
+@media (prefers-reduced-motion:reduce){.b,.stamp{animation:none;opacity:1}.stamp{opacity:.9}.cover__cue{animation:none}}
+
+/* ---- closed-loop control diagram ---- */
+.loop{width:100%;height:auto;opacity:0;animation:fadein .7s ease .9s forwards}
+@keyframes fadein{to{opacity:1}}
+.loop .blk{fill:var(--navy-2);stroke:var(--navy-bright);stroke-width:1.4;opacity:0;animation:popblk .5s ease forwards}
+.loop .blk--act{fill:rgba(194,56,46,.16);stroke:var(--red);stroke-width:1.7}
+@keyframes popblk{from{opacity:0}to{opacity:1}}
+.loop .b-s{animation-delay:1.2s}.loop .b-d{animation-delay:1.9s}.loop .b-r{animation-delay:2.6s}
+.loop .blbl{font-family:var(--disp);fill:#fff;font-size:18px;letter-spacing:.03em}
+.loop .bsub{font-family:var(--mono);fill:var(--navy-bright);font-size:9.5px;letter-spacing:.13em}
+.loop .lbl-s{opacity:0;animation:fadein .4s ease 1.45s forwards}
+.loop .lbl-d{opacity:0;animation:fadein .4s ease 2.15s forwards}
+.loop .lbl-r{opacity:0;animation:fadein .4s ease 2.85s forwards}
+.loop .wire{fill:none;stroke:var(--navy-bright);stroke-width:1.7;stroke-linecap:round}
+.loop .fb{fill:none;stroke:var(--red);stroke-width:1.7;stroke-dasharray:6 4;stroke-linecap:round}
+.loop .w-anim{stroke-dasharray:1;stroke-dashoffset:1;animation:draw .55s ease forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.loop .w1{animation-delay:1.65s}.loop .w2{animation-delay:2.35s}
+.loop .cap{font-family:var(--mono);fill:var(--navy-line);font-size:9.5px;letter-spacing:.18em}
+.loop .capf{font-family:var(--mono);fill:var(--red);font-size:9.5px;letter-spacing:.16em;opacity:0;animation:fadein .5s ease 3.5s forwards}
+.loop .fb-path{opacity:0;animation:fadein .01s linear 3.0s forwards}
+.loop .fb-path .w-anim{animation:draw 1.1s ease 3.0s forwards}
+@media (prefers-reduced-motion:reduce){
+  .loop,.loop .blk,.loop [class^="lbl-"],.loop .capf,.loop .fb-path{opacity:1;animation:none}
+  .loop .w-anim{stroke-dashoffset:0;animation:none}
+}
+
+/* ============================================================
+   FLAGSHIP SHEETS
+   ============================================================ */
+.flag{max-width:1280px;margin:0 auto;width:100%;position:relative;display:grid;grid-template-columns:1fr 1.04fr;gap:clamp(30px,5vw,68px);align-items:center}
+.flag--flip .fmeta{order:2}
+.ghost{position:absolute;top:50%;transform:translateY(-50%);font-family:var(--disp);font-size:clamp(120px,18vw,250px);line-height:1;color:transparent;-webkit-text-stroke:1.4px rgba(74,82,96,.16);pointer-events:none;user-select:none;z-index:0;white-space:nowrap}
+.flag .ghost{right:-8px}.flag--flip .ghost{left:-8px;right:auto}
+
+.fmeta{position:relative;z-index:1;max-width:540px}
+.fmeta .fkick{font-size:10px;letter-spacing:.22em;color:var(--red);font-weight:600;margin-bottom:14px}
+.fmeta .fkick em{font-style:normal;color:var(--ink-soft);font-weight:500}
+.fmeta h2{font-family:var(--disp);text-transform:uppercase;font-size:clamp(26px,3.4vw,44px);line-height:1.02;margin-bottom:10px}
+.fmeta .role{font-size:10.5px;letter-spacing:.12em;color:var(--ink-soft);margin-bottom:20px;text-transform:uppercase}
+.fmeta .note{font-family:var(--serif);font-weight:380;font-size:clamp(15.5px,1.5vw,18.5px);line-height:1.62;color:#252b33;border-left:2px solid var(--red);padding-left:16px;margin-bottom:24px}
+.fmeta .open{display:inline-flex;align-items:center;gap:9px;text-decoration:none;font-size:10px;letter-spacing:.18em;font-weight:600;color:#fff;background:var(--red);padding:9px 15px;transition:transform .2s}
+.fmeta .open:hover{transform:translateX(4px)}
+.fmeta .open .a{transition:transform .2s}.fmeta .open:hover .a{transform:translateX(3px)}
+
+.fig{position:relative;z-index:1}
+.fig a{display:block;position:relative;border:1.25px solid var(--ink);background:#fff;text-decoration:none;box-shadow:13px 13px 0 rgba(21,25,30,.08);transition:transform .3s,box-shadow .3s}
+.fig a:hover{transform:translate(-3px,-3px);box-shadow:19px 19px 0 rgba(21,25,30,.1)}
+.fig img{display:block;width:100%;height:auto;max-height:60vh;object-fit:cover;filter:saturate(.94) contrast(1.03)}
+.fig a::after{content:"OPEN CASE FILE →";position:absolute;right:12px;top:12px;background:var(--red);color:#fff;font-size:9px;letter-spacing:.18em;font-weight:600;padding:5px 10px;opacity:0;transform:translateY(-4px);transition:.25s}
+.fig a:hover::after{opacity:1;transform:none}
+.fig figcaption{display:flex;justify-content:space-between;gap:12px;margin-top:9px;font-size:9.5px;letter-spacing:.13em;color:var(--ink-soft)}
+.fig figcaption b{color:var(--ink);font-weight:600}
+/* blueprint placeholder for the figure when no photo exists yet */
+.ph{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;height:46vh;min-height:300px;
+  background:
+   linear-gradient(rgba(61,90,128,.16) 1px,transparent 1px),
+   linear-gradient(90deg,rgba(61,90,128,.16) 1px,transparent 1px),
+   radial-gradient(120% 120% at 70% 10%,var(--navy-2),var(--navy) 70%);
+  background-size:34px 34px,34px 34px,100% 100%;color:var(--navy-bright);text-align:center;padding:24px}
+.ph svg{width:74px;height:74px;opacity:.85}
+.ph .pht{font-family:var(--disp);font-size:15px;letter-spacing:.04em;color:#fff;text-transform:uppercase}
+.ph .phs{font-size:9.5px;letter-spacing:.18em;color:var(--navy-line)}
+
+/* reveal */
+.rv{opacity:0;transform:translateY(18px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+.is-in .rv{opacity:1;transform:none}
+.is-in .rv:nth-child(2){transition-delay:.07s}.is-in .rv:nth-child(3){transition-delay:.14s}
+.is-in .rv:nth-child(4){transition-delay:.21s}.is-in .rv:nth-child(5){transition-delay:.28s}
+@media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}}
+
+/* ============================================================
+   INDEX
+   ============================================================ */
+.idx{max-width:1240px;margin:0 auto;width:100%}
+.idx h2,.contact h2{font-family:var(--disp);text-transform:uppercase;font-size:clamp(24px,3.3vw,42px);margin-bottom:8px}
+.idx .lead{font-family:var(--serif);font-weight:380;font-size:16px;color:var(--ink-soft);margin-bottom:26px;max-width:640px}
+table{border-collapse:collapse;width:100%;font-size:11.5px}
+th{font-size:9px;letter-spacing:.18em;color:var(--ink-soft);font-weight:500;text-align:left;border-bottom:1.5px solid var(--ink);padding:8px 10px}
+td{border-bottom:.5px solid rgba(170,178,188,.4);padding:9px 10px;vertical-align:middle}
+.idx tbody tr{cursor:pointer;transition:background .15s}
+.idx tbody tr:hover{background:rgba(194,56,46,.06)}
+.idx tbody tr:hover .go{color:var(--red);transform:translateX(4px)}
+td.no{color:var(--red);font-weight:600;white-space:nowrap;width:82px}
+td.ttl{font-weight:500}
+td .sc{color:#39404b}
+.go{display:inline-block;transition:transform .2s,color .2s;color:var(--rule)}
+.tagc{font-size:8.5px;letter-spacing:.1em;border:1px solid currentColor;padding:1px 6px;white-space:nowrap}
+.t-veh{color:var(--navy-line)}.t-aca{color:#8a5a14}.t-res{color:#1d7a4f}.t-per{color:var(--red)}
+.idx .legend{display:flex;flex-wrap:wrap;gap:18px;margin-top:20px;font-size:9px;letter-spacing:.14em;color:var(--ink-soft)}
+.idx .legend span{display:inline-flex;align-items:center;gap:6px}
+.flagmark{font-size:7.5px;letter-spacing:.12em;color:#fff;background:var(--red);padding:1px 5px;margin-left:8px;vertical-align:middle}
+
+/* ============================================================
+   CONTACT
+   ============================================================ */
+.contact{max-width:1100px;margin:0 auto;width:100%;position:relative}
+.contact .lead{font-family:var(--serif);font-weight:380;font-size:16px;color:var(--navy-bright);margin-bottom:26px;max-width:600px}
+.contact .mail{font-family:var(--disp);font-size:clamp(20px,3.9vw,50px);color:#fff;text-decoration:none;display:inline-block;line-height:1.15;word-break:break-all;border-bottom:3px solid var(--red);padding-bottom:6px}
+.contact .mail:hover{color:var(--navy-bright)}
+.sigtable{max-width:680px;margin:30px 0;font-size:11px}
+.sigtable th{border-color:var(--navy-line);color:var(--navy-bright)}
+.sigtable td{border-color:rgba(61,90,128,.5);padding:12px 10px;color:#dde7f3}
+.signame{font-family:var(--serif);font-style:italic;font-weight:480;font-size:19px;color:#fff;display:inline-block;transform:rotate(-2deg)}
+.pend{color:var(--navy-bright)}
+.contact .alt{font-size:11px;color:var(--navy-bright);margin-top:8px}
+.contact .alt a{color:#fff}.contact .alt a:hover{color:var(--red)}
+.contact .fine{font-size:9px;letter-spacing:.14em;color:var(--navy-line);margin-top:24px;text-transform:uppercase}
+.stamp--ok{right:9%;top:13%;animation-delay:.5s}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width:980px){
+  .cover{grid-template-columns:1fr;gap:30px}
+  .flag,.flag--flip{grid-template-columns:1fr;gap:26px}
+  .flag--flip .fmeta{order:0}
+  .ghost{display:none}.fig img{max-height:42vh}.fmeta{max-width:none}
+  .ph{height:auto;min-height:240px}
+}
+@media (max-width:860px){
+  :root{--frame:10px}
+  .sheet{padding:calc(var(--frame) + 26px) calc(var(--frame) + 18px) calc(var(--frame) + 66px)}
+  .strip{height:40px;font-size:8.5px}.strip .s-title,.strip .s-mail{display:none}.strip .s-name{flex:1}
+  .hud--nav{bottom:64px;right:12px}
+  .stamp{font-size:11px;padding:7px 14px;right:5%;top:8%}
+  th:nth-child(3),td:nth-child(3){display:none}
+}
+.sheet:has(.idx){justify-content:flex-start;padding-top:calc(var(--frame) + 46px)}
+@media (max-width:600px){
+  .hud--nav{bottom:14px;right:10px}
+}
+@media print{
+  .hud,.xh,.rail,.cover__cue{display:none!important}
+  .sheet{min-height:auto;height:96vh;page-break-after:always}
+  .rv,.b,.loop,.loop *{opacity:1!important;transform:none!important;animation:none!important}
+  .loop .w-anim{stroke-dashoffset:0!important}
+  .sheet--dark{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+
+<div class="xh xh--v" id="xhv"></div>
+<div class="xh xh--h" id="xhh"></div>
+<div class="hud hud--coord" aria-hidden="true"><span id="coords">X 0000.0&ensp;Y 0000.0</span><span style="color:var(--rule)">mm</span></div>
+<div class="hud hud--nav">
+  <button id="prevB" aria-label="Previous sheet">▲</button>
+  <span>SHT <span id="shtNow">01</span>/<span id="shtTot">08</span></span>
+  <button id="nextB" aria-label="Next sheet">▼</button>
+</div>
+<nav class="rail" id="rail" aria-label="Sheets"></nav>
+
+<main id="set"></main>
+
+<script>
+/* ================================================================
+   DATA
+   ================================================================ */
+const EMAIL="kambarmangibayev@gmail.com";
+const TODAY=new Date().toISOString().slice(0,10);
+
+/* Five flagship drawings, in order. img:null renders a blueprint placeholder. */
+const FLAGSHIPS=[
+ {dwg:"VEH-001",cls:"veh",org:"THE RAYMOND CORPORATION",scope:"SENSOR FUSION · STABILITY ENVELOPE",
+  title:"Performance Stability System",img:"assets/img/motor-study.jpg",cap:"DRIVE UNIT STUDY — SECTION VIEW",
+  href:"../work/performance-stability.html",
+  note:"Heavy vehicles handling shifting loads sit between two failures: the operator who can’t feel a problem coming, and the safety system so cautious it steals the performance they need. I built a control system that fuses sensor data to hold the stability envelope and catch load spillage before it starts. The hard part was finding the line that protects the load without pulling the vehicle out from under the operator when it’s safe to push."},
+ {dwg:"VEH-002",cls:"veh",org:"THE RAYMOND CORPORATION",scope:"MACHINE VISION · OBJECT DETECTION · BRAKING",
+  title:"Pedestrian Detection & Automated Braking",img:"assets/img/sens-plus-flyer.jpg",cap:"ENVIRONMENT SENSING — DETECTION FIELD",
+  href:"../work/sens-plus.html",
+  note:"A camera system that watches the space around the truck and tells people apart from objects, in real time, while the vehicle is moving. It escalates through three levels of operator warning by distance, then controls travel speed — slowing the truck automatically for pedestrians and obstacles. 130° field of view, ten-meter range, and a person who’d otherwise sit in a blind spot gets seen."},
+ {dwg:"VEH-006",cls:"veh",org:"THE RAYMOND CORPORATION",scope:"STRUCTURAL FEA · FIELD STRAIN VALIDATION",
+  title:"Structural Frame Redesign",img:null,cap:"FRAME GENERAL ARRANGEMENT — PHOTO PENDING",
+  href:"../work/structural-frame.html",
+  note:"A load-bearing frame redesigned around where the metal actually works — guided by finite-element analysis and checked against strain measured in the field, not just in the model. The aim was a lighter structure that survives real duty cycles instead of one tuned to look good in a sim. Simulation pointed the way; the field data decided what shipped."},
+ {dwg:"PER-001",cls:"per",org:"PERSONAL · SHOP BUILD",scope:"SELF-BUILT · STEEL FRAME + PRINTED PARTS",
+  title:"PrintNC — CNC Router Build",img:"assets/img/cnc-build.jpg",cap:"FRAME ASSEMBLY — 3RD-FLOOR APARTMENT",
+  href:"../projects/printnc-build.html",
+  note:"An industrial-grade CNC router I built on the third floor of an apartment — a steel frame for rigidity, with 3D-printed parts for precise alignment. Every dimension was a trade between what I could machine, carry up the stairs, and afford as a student. Do not tell my landlord."},
+ {dwg:"PER-002",cls:"per",org:"PERSONAL · SOFTWARE",scope:"PYTHON · TOOLPATHS FROM SCRATCH",
+  title:"3D Slicer & G-code Generator",img:"assets/img/slicer-stl-viewer.jpg",cap:"STL VIEWER — SLICING PIPELINE",
+  href:"../projects/slicer.html",
+  note:"I wrote my own slicer because the off-the-shelf ones won’t let you slice the way I want to. The interesting question — what happens when the layer planes aren’t horizontal — lives below their abstractions, so I built a smaller pipeline that exposes everything from STL to G-code. It loads a model, slices it layer by layer, and shows you exactly what it’s thinking before it writes a single line."}
+];
+
+/* All fifteen drawings for the index. */
+const TAGLABEL={veh:"RAYMOND",aca:"RIT",res:"RESEARCH",per:"PERSONAL"};
+const ALL=[
+ ["VEH-001","Performance Stability System","Sensor fusion · stability envelope","veh","../work/performance-stability.html",1],
+ ["VEH-002","Pedestrian Detection & Automated Braking","ML vision · regenerative braking","veh","../work/sens-plus.html",1],
+ ["VEH-003","Hydraulic Weight Sensing","Pressure transducers · DSP","veh","../work/hydraulic-weight-sensing.html",0],
+ ["VEH-004","Steer Differentiation System","Sensors · geometry refinement","veh","../work/steer-differentiation.html",0],
+ ["VEH-005","Interface Logic & Access Control","Safety architecture · operator UX","veh","../work/interface-logic.html",0],
+ ["VEH-006","Structural Frame Redesign","FEA · field strain validation","veh","../work/structural-frame.html",1],
+ ["ACA-003","Flight Dynamics Simulation","Simulink · MATLAB · quaternion model","aca","../projects/flight-dynamics.html",0],
+ ["ACA-004","Double Pendulum Experiment","Chaotic dynamics · model vs. rig","aca","../projects/double-pendulum.html",0],
+ ["ACA-005","Vacuum Cannon Experiment","Fluids · ballistics · 1.52 m barrel","aca","../projects/vacuum-cannon.html",0],
+ ["ACA-006","Saturn V Stage Coupling — FEA","Structural · launch-load contact","aca","../projects/saturn-v-fea.html",0],
+ ["RES-001","Investment Casting","AMPrint · AM · CFD · casting","res","../projects/investment-casting.html",0],
+ ["RES-002","Polymer Lithography Simulation","Molecular dynamics · LAMMPS cluster","res","../projects/polymer-lithography.html",0],
+ ["PER-001","PrintNC — CNC Router Build","Self-built · steel + printed","per","../projects/printnc-build.html",1],
+ ["PER-002","3D Slicer & G-code Generator","Python · toolpaths from scratch","per","../projects/slicer.html",1],
+ ["PER-003","3D Printing & Fabrication","AM · iterate fast, learn by building","per","../projects/printing.html",0]
+];
+const TOTAL=FLAGSHIPS.length+3; // cover + 5 flagships + index + contact = 8
+
+/* ================================================================
+   SCAFFOLD
+   ================================================================ */
+function strip(n,title){
+  return `<div class="strip">
+    <span class="s-name">KAMBAR MANGIBAYEV</span>
+    <span class="s-title">${title}</span>
+    <span class="s-mail"><a href="mailto:${EMAIL}">${EMAIL}</a></span>
+    <span class="s-no">SHT ${String(n).padStart(2,"0")} / ${String(TOTAL).padStart(2,"0")}</span>
+  </div>`;
+}
+const sheet=(n,id,title,cls,inner)=>`<section class="sheet ${cls}" id="${id}" data-n="${n}" data-title="${title}">${inner}${strip(n,title)}</section>`;
+
+/* ---- closed-loop control diagram (draws itself, no traveling dot) ---- */
+function buildLoop(){
+  // viewBox geometry
+  const cy=120, h=72, top=cy-h/2;
+  const S={x:36,w:150}, D={x:355,w:150}, R={x:674,w:150};
+  const Scx=S.x+S.w/2, Dcx=D.x+D.w/2, Rcx=R.x+R.w/2;
+  const fbY=250;                 // feedback rail height
+  const blk=(o,b)=>`<rect class="blk ${b}" x="${o.x}" y="${top}" width="${o.w}" height="${h}" rx="4"/>`;
+  return `<svg class="loop" viewBox="0 0 860 300" role="img" aria-label="Closed-loop control diagram: sense, decide, respond, with feedback">
+    <defs>
+      <marker id="ah" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto">
+        <path d="M0 0 L7 3 L0 6 Z" fill="var(--navy-bright)"/></marker>
+      <marker id="ahr" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto">
+        <path d="M0 0 L7 3 L0 6 Z" fill="var(--red)"/></marker>
+    </defs>
+
+    <!-- input -->
+    <line class="wire w-anim w1" x1="0" y1="${cy}" x2="${S.x-2}" y2="${cy}" pathLength="1" marker-end="url(#ah)"/>
+    <text class="cap" x="2" y="${cy-9}">SETPOINT</text>
+
+    <!-- forward wires -->
+    <line class="wire w-anim w1" x1="${S.x+S.w}" y1="${cy}" x2="${D.x-2}" y2="${cy}" pathLength="1" marker-end="url(#ah)"/>
+    <line class="wire w-anim w2" x1="${D.x+D.w}" y1="${cy}" x2="${R.x-2}" y2="${cy}" pathLength="1" marker-end="url(#ah)"/>
+    <line class="wire w-anim w2" x1="${R.x+R.w}" y1="${cy}" x2="858" y2="${cy}" pathLength="1" marker-end="url(#ah)"/>
+    <text class="cap" x="858" y="${cy-9}" text-anchor="end">OUTPUT</text>
+
+    <!-- blocks -->
+    ${blk(S,"b-s")}${blk(D,"b-d")}${blk(R,"b-r blk--act")}
+    <g class="lbl-s"><text class="blbl" x="${Scx}" y="${cy-2}" text-anchor="middle">SENSE</text>
+      <text class="bsub" x="${Scx}" y="${cy+16}" text-anchor="middle">SENSORS · FUSION</text></g>
+    <g class="lbl-d"><text class="blbl" x="${Dcx}" y="${cy-2}" text-anchor="middle">DECIDE</text>
+      <text class="bsub" x="${Dcx}" y="${cy+16}" text-anchor="middle">CONTROL LAW</text></g>
+    <g class="lbl-r"><text class="blbl" x="${Rcx}" y="${cy-2}" text-anchor="middle">RESPOND</text>
+      <text class="bsub" x="${Rcx}" y="${cy+16}" text-anchor="middle">ACTUATE</text></g>
+
+    <!-- feedback path: output → down → back → up into SENSE -->
+    <g class="fb-path">
+      <path class="fb w-anim" d="M${Rcx} ${top+h} L${Rcx} ${fbY} L${Scx} ${fbY} L${Scx} ${top+h}" pathLength="1" fill="none" marker-end="url(#ahr)"/>
+      <text class="capf" x="${(Rcx+Scx)/2}" y="${fbY+18}" text-anchor="middle">FEEDBACK — MEASURE, COMPARE, CORRECT</text>
+    </g>
+  </svg>`;
+}
+
+/* ---- cover ---- */
+const coverHTML=`
+  <div class="stamp">RELEASED<small>FOR REVIEW · ${TODAY}</small></div>
+  <div class="cover">
+    <div class="cover__l">
+      <div class="cover__kick b b1"><span>DRAWING SET KM-26 · REV D</span><span>${TOTAL} SHEETS · 60 SECONDS</span></div>
+      <h1 class="cover__name"><span class="b b2">Kambar</span><span class="b b3">Mangibayev<em class="dot">.</em></span></h1>
+      <p class="cover__sub b b4">Mechanical systems engineer — vehicle controls. I build systems that <b>sense</b>, <b>decide</b>, and <b>respond</b> in the real world.</p>
+      <div class="cover__place b b5">BORN IN <b>SEMEY, KAZAKHSTAN</b> · BUILDING THINGS IN <b>ROCHESTER, NY</b></div>
+      <div class="cover__cue b b6">▼ FIVE FLAGSHIP DRAWINGS — THEN THE FULL INDEX</div>
+    </div>
+    <div class="cover__r">${buildLoop()}</div>
+  </div>`;
+
+/* ---- flagship sheet ---- */
+function flagHTML(f,i){
+  const fig = f.img
+    ? `<a href="${f.href}" aria-label="Open case file: ${f.title}">
+         <img src="${f.img}" alt="${f.title}" loading="lazy"/>
+       </a>`
+    : `<a href="${f.href}" aria-label="Open case file: ${f.title}">
+         <div class="ph">
+           <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+             <path d="M8 56 V20 L24 8 H56 V56 Z"/><path d="M24 8 V20 H8"/>
+             <path d="M20 30 H44 M20 38 H44 M20 46 H36"/></svg>
+           <div class="pht">Frame drawing</div>
+           <div class="phs">PHOTO PENDING · OPEN CASE FILE →</div>
+         </div>
+       </a>`;
+  return `<div class="flag ${i%2?"flag--flip":""}">
+    <div class="ghost">${String(i+1).padStart(2,"0")}</div>
+    <div class="fmeta">
+      <div class="fkick rv">DRAWING ${f.dwg} <em>/ FLAGSHIP ${i+1} OF ${FLAGSHIPS.length} · ${TAGLABEL[f.cls]}</em></div>
+      <h2 class="rv">${f.title}</h2>
+      <div class="role rv">${f.org} · ${f.scope}</div>
+      <p class="note rv">${f.note}</p>
+      <a class="open rv" href="${f.href}">OPEN CASE FILE <span class="a">→</span></a>
+    </div>
+    <figure class="fig rv">
+      ${fig}
+      <figcaption><span><b>FIG. ${String(i+1).padStart(2,"0")}</b> — ${f.cap}</span><span class="dimtxt">W = — mm</span></figcaption>
+    </figure>
+  </div>`;
+}
+
+/* ---- index ---- */
+const idxRows=ALL.map(r=>`
+  <tr data-href="${r[4]}">
+    <td class="no">${r[0]}</td>
+    <td class="ttl">${r[1]}${r[5]?'<span class="flagmark">FLAGSHIP</span>':''}</td>
+    <td class="sc">${r[2]}</td>
+    <td><span class="tagc t-${r[3]}">${TAGLABEL[r[3]]}</span></td>
+    <td><span class="go">→</span></td>
+  </tr>`).join("");
+const idxHTML=`<div class="idx">
+  <h2 class="rv">Full drawing index</h2>
+  <p class="lead rv">Fifteen drawings, one sheet. The five flagships up front are the best of it; the rest is here in full. Every row opens a complete case study — figures, methods, and what actually happened.</p>
+  <div class="rv" style="overflow-x:auto">
+  <table>
+    <thead><tr><th>DWG NO.</th><th>TITLE</th><th>SCOPE</th><th>GROUP</th><th></th></tr></thead>
+    <tbody>${idxRows}</tbody>
+  </table>
+  </div>
+  <div class="legend rv">
+    <span><i class="tagc t-veh">RAYMOND</i> Shipping vehicle systems &amp; controls</span>
+    <span><i class="tagc t-aca">RIT</i> Degree projects, controls concentration</span>
+    <span><i class="tagc t-res">RESEARCH</i> AMPrint Center · additive &amp; lithography</span>
+    <span><i class="tagc t-per">PERSONAL</i> Built off the clock</span>
+  </div>
+</div>`;
+
+/* ---- contact ---- */
+const contactHTML=`
+  <div class="stamp stamp--ok">APPROVAL<small>PENDING REVIEWER</small></div>
+  <div class="contact">
+    <h2 class="rv">Let’s talk</h2>
+    <p class="lead rv">Drawn and checked by me. The third signature line is deliberately blank — that one’s yours. If any of these drawings made you want to dig in, the fastest way in is a reply.</p>
+    <table class="sigtable rv">
+      <thead><tr><th>FUNCTION</th><th>NAME</th><th>SIGNATURE</th><th>DATE</th></tr></thead>
+      <tbody>
+        <tr><td>DRAWN</td><td>KAMBAR MANGIBAYEV</td><td><span class="signame">K. Mangibayev</span></td><td>${TODAY}</td></tr>
+        <tr><td>CHECKED</td><td>KAMBAR MANGIBAYEV</td><td><span class="signame">K. M.</span></td><td>${TODAY}</td></tr>
+        <tr><td>APPROVED</td><td class="pend">YOUR NAME HERE</td><td class="pend">— pending review —</td><td class="pend">—</td></tr>
+      </tbody>
+    </table>
+    <div class="rv"><a class="mail" href="mailto:${EMAIL}">${EMAIL}</a></div>
+    <div class="alt rv">ALTERNATE VIEW: <a href="index.html">EDITORIAL INDEX</a> · PRINTS AS A REAL DRAWING PACKAGE — TRY CTRL+P</div>
+    <p class="fine rv">Reproduction of this document is encouraged. It’s a portfolio. · © 2026 Kambar Mangibayev</p>
+  </div>`;
+
+/* ================================================================
+   ASSEMBLE
+   ================================================================ */
+let html=sheet(1,"sht-01","COVER — GENERAL ARRANGEMENT","sheet--dark",coverHTML);
+FLAGSHIPS.forEach((f,i)=>{html+=sheet(i+2,`sht-${String(i+2).padStart(2,"0")}`,f.title.toUpperCase(),"sheet--paper",flagHTML(f,i));});
+html+=sheet(TOTAL-1,`sht-${String(TOTAL-1).padStart(2,"0")}`,"FULL DRAWING INDEX","sheet--paper",idxHTML);
+html+=sheet(TOTAL,`sht-${String(TOTAL).padStart(2,"0")}`,"APPROVALS & CONTACT","sheet--dark",contactHTML);
+document.getElementById("set").innerHTML=html;
+document.getElementById("shtTot").textContent=String(TOTAL).padStart(2,"0");
+
+/* ================================================================
+   BEHAVIOR
+   ================================================================ */
+const sheets=[...document.querySelectorAll(".sheet")];
+const rail=document.getElementById("rail");
+sheets.forEach(s=>{
+  const b=document.createElement("b");
+  b.innerHTML=`<i></i><u>${s.dataset.title}</u>`;
+  b.onclick=()=>s.scrollIntoView({behavior:"smooth"});
+  rail.appendChild(b);
+});
+const dots=[...rail.children];
+const io=new IntersectionObserver(es=>{es.forEach(e=>{
+  if(e.isIntersecting){
+    e.target.classList.add("is-in");
+    const n=+e.target.dataset.n;
+    document.getElementById("shtNow").textContent=String(n).padStart(2,"0");
+    dots.forEach((d,i)=>d.classList.toggle("on",i===n-1));
+  }
+});},{threshold:.4});
+sheets.forEach(s=>io.observe(s));
+
+function currentIdx(){const y=scrollY+innerHeight/2;let b=0,bd=1e12;sheets.forEach((s,i)=>{const d=Math.abs(s.offsetTop+s.offsetHeight/2-y);if(d<bd){bd=d;b=i;}});return b;}
+const go=i=>sheets[Math.max(0,Math.min(sheets.length-1,i))].scrollIntoView({behavior:"smooth"});
+document.getElementById("prevB").onclick=()=>go(currentIdx()-1);
+document.getElementById("nextB").onclick=()=>go(currentIdx()+1);
+addEventListener("keydown",e=>{if(e.key==="PageDown"){e.preventDefault();go(currentIdx()+1);}if(e.key==="PageUp"){e.preventDefault();go(currentIdx()-1);}});
+document.querySelectorAll("tr[data-href]").forEach(tr=>tr.addEventListener("click",()=>location.href=tr.dataset.href));
+
+const xv=document.getElementById("xhv"),xh=document.getElementById("xhh"),co=document.getElementById("coords"),PX2MM=25.4/96;
+addEventListener("mousemove",e=>{xv.style.left=e.clientX+"px";xh.style.top=e.clientY+"px";
+  co.textContent=`X ${(e.clientX*PX2MM).toFixed(1).padStart(6,"0")}  Y ${((innerHeight-e.clientY)*PX2MM).toFixed(1).padStart(6,"0")}`;},{passive:true});
+const ro=new ResizeObserver(es=>es.forEach(e=>{const t=e.target.closest(".fig")?.querySelector(".dimtxt");if(t)t.textContent="W = "+(e.contentRect.width*PX2MM).toFixed(1)+" mm";}));
+document.querySelectorAll(".fig a").forEach(f=>ro.observe(f));
+if(location.hash){document.querySelector(location.hash)?.scrollIntoView();}
+</script>
+</body>
+</html>

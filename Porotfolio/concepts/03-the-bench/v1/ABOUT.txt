@@ -1,0 +1,126 @@
+CONCEPT 03 — "THE BENCH / WORKSHOP"
+v1 — single self-contained index.html
+Kambar Mangibayev · Mechanical Systems Engineer · Controls
+
+==================================================================
+THE IDEA
+==================================================================
+One lamp-lit workbench in a dark room. Every object on the bench
+IS a project. You don't read a portfolio — you wander into the
+space of someone who genuinely makes things, and you pick objects
+up. The quiet through-line is the controls loop: SENSE → DECIDE →
+RESPOND, used as narration rather than jargon.
+
+Warmer than a pure-tech dark theme: a desk-lamp amber/honey glow
+(#ffcf8a) pools over a near-black room (#0b0c0e), with a single
+cool mint accent (#5ee6a8) reserved for interactive cues and for
+the "respond" climax (the Raymond reach-truck).
+
+==================================================================
+THE FLOW (4 acts)
+==================================================================
+ACT 1 — THE ROOM (landing)
+  Wide dark workshop rendered in SVG; a desk lamp pools warm light
+  over a far bench. Name + one line: "Mechanical & controls
+  engineer. Everything here, I built." A "Come closer" cue.
+  Scrolling drives ONE continuous camera push-in (scale/pan via
+  GSAP ScrollTrigger scrub) toward the bench — no hard cut. The
+  headline copy fades as the camera moves in.
+
+ACT 2 — THE BENCH (the menu)
+  The lamp-lit desk fills the view. Eight objects are spaced on it;
+  the objects ARE the navigation — no cards, no menus. Hover (or
+  keyboard focus) lifts an object into a warm glow pool and reveals
+  a tiny mono label. "Pick something up."
+
+ACT 3 — PICK IT UP (per project)
+  Click an object → the others slide + fade into the dark, the
+  chosen object scales toward center, then a full-screen detail
+  overlay opens: a clean line-art render of the object on the left
+  (re-drawn larger), and a story panel on the right. Each panel
+  follows the loop: The problem → My role → The loop (sense/decide/
+  respond) → What it taught me → Tools → "A detail." Navigation:
+  "← Back to the bench" and "Next →" (also ArrowRight / Esc).
+
+ACT 4 — LIGHTS ON (close)
+  Contact / resume card. "The bench is always open." Email · phone
+  · resume, plus location/origin line.
+
+Education + origin (Semey, Kazakhstan → US 2016 → RIT, controls
+concentration, number-one hobby is engineering) lives as Act-1 /
+Act-4 narration, NOT as an object — as specified.
+
+==================================================================
+OBJECTS → PROJECTS (left to right / front to back)
+==================================================================
+  Aluminum bracket in a bench vise ...... PrintNC CNC
+  Open laptop (CAD/code on screen) ...... Python Slicer & G-code
+                                          (research folds in here)
+  3D-printed layered L-bracket .......... 3D Printing
+  Desktop double-pendulum rig ........... Double Pendulum
+  Clear tube + ping-pong balls .......... Vacuum Cannon
+  Model aircraft on a stand ............. Flight Dynamics
+  Model rocket w/ glowing nozzle ........ Saturn V F-1 Nozzle FEA
+  Toy reach-truck/forklift (mint) ....... Raymond Corporation
+                                          *** FEATURED / climax ***
+
+The Raymond reach-truck is rendered in the mint accent, carries a
+pulsing "sense" ring + a sensing cone, is tagged FEATURED on the
+bench, and is the final item in the Next-cycle — the "respond"
+climax where the whole sense→decide→respond thesis becomes a real
+multi-ton machine stopping near a person.
+
+==================================================================
+HOW THE VISUALS ARE MADE
+==================================================================
+No photos, no external images, no 3D. The room, the bench, the
+lamp, and every object are hand-built inline SVG — refined
+technical line illustration with warm radial "lamp pool"
+gradients, brushed-metal/aluminum linear gradients, and a film
+grain + vignette overlay for cinema feel. Each object is a separate
+hoverable / focusable / clickable SVG <g> group. Detail-overlay art
+is a second, larger set of line drawings (one per project).
+
+==================================================================
+TECH
+==================================================================
+- ONE self-contained file. External deps: Google Fonts
+  (Space Grotesk display, JetBrains Mono mono) and GSAP 3.12.5 +
+  ScrollTrigger from cdnjs. Everything else inline.
+- Inline JS verified to parse with `node --check` — no syntax
+  errors. All 8 object keys match the PROJECTS data + ORDER array.
+  SVG/section tags balanced.
+
+==================================================================
+ACCESSIBILITY & RESPONSIVE
+==================================================================
+- prefers-reduced-motion: camera push, ambient sway, and the
+  "pick it up" choreography are all disabled; the SVG bench is
+  hidden and replaced by a clean responsive grid of buttons that
+  open the EXACT same detail panels.
+- Mobile (<=760px): the SVG bench is swapped for the same tap list;
+  detail overlay restacks to art-over-panel; nav buttons move to a
+  thumb-reachable bottom bar.
+- Objects are real buttons: tabindex, role="button", Enter/Space
+  activation, visible focus styling, focus returned on close.
+- Detail overlay is role="dialog" aria-modal; Esc closes,
+  ArrowRight advances, click-on-backdrop closes; body scroll locks.
+- Left side-rail tracks the active act (ScrollTrigger, with an
+  IntersectionObserver fallback when motion is reduced).
+
+==================================================================
+CONTENT NOTES
+==================================================================
+All copy is real and project-specific — no lorem, no fabricated
+metrics. Only the figures given in the brief are used (1.52 m
+barrel, 9 aircraft, 7.5M lb thrust, 2024–present). Personal
+touches kept per brief: the MagSafe stand for his wife, and the
+"don't tell my landlord" line on the CNC.
+
+Name: Kambar Mangibayev
+Title: Mechanical Systems Engineer · Controls
+Location: Rochester, NY · Born Semey, Kazakhstan
+Email: kambarmangibayev@gmail.com
+Phone: +1 585-309-9467
+Thesis: "I build systems that sense, decide, and respond in the
+         real world."

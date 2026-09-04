@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kambar Mangibayev — Mechanical Systems &amp; Controls Engineer</title>
+<meta name="description" content="An editorial portfolio for Kambar Mangibayev — a mechanical systems and controls engineer who builds systems that sense, decide, and respond in the real world." />
+
+<!-- Variable display grotesk (weight + width axes) + fine mono -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght,wdth@8..144,100..1000,25..151&family=JetBrains+Mono:wght@400;500;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet" />
+
+<style>
+/* ============================================================
+   EDITORIAL KINETIC — Concept 05
+   Near-black premium magazine. One accent: scope green.
+   ============================================================ */
+
+:root{
+  --bg:        #0a0b0d;
+  --bg-2:      #0d0f12;
+  --ink:       #eef2f6;
+  --ink-soft:  #9aa3ac;
+  --ink-faint: #5a626b;
+  --line:      #232830;
+  --line-soft: #161a1f;
+  --accent:    #5ee6a8;       /* scope green */
+  --accent-dim:#2f6f56;
+
+  --serif: "Newsreader", Georgia, "Times New Roman", serif;
+  --grotesk: "Roboto Flex", system-ui, -apple-system, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --maxw: 1340px;
+  --gutter: clamp(20px, 5vw, 96px);
+
+  --ease: cubic-bezier(.16,1,.3,1);
+}
+
+*,*::before,*::after{ box-sizing:border-box; }
+
+html{
+  -webkit-text-size-adjust:100%;
+  scroll-behavior:auto;
+}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--grotesk);
+  font-weight:380;
+  font-optical-sizing:auto;
+  line-height:1.5;
+  letter-spacing:.005em;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+
+/* When Lenis is active, let it drive scroll */
+html.lenis,html.lenis body{ height:auto; }
+.lenis.lenis-smooth{ scroll-behavior:auto !important; }
+.lenis.lenis-stopped{ overflow:hidden; }
+
+img,svg{ display:block; max-width:100%; }
+a{ color:inherit; text-decoration:none; }
+
+::selection{ background:var(--accent); color:#04150d; }
+
+/* ---------- FILM GRAIN ---------- */
+.grain{
+  position:fixed; inset:-120% ;
+  z-index:9000; pointer-events:none;
+  opacity:.05; mix-blend-mode:screen;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  background-size:200px 200px;
+  animation:grainshift 7s steps(6) infinite;
+  will-change:transform;
+}
+@keyframes grainshift{
+  0%{transform:translate(0,0)} 16%{transform:translate(-4%,2%)}
+  33%{transform:translate(3%,-3%)} 50%{transform:translate(-2%,4%)}
+  66%{transform:translate(4%,1%)} 83%{transform:translate(-3%,-2%)}
+  100%{transform:translate(0,0)}
+}
+/* subtle vignette to lift the centre */
+.vignette{
+  position:fixed; inset:0; z-index:8990; pointer-events:none;
+  background:radial-gradient(130% 120% at 50% 30%, transparent 55%, rgba(0,0,0,.55) 100%);
+}
+
+/* ---------- LAYOUT HELPERS ---------- */
+.wrap{ max-width:var(--maxw); margin:0 auto; padding:0 var(--gutter); }
+.section{ position:relative; }
+.divider{ height:1px; background:var(--line); margin:0 var(--gutter); }
+
+.mono{ font-family:var(--mono); font-weight:400; letter-spacing:.14em; text-transform:uppercase; font-size:.72rem; }
+.mono-sm{ font-family:var(--mono); font-weight:400; letter-spacing:.18em; text-transform:uppercase; font-size:.66rem; color:var(--ink-faint); }
+.tag{ color:var(--accent); }
+
+.eyebrow{
+  font-family:var(--mono); font-size:.7rem; letter-spacing:.32em;
+  text-transform:uppercase; color:var(--ink-soft);
+  display:flex; align-items:center; gap:.9em;
+}
+.eyebrow::before{ content:""; width:34px; height:1px; background:var(--accent); display:inline-block; }
+
+/* ---------- TOP NAV / MASTHEAD ---------- */
+.masthead{
+  position:fixed; top:0; left:0; right:0; z-index:8000;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:18px var(--gutter);
+  mix-blend-mode:difference; color:#fff;
+  font-family:var(--mono); font-size:.7rem; letter-spacing:.2em; text-transform:uppercase;
+}
+.masthead .m-name{ font-weight:700; letter-spacing:.16em; }
+.masthead nav{ display:flex; gap:clamp(14px,2.4vw,34px); }
+.masthead nav a{ position:relative; color:#fff; opacity:.78; transition:opacity .4s var(--ease); }
+.masthead nav a:hover{ opacity:1; }
+.masthead .m-folio{ opacity:.55; }
+@media(max-width:760px){
+  .masthead nav{ display:none; }
+}
+
+/* progress hairline */
+.scroll-progress{
+  position:fixed; top:0; left:0; height:2px; width:0%;
+  background:var(--accent); z-index:8100;
+  box-shadow:0 0 14px rgba(94,230,168,.7);
+}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero{
+  min-height:100vh; min-height:100svh;
+  display:flex; flex-direction:column; justify-content:center;
+  padding:120px var(--gutter) 60px;
+  position:relative; overflow:hidden;
+}
+.hero-issue{
+  position:absolute; top:96px; left:var(--gutter); right:var(--gutter);
+  display:flex; justify-content:space-between;
+  font-family:var(--mono); font-size:.68rem; letter-spacing:.22em;
+  text-transform:uppercase; color:var(--ink-faint);
+}
+.hero-head{
+  font-family:var(--grotesk);
+  font-weight:780;
+  line-height:.86;
+  letter-spacing:-.03em;
+  margin:0;
+  font-size:clamp(3.4rem, 15.5vw, 16rem);
+  text-transform:uppercase;
+}
+.hero-head .word{
+  display:block;
+  font-variation-settings:"wght" 760, "wdth" 100, "opsz" 144;
+  will-change:font-variation-settings, transform, opacity;
+}
+.hero-head .word .amp{ color:var(--ink-faint); }
+.hero-head .word.w-respond{ color:var(--accent); }
+
+.hero-sub{
+  margin-top:clamp(28px,5vw,58px);
+  display:flex; flex-wrap:wrap; gap:6px clamp(20px,4vw,56px);
+  align-items:baseline;
+}
+.hero-sub .role{
+  font-family:var(--mono); font-size:.78rem; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--ink-soft);
+}
+.hero-sub .role b{ color:var(--ink); font-weight:500; }
+.hero-thesis{
+  margin-top:clamp(34px,5vw,46px);
+  max-width:46ch;
+  font-family:var(--serif);
+  font-size:clamp(1.15rem,2.3vw,1.6rem);
+  line-height:1.4; color:var(--ink-soft);
+  font-weight:400;
+}
+.hero-thesis b{ color:var(--ink); font-weight:500; font-style:italic; }
+
+.hero-scroll{
+  position:absolute; bottom:30px; left:50%; transform:translateX(-50%);
+  font-family:var(--mono); font-size:.62rem; letter-spacing:.3em;
+  text-transform:uppercase; color:var(--ink-faint);
+  display:flex; flex-direction:column; align-items:center; gap:10px;
+}
+.hero-scroll .bar{ width:1px; height:40px; background:linear-gradient(var(--accent),transparent); animation:dropline 2.4s var(--ease) infinite; }
+@keyframes dropline{ 0%{transform:scaleY(0);transform-origin:top} 40%{transform:scaleY(1);transform-origin:top} 60%{transform:scaleY(1);transform-origin:bottom} 100%{transform:scaleY(0);transform-origin:bottom} }
+
+/* ============================================================
+   ABOUT — pull-quote spread
+   ============================================================ */
+.about{ padding:clamp(90px,14vh,180px) 0; }
+.about-grid{
+  display:grid; grid-template-columns:1.05fr .95fr;
+  gap:clamp(40px,7vw,110px); align-items:start;
+}
+.pullquote{
+  font-family:var(--grotesk);
+  font-weight:560; line-height:.98; letter-spacing:-.025em;
+  font-size:clamp(2.4rem,6.4vw,6rem);
+  margin:0;
+}
+.pullquote .lo{ color:var(--ink-faint); font-weight:380; }
+.pullquote em{ color:var(--accent); font-style:normal; font-variation-settings:"wght" 600,"wdth" 75; }
+.pullquote-mark{
+  font-family:var(--serif); color:var(--accent);
+  font-size:clamp(4rem,10vw,9rem); line-height:.6; display:block; height:.5em;
+  opacity:.85;
+}
+.about-body{ max-width:46ch; }
+.about-body .lead{
+  font-family:var(--serif); font-size:clamp(1.12rem,1.7vw,1.32rem);
+  line-height:1.55; color:var(--ink); font-weight:400;
+}
+.about-body p{
+  font-size:clamp(.98rem,1.2vw,1.04rem); line-height:1.7; color:var(--ink-soft);
+  margin:1.2em 0;
+}
+.about-body p b{ color:var(--ink); font-weight:500; }
+
+.stats{
+  margin-top:clamp(60px,9vw,120px);
+  display:grid; grid-template-columns:repeat(4,1fr);
+  gap:clamp(20px,3vw,40px);
+  border-top:1px solid var(--line); padding-top:clamp(34px,5vw,54px);
+}
+.stat .num{
+  font-family:var(--grotesk); font-weight:760; line-height:.9;
+  font-size:clamp(2.6rem,6.5vw,5.4rem); letter-spacing:-.04em;
+  font-variation-settings:"wght" 760,"wdth" 110,"opsz" 144;
+  color:var(--ink);
+}
+.stat .num .suffix{ color:var(--accent); }
+.stat .lbl{ margin-top:14px; font-family:var(--mono); font-size:.66rem; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); line-height:1.5; }
+@media(max-width:900px){
+  .about-grid{ grid-template-columns:1fr; gap:48px; }
+  .stats{ grid-template-columns:repeat(2,1fr); row-gap:44px; }
+}
+@media(max-width:480px){
+  .stats{ grid-template-columns:1fr 1fr; }
+}
+
+/* ============================================================
+   WORK INDEX — typographic TOC
+   ============================================================ */
+.index{ padding:clamp(80px,12vh,160px) 0; }
+.index-head{
+  display:flex; justify-content:space-between; align-items:flex-end;
+  margin-bottom:clamp(30px,5vw,60px); gap:20px; flex-wrap:wrap;
+}
+.index-head h2{
+  font-family:var(--grotesk); font-weight:700; margin:0;
+  font-size:clamp(1.4rem,3vw,2.2rem); letter-spacing:-.02em; text-transform:uppercase;
+}
+.toc-list{ list-style:none; margin:0; padding:0; border-top:1px solid var(--line); }
+.toc-item{ border-bottom:1px solid var(--line); position:relative; }
+.toc-link{
+  display:grid;
+  grid-template-columns:54px 1fr auto;
+  align-items:center; gap:clamp(14px,3vw,40px);
+  padding:clamp(18px,2.6vw,30px) 0;
+  position:relative;
+}
+.toc-num{ font-family:var(--mono); font-size:.74rem; color:var(--ink-faint); letter-spacing:.12em; }
+.toc-title{
+  font-family:var(--grotesk); font-weight:520; line-height:1;
+  font-size:clamp(1.5rem,5.2vw,4rem); letter-spacing:-.02em;
+  color:var(--ink); text-transform:uppercase;
+  font-variation-settings:"wght" 520,"wdth" 100,"opsz" 144;
+  transition:font-variation-settings .55s var(--ease), color .4s var(--ease);
+}
+.toc-domain{ font-family:var(--mono); font-size:.66rem; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft); white-space:nowrap; }
+.toc-rule{
+  position:absolute; left:0; bottom:-1px; height:1px; width:0%;
+  background:var(--accent); transition:width .6s var(--ease);
+}
+.toc-link:hover .toc-title{ font-variation-settings:"wght" 760,"wdth" 130,"opsz" 144; color:var(--accent); }
+.toc-link:hover .toc-rule{ width:100%; }
+.toc-link:hover .toc-domain{ color:var(--ink); }
+.toc-link:hover .toc-num{ color:var(--accent); }
+@media(max-width:640px){
+  .toc-link{ grid-template-columns:1fr; gap:8px; padding:18px 0; }
+  .toc-num{ order:0; }
+  .toc-domain{ order:2; }
+}
+
+/* ============================================================
+   PROJECT FEATURES
+   ============================================================ */
+.feature{ padding:clamp(70px,11vh,150px) 0; border-top:1px solid var(--line-soft); }
+.feature-titlepage{
+  min-height:62vh; display:flex; flex-direction:column; justify-content:center;
+  padding:clamp(30px,7vh,90px) 0 clamp(20px,4vh,50px);
+}
+.feature-meta{
+  display:flex; gap:24px; flex-wrap:wrap; align-items:center;
+  margin-bottom:clamp(20px,3vw,34px);
+}
+.feature-folio{ font-family:var(--mono); font-size:.7rem; letter-spacing:.22em; color:var(--ink-faint); text-transform:uppercase; }
+.feature-domain{ font-family:var(--mono); font-size:.7rem; letter-spacing:.2em; color:var(--accent); text-transform:uppercase; }
+.feature-name{
+  font-family:var(--grotesk); font-weight:740; margin:0; line-height:.9;
+  font-size:clamp(2.6rem,9.5vw,8.2rem); letter-spacing:-.035em; text-transform:uppercase;
+  font-variation-settings:"wght" 740,"wdth" 105,"opsz" 144;
+}
+.feature-dek{
+  margin-top:clamp(22px,3vw,34px); max-width:34ch;
+  font-family:var(--serif); font-size:clamp(1.1rem,2.1vw,1.55rem);
+  line-height:1.4; color:var(--ink-soft); font-weight:400;
+}
+.feature-dek b{ color:var(--ink); font-weight:500; font-style:italic; }
+
+/* body blocks within a feature */
+.feature-body{
+  display:grid; grid-template-columns:170px 1fr;
+  gap:clamp(20px,4vw,70px);
+  padding:clamp(36px,5vw,64px) 0;
+  border-top:1px solid var(--line);
+}
+.fb-label{ font-family:var(--mono); font-size:.68rem; letter-spacing:.2em; text-transform:uppercase; color:var(--accent); padding-top:.4em; }
+.fb-content{ max-width:62ch; }
+.fb-content p{ font-size:clamp(1rem,1.35vw,1.12rem); line-height:1.72; color:var(--ink-soft); margin:0 0 1.1em; }
+.fb-content p:last-child{ margin-bottom:0; }
+.fb-content p b{ color:var(--ink); font-weight:500; }
+.fb-content .big{
+  font-family:var(--serif); font-size:clamp(1.2rem,2vw,1.55rem);
+  line-height:1.5; color:var(--ink); font-weight:400;
+}
+@media(max-width:760px){
+  .feature-body{ grid-template-columns:1fr; gap:14px; }
+  .fb-label{ padding-top:0; }
+}
+
+/* loop diagram block */
+.loop-block{ padding:clamp(40px,6vw,80px) 0; border-top:1px solid var(--line); }
+.loop-diagram{ width:100%; height:auto; }
+.loop-diagram .draw{
+  fill:none; stroke:var(--accent); stroke-width:1.5;
+  stroke-linecap:round; stroke-linejoin:round;
+}
+.loop-diagram .axis{ stroke:var(--line); stroke-width:1; }
+.loop-diagram .node{ fill:var(--bg-2); stroke:var(--ink-faint); stroke-width:1; }
+.loop-diagram .nodelabel{ fill:var(--ink); font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; }
+.loop-diagram .sublabel{ fill:var(--ink-soft); font-family:var(--mono); font-size:8.5px; letter-spacing:.1em; }
+.loop-diagram .flow{ fill:none; stroke:var(--accent); stroke-width:1.5; }
+.loop-diagram .arrow{ fill:var(--accent); }
+.loop-diagram .pulse{ fill:var(--accent); }
+.loop-caption{ margin-top:22px; font-family:var(--mono); font-size:.66rem; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-faint); }
+
+/* results callouts */
+.results{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:clamp(20px,3vw,48px);
+  padding:clamp(40px,6vw,72px) 0;
+  border-top:1px solid var(--line);
+}
+.result .rn{
+  font-family:var(--grotesk); font-weight:760; line-height:.86;
+  font-size:clamp(2.6rem,6vw,5rem); letter-spacing:-.04em;
+  font-variation-settings:"wght" 760,"wdth" 105,"opsz" 144; color:var(--ink);
+}
+.result .rn .u{ color:var(--accent); }
+.result .rl{ margin-top:14px; font-family:var(--mono); font-size:.66rem; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); line-height:1.55; max-width:24ch; }
+
+/* colophon / stack */
+.colophon{
+  display:flex; flex-wrap:wrap; gap:12px 30px; align-items:center;
+  padding:clamp(26px,3vw,40px) 0; border-top:1px solid var(--line);
+}
+.colophon .ck{ font-family:var(--mono); font-size:.66rem; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-faint); }
+.colophon .chip{
+  font-family:var(--mono); font-size:.68rem; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--ink-soft); border:1px solid var(--line); padding:7px 13px; border-radius:100px;
+}
+
+/* ============================================================
+   CONTACT / BACK COVER
+   ============================================================ */
+.contact{
+  min-height:100vh; min-height:100svh;
+  display:flex; flex-direction:column; justify-content:center;
+  padding:clamp(90px,14vh,160px) var(--gutter) clamp(50px,8vh,90px);
+  border-top:1px solid var(--line);
+  position:relative;
+}
+.contact .eyebrow{ margin-bottom:clamp(24px,4vw,40px); }
+.contact-head{
+  font-family:var(--grotesk); font-weight:760; margin:0; line-height:.88;
+  font-size:clamp(3rem,12.5vw,12.5rem); letter-spacing:-.04em; text-transform:uppercase;
+  font-variation-settings:"wght" 760,"wdth" 110,"opsz" 144;
+}
+.contact-head .ln2{ color:var(--accent); }
+.contact-email{
+  display:inline-block; margin-top:clamp(36px,6vw,70px);
+  font-family:var(--grotesk); font-weight:480;
+  font-size:clamp(1.4rem,5.5vw,4rem); letter-spacing:-.02em;
+  color:var(--ink); position:relative;
+  font-variation-settings:"wght" 480,"wdth" 100,"opsz" 90;
+  transition:font-variation-settings .5s var(--ease),color .4s var(--ease);
+}
+.contact-email::after{ content:""; position:absolute; left:0; bottom:.04em; height:2px; width:100%; background:var(--accent); transform:scaleX(0); transform-origin:left; transition:transform .5s var(--ease); }
+.contact-email:hover{ color:var(--accent); font-variation-settings:"wght" 620,"wdth" 120,"opsz" 90; }
+.contact-email:hover::after{ transform:scaleX(1); }
+
+.contact-foot{
+  margin-top:clamp(50px,9vw,110px);
+  display:flex; justify-content:space-between; align-items:flex-end;
+  gap:24px; flex-wrap:wrap;
+  border-top:1px solid var(--line); padding-top:clamp(26px,3vw,40px);
+}
+.contact-links{ display:flex; gap:clamp(16px,3vw,40px); flex-wrap:wrap; }
+.contact-links a{
+  font-family:var(--mono); font-size:.74rem; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--ink-soft); position:relative; padding-bottom:4px; transition:color .4s var(--ease);
+}
+.contact-links a::after{ content:""; position:absolute; left:0; bottom:0; width:100%; height:1px; background:var(--accent); transform:scaleX(0); transform-origin:left; transition:transform .4s var(--ease); }
+.contact-links a:hover{ color:var(--ink); }
+.contact-links a:hover::after{ transform:scaleX(1); }
+.contact-colophon{ font-family:var(--mono); font-size:.66rem; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-faint); text-align:right; line-height:1.7; }
+
+/* ---------- reveal (kinetic) ---------- */
+.reveal{ opacity:0; transform:translateY(26px); }
+.reveal.in{ opacity:1; transform:none; transition:opacity 1s var(--ease), transform 1s var(--ease); }
+.reveal-d1.in{ transition-delay:.08s; }
+.reveal-d2.in{ transition-delay:.16s; }
+.reveal-d3.in{ transition-delay:.24s; }
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+@media(prefers-reduced-motion:reduce){
+  *{ animation:none !important; transition:none !important; }
+  .reveal{ opacity:1 !important; transform:none !important; }
+  .grain{ animation:none; }
+  .hero-head .word{ opacity:1 !important; transform:none !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="grain" aria-hidden="true"></div>
+<div class="vignette" aria-hidden="true"></div>
+<div class="scroll-progress" id="progress" aria-hidden="true"></div>
+
+<!-- MASTHEAD -->
+<header class="masthead">
+  <div class="m-name">Kambar Mangibayev</div>
+  <nav>
+    <a href="#about">About</a>
+    <a href="#index">Index</a>
+    <a href="#contact">Contact</a>
+  </nav>
+  <div class="m-folio">Vol. 05 — Editorial Kinetic</div>
+</header>
+
+<!-- ============================== HERO ============================== -->
+<section class="hero section" id="top">
+  <div class="hero-issue">
+    <span>The Control Loop Quarterly</span>
+    <span>Issue 05 / Rochester, NY</span>
+  </div>
+
+  <h1 class="hero-head" aria-label="Sense. Decide. Respond.">
+    <span class="word w-sense">Sense.</span>
+    <span class="word w-decide">Decide.</span>
+    <span class="word w-respond">Respond.</span>
+  </h1>
+
+  <div class="hero-sub">
+    <span class="role"><b>Kambar Mangibayev</b></span>
+    <span class="role">Mechanical Systems &amp; Controls Engineer</span>
+    <span class="role">Rochester, NY</span>
+  </div>
+
+  <p class="hero-thesis">
+    &ldquo;I build systems that <b>sense, decide, and respond</b> in the real world.&rdquo; A magazine for the closed loop — sensors, controllers, and the moment a machine chooses what to do next.
+  </p>
+
+  <div class="hero-scroll" aria-hidden="true">
+    <span>Scroll</span>
+    <span class="bar"></span>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ============================== ABOUT ============================== -->
+<section class="about section" id="about">
+  <div class="wrap">
+    <div class="eyebrow reveal" style="margin-bottom:clamp(40px,6vw,72px)">Editorial 01 — The Engineer</div>
+    <div class="about-grid">
+      <div>
+        <span class="pullquote-mark reveal" aria-hidden="true">&ldquo;</span>
+        <blockquote class="pullquote reveal reveal-d1">
+          Curiosity is the <em>input</em>. <span class="lo">Engineering</span> is how I <em>close the loop</em> on it.
+        </blockquote>
+      </div>
+      <div class="about-body">
+        <p class="lead reveal reveal-d1">
+          Kambar Mangibayev is a mechanical systems engineer with a controls concentration — the kind of engineer who is happiest when a machine starts to behave the way the math said it would.
+        </p>
+        <p class="reveal reveal-d2">
+          He was born in <b>Semey, Kazakhstan</b> — the city that gave the country its greatest poets — and came to the United States in <b>2016</b>. He earned a <b>BS and an MEng in Mechanical Engineering from RIT</b>, concentrating in controls: the discipline of making systems sense, decide, and respond.
+        </p>
+        <p class="reveal reveal-d2">
+          His number-one hobby is, plainly, <b>engineering</b>. The rest orbits it — reading, 3D printing, sports, coding, machine learning, and finance — all driven by the same restless curiosity. From <b>Semey to Rochester</b>, the arc is a single feedback loop: observe the world, form a model, act, and measure what the world says back.
+        </p>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat reveal">
+        <div class="num" data-count="2" data-suffix="">0</div>
+        <div class="lbl">Degrees<br>BS &amp; MEng, RIT</div>
+      </div>
+      <div class="stat reveal reveal-d1">
+        <div class="num" data-count="8" data-suffix="+">0</div>
+        <div class="lbl">Systems built<br>controls &amp; simulation</div>
+      </div>
+      <div class="stat reveal reveal-d2">
+        <div class="num" data-count="9" data-suffix="">0</div>
+        <div class="lbl">Aircraft modeled<br>flight dynamics</div>
+      </div>
+      <div class="stat reveal reveal-d3">
+        <div class="num" data-count="7.5" data-suffix="M" data-decimals="1">0</div>
+        <div class="lbl">Lb thrust analyzed<br>F-1 nozzle FEA</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ============================== WORK INDEX ============================== -->
+<section class="index section" id="index">
+  <div class="wrap">
+    <div class="index-head reveal">
+      <h2>The Index</h2>
+      <span class="mono-sm">Selected work — 2021&ndash;2026</span>
+    </div>
+    <ul class="toc-list">
+      <li class="toc-item reveal">
+        <a class="toc-link" href="#feat-raymond">
+          <span class="toc-num">01</span>
+          <span class="toc-title">Automated Braking</span>
+          <span class="toc-domain">Controls / Sensor Fusion</span>
+          <span class="toc-rule"></span>
+        </a>
+      </li>
+      <li class="toc-item reveal">
+        <a class="toc-link" href="#feat-flight">
+          <span class="toc-num">02</span>
+          <span class="toc-title">Flight Dynamics</span>
+          <span class="toc-domain">Simulation</span>
+          <span class="toc-rule"></span>
+        </a>
+      </li>
+      <li class="toc-item reveal">
+        <a class="toc-link" href="#feat-pendulum">
+          <span class="toc-num">03</span>
+          <span class="toc-title">Double Pendulum</span>
+          <span class="toc-domain">Dynamics</span>
+          <span class="toc-rule"></span>
+        </a>
+      </li>
+      <li class="toc-item reveal">
+        <a class="toc-link" href="#feat-cannon">
+          <span class="toc-num">04</span>
+          <span class="toc-title">Vacuum Cannon</span>
+          <span class="toc-domain">Simulation</span>
+          <span class="toc-rule"></span>
+        </a>
+      </li>
+      <li class="toc-item reveal">
+        <a class="toc-link" href="#feat-nozzle">
+          <span class="toc-num">05</span>
+          <span class="toc-title">F-1 Nozzle FEA</span>
+          <span class="toc-domain">FEA / Structural</span>
+          <span class="toc-rule"></span>
+        </a>
+      </li>
+      <li class="toc-item reveal">
+        <a class="toc-link" href="#feat-cnc">
+          <span class="toc-num">06</span>
+          <span class="toc-title">PrintNC Router</span>
+          <span class="toc-domain">Additive / Build</span>
+          <span class="toc-rule"></span>
+        </a>
+      </li>
+      <li class="toc-item reveal">
+        <a class="toc-link" href="#feat-slicer">
+          <span class="toc-num">07</span>
+          <span class="toc-title">G-code Slicer</span>
+          <span class="toc-domain">Additive / Code</span>
+          <span class="toc-rule"></span>
+        </a>
+      </li>
+      <li class="toc-item reveal">
+        <a class="toc-link" href="#feat-research">
+          <span class="toc-num">08</span>
+          <span class="toc-title">Lab Research</span>
+          <span class="toc-domain">Simulation / Materials</span>
+          <span class="toc-rule"></span>
+        </a>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================== FEATURE 01 — RAYMOND ============================== -->
+<article class="feature section" id="feat-raymond">
+  <div class="wrap">
+    <header class="feature-titlepage">
+      <div class="feature-meta reveal">
+        <span class="feature-folio">Feature 01</span>
+        <span class="feature-domain">Controls · Sensor Fusion · The Raymond Corporation</span>
+      </div>
+      <h2 class="feature-name reveal reveal-d1">Pedestrian<br>Braking</h2>
+      <p class="feature-dek reveal reveal-d2">
+        Teaching a forklift to <b>see a person</b>, weigh the risk, and stop itself — before anyone has to. <span class="mono-sm">2024 &mdash; Present</span>
+      </p>
+    </header>
+
+    <div class="feature-body reveal">
+      <div class="fb-label">The Problem</div>
+      <div class="fb-content">
+        <p class="big">A warehouse floor is one of the few places where multi-ton machines and people share the same square metre, in motion, all day.</p>
+        <p>A lift truck operator has limited sightlines and a heavy load. The margin between &ldquo;noticed in time&rdquo; and &ldquo;too late&rdquo; is fractions of a second. The goal: give the truck its own perception and judgment, so safety does not depend solely on a tired human at the end of a shift.</p>
+      </div>
+    </div>
+
+    <div class="feature-body reveal">
+      <div class="fb-label">The Approach</div>
+      <div class="fb-content">
+        <p>The system fuses <b>machine vision with onboard sensors</b> so the truck can distinguish a person from a pallet, a wall, or a passing shadow. A controller continuously estimates <b>risk from distance and closing speed</b>, then escalates its response in proportion to that risk.</p>
+        <p>Built close to the metal: <b>embedded C</b> for the real-time loop, <b>MATLAB</b> for modeling and tuning, and <b>CAN</b> to talk to the truck's existing systems — so the intelligence rides on hardware the fleet already trusts.</p>
+      </div>
+    </div>
+
+    <div class="loop-block reveal">
+      <div class="fb-label" style="margin-bottom:26px">How the loop works</div>
+      <svg class="loop-diagram js-loop" viewBox="0 0 1000 260" role="img" aria-label="Closed control loop: sensors sense, controller decides risk, truck responds with graded braking, feedback returns to the sensors.">
+        <!-- baseline -->
+        <line class="axis draw-line" x1="40" y1="130" x2="960" y2="130"></line>
+        <!-- nodes -->
+        <g class="loop-node">
+          <rect class="node" x="60" y="92" width="150" height="76" rx="6"></rect>
+          <text class="nodelabel" x="135" y="126" text-anchor="middle">Sense</text>
+          <text class="sublabel" x="135" y="146" text-anchor="middle">VISION + SENSORS</text>
+        </g>
+        <g class="loop-node">
+          <rect class="node" x="320" y="92" width="150" height="76" rx="6"></rect>
+          <text class="nodelabel" x="395" y="126" text-anchor="middle">Decide</text>
+          <text class="sublabel" x="395" y="146" text-anchor="middle">RISK = f(d, v)</text>
+        </g>
+        <g class="loop-node">
+          <rect class="node" x="580" y="92" width="150" height="76" rx="6"></rect>
+          <text class="nodelabel" x="655" y="122" text-anchor="middle">Respond</text>
+          <text class="sublabel" x="655" y="142" text-anchor="middle">WARN &rarr; BRAKE</text>
+        </g>
+        <g class="loop-node">
+          <rect class="node" x="800" y="92" width="150" height="76" rx="6"></rect>
+          <text class="nodelabel" x="875" y="126" text-anchor="middle">Plant</text>
+          <text class="sublabel" x="875" y="146" text-anchor="middle">LIFT TRUCK</text>
+        </g>
+        <!-- forward flows -->
+        <path class="flow draw-line" d="M210 130 H320"></path>
+        <path class="flow draw-line" d="M470 130 H580"></path>
+        <path class="flow draw-line" d="M730 130 H800"></path>
+        <polygon class="arrow ar" points="318,130 308,125 308,135"></polygon>
+        <polygon class="arrow ar" points="578,130 568,125 568,135"></polygon>
+        <polygon class="arrow ar" points="798,130 788,125 788,135"></polygon>
+        <!-- feedback path -->
+        <path class="flow draw-line" d="M875 168 V222 H135 V168"></path>
+        <polygon class="arrow ar" points="135,170 130,180 140,180"></polygon>
+        <text class="sublabel" x="505" y="216" text-anchor="middle">FEEDBACK — STATE OF THE WORLD</text>
+        <!-- travelling pulse -->
+        <circle class="pulse js-pulse" cx="135" cy="130" r="4"></circle>
+      </svg>
+      <div class="loop-caption">Fig. 1 — Sense, decide, respond, repeat. The feedback path is the whole point.</div>
+    </div>
+
+    <div class="results reveal">
+      <div class="result">
+        <div class="rn">3<span class="u">×</span></div>
+        <div class="rl">Graded response — passive alert, active warning, automated braking</div>
+      </div>
+      <div class="result">
+        <div class="rn">CAN</div>
+        <div class="rl">Integrated over the truck's existing vehicle bus</div>
+      </div>
+      <div class="result">
+        <div class="rn">RT</div>
+        <div class="rl">Real-time embedded C control loop on production hardware</div>
+      </div>
+    </div>
+
+    <div class="colophon reveal">
+      <span class="ck">Stack</span>
+      <span class="chip">Embedded C</span>
+      <span class="chip">MATLAB</span>
+      <span class="chip">CAN Bus</span>
+      <span class="chip">Machine Vision</span>
+      <span class="chip">Sensor Fusion</span>
+    </div>
+  </div>
+</article>
+
+<!-- ============================== FEATURE 02 — FLIGHT ============================== -->
+<article class="feature section" id="feat-flight">
+  <div class="wrap">
+    <header class="feature-titlepage">
+      <div class="feature-meta reveal">
+        <span class="feature-folio">Feature 02</span>
+        <span class="feature-domain">Simulation · Flight Dynamics · RIT</span>
+      </div>
+      <h2 class="feature-name reveal reveal-d1">Flight<br>Dynamics</h2>
+      <p class="feature-dek reveal reveal-d2">
+        Nine aircraft, one rule: <b>never let the math hit a singularity</b> at 30,000 feet.
+      </p>
+    </header>
+
+    <div class="feature-body reveal">
+      <div class="fb-label">The Problem</div>
+      <div class="fb-content">
+        <p class="big">An aircraft's attitude is easy to describe — until it isn't.</p>
+        <p>Euler angles are intuitive, but they fail catastrophically at certain orientations: pitch toward vertical and two axes collapse into one. That singularity — <b>gimbal lock</b> — is exactly where a flight simulation must not break.</p>
+      </div>
+    </div>
+
+    <div class="feature-body reveal">
+      <div class="fb-label">The Approach</div>
+      <div class="fb-content">
+        <p>Across <b>nine aircraft</b>, attitude was modeled two ways in <b>MATLAB and Simulink</b>: classic <b>Euler-angle</b> models for intuition, and <b>quaternion</b> models for robustness.</p>
+        <p>The quaternion formulation was chosen as the backbone precisely because it <b>avoids gimbal lock</b> — representing orientation without the degenerate poles that plague Euler angles, so the simulation stays valid through any maneuver.</p>
+      </div>
+    </div>
+
+    <div class="loop-block reveal">
+      <div class="fb-label" style="margin-bottom:26px">How the loop works</div>
+      <svg class="loop-diagram js-loop" viewBox="0 0 1000 260" role="img" aria-label="Flight dynamics loop: forces and moments integrate into a quaternion state, which produces attitude, fed back into the dynamics.">
+        <line class="axis draw-line" x1="40" y1="130" x2="960" y2="130"></line>
+        <g class="loop-node">
+          <rect class="node" x="60" y="92" width="160" height="76" rx="6"></rect>
+          <text class="nodelabel" x="140" y="122" text-anchor="middle">Forces</text>
+          <text class="sublabel" x="140" y="142" text-anchor="middle">AERO + CONTROL</text>
+        </g>
+        <g class="loop-node">
+          <rect class="node" x="340" y="92" width="160" height="76" rx="6"></rect>
+          <text class="nodelabel" x="420" y="122" text-anchor="middle">Integrate</text>
+          <text class="sublabel" x="420" y="142" text-anchor="middle">6-DOF EOM</text>
+        </g>
+        <g class="loop-node">
+          <rect class="node" x="620" y="92" width="160" height="76" rx="6"></rect>
+          <text class="nodelabel" x="700" y="122" text-anchor="middle">Quaternion</text>
+          <text class="sublabel" x="700" y="142" text-anchor="middle">q-STATE</text>
+        </g>
+        <g class="loop-node">
+          <rect class="node" x="800" y="92" width="0" height="0"></rect>
+        </g>
+        <path class="flow draw-line" d="M220 130 H340"></path>
+        <path class="flow draw-line" d="M500 130 H620"></path>
+        <polygon class="arrow ar" points="338,130 328,125 328,135"></polygon>
+        <polygon class="arrow ar" points="618,130 608,125 608,135"></polygon>
+        <!-- attitude output -->
+        <path class="flow draw-line" d="M780 130 H920"></path>
+        <polygon class="arrow ar" points="918,130 908,125 908,135"></polygon>
+        <text class="sublabel" x="888" y="120" text-anchor="middle">ATTITUDE</text>
+        <!-- feedback -->
+        <path class="flow draw-line" d="M700 168 V222 H140 V168"></path>
+        <polygon class="arrow ar" points="140,170 135,180 145,180"></polygon>
+        <text class="sublabel" x="420" y="216" text-anchor="middle">STATE FEEDBACK — NO GIMBAL LOCK</text>
+        <circle class="pulse js-pulse" cx="140" cy="130" r="4"></circle>
+      </svg>
+      <div class="loop-caption">Fig. 2 — Quaternion state keeps the loop continuous through any orientation.</div>
+    </div>
+
+    <div class="results reveal">
+      <div class="result">
+        <div class="rn">9</div>
+        <div class="rl">Distinct aircraft modeled</div>
+      </div>
+      <div class="result">
+        <div class="rn">2</div>
+        <div class="rl">Attitude formulations — Euler &amp; quaternion</div>
+      </div>
+      <div class="result">
+        <div class="rn">0<span class="u">°</span></div>
+        <div class="rl">Gimbal-lock failures across the flight envelope</div>
+      </div>
+    </div>
+
+    <div class="colophon reveal">
+      <span class="ck">Stack</span>
+      <span class="chip">MATLAB</span>
+      <span class="chip">Simulink</span>
+      <span class="chip">Quaternions</span>
+      <span class="chip">6-DOF Dynamics</span>
+    </div>
+  </div>
+</article>
+
+<!-- ============================== FEATURE 03 — PENDULUM ============================== -->
+<article class="feature section" id="feat-pendulum">
+  <div class="wrap">
+    <header class="feature-titlepage">
+      <div class="feature-meta reveal">
+        <span class="feature-folio">Feature 03</span>
+        <span class="feature-domain">Dynamics · Chaos · RIT</span>
+      </div>
+      <h2 class="feature-name reveal reveal-d1">Double<br>Pendulum</h2>
+      <p class="feature-dek reveal reveal-d2">
+        Modeling <b>deterministic chaos</b> — then proving the model against a rig that refuses to repeat itself.
+      </p>
+    </header>
+
+    <div class="feature-body reveal">
+      <div class="fb-label">The Problem</div>
+      <div class="fb-content">
+        <p class="big">A double pendulum is the textbook face of chaos: fully deterministic, yet wildly sensitive to where it starts.</p>
+        <p>Two arms, simple physics, and a motion so sensitive that a hair's difference in the starting angle sends it down a completely different path. The challenge is building a model faithful enough to track reality before the two inevitably diverge.</p>
+      </div>
+    </div>
+
+    <div class="feature-body reveal">
+      <div class="fb-label">The Approach</div>
+      <div class="fb-content">
+        <p>The coupled nonlinear equations of motion were derived and integrated numerically, producing a simulation of the pendulum's full trajectory through its state space.</p>
+        <p>That model was then <b>validated against a physical rig</b> — comparing simulated motion to the real apparatus to confirm the dynamics held up before chaos pulled the two apart.</p>
+      </div>
+    </div>
+
+    <div class="loop-block reveal">
+      <div class="fb-label" style="margin-bottom:26px">How the loop works</div>
+      <svg class="loop-diagram js-loop" viewBox="0 0 1000 280" role="img" aria-label="Double pendulum: equations of motion integrate into state, simulation compared against the physical rig, residual feeds validation.">
+        <!-- pendulum schematic on the left -->
+        <circle class="node js-pivot" cx="150" cy="60" r="4"></circle>
+        <path class="draw draw-line" d="M150 60 L210 130"></path>
+        <circle class="pulse" cx="210" cy="130" r="6"></circle>
+        <path class="draw draw-line js-arm2" d="M210 130 L180 210"></path>
+        <circle class="pulse" cx="180" cy="210" r="6"></circle>
+        <path class="draw draw-line" style="opacity:.3" d="M210 130 L262 196"></path>
+        <circle class="pulse" style="opacity:.3" cx="262" cy="196" r="6"></circle>
+        <text class="sublabel" x="150" y="248" text-anchor="middle">PHYSICAL RIG</text>
+        <!-- loop on the right -->
+        <g class="loop-node">
+          <rect class="node" x="380" y="60" width="160" height="70" rx="6"></rect>
+          <text class="nodelabel" x="460" y="90" text-anchor="middle">EOM</text>
+          <text class="sublabel" x="460" y="110" text-anchor="middle">NONLINEAR</text>
+        </g>
+        <g class="loop-node">
+          <rect class="node" x="640" y="60" width="160" height="70" rx="6"></rect>
+          <text class="nodelabel" x="720" y="90" text-anchor="middle">Integrate</text>
+          <text class="sublabel" x="720" y="110" text-anchor="middle">STATE θ, ω</text>
+        </g>
+        <path class="flow draw-line" d="M540 95 H640"></path>
+        <polygon class="arrow ar" points="638,95 628,90 628,100"></polygon>
+        <path class="flow draw-line" d="M720 130 V200 H460 V130"></path>
+        <polygon class="arrow ar" points="460,132 455,142 465,142"></polygon>
+        <text class="sublabel" x="590" y="194" text-anchor="middle">STATE FEEDBACK</text>
+        <!-- validation arrow -->
+        <path class="flow draw-line" d="M380 95 H300" style="opacity:.7"></path>
+        <polygon class="arrow ar" points="302,95 312,90 312,100"></polygon>
+        <text class="sublabel" x="335" y="84" text-anchor="middle">COMPARE</text>
+        <circle class="pulse js-pulse" cx="460" cy="95" r="4"></circle>
+      </svg>
+      <div class="loop-caption">Fig. 3 — Simulated state on the right; the physical rig on the left is the ground truth.</div>
+    </div>
+
+    <div class="results reveal">
+      <div class="result">
+        <div class="rn">2</div>
+        <div class="rl">Coupled arms, nonlinear dynamics</div>
+      </div>
+      <div class="result">
+        <div class="rn">1<span class="u">:1</span></div>
+        <div class="rl">Model validated against a physical rig</div>
+      </div>
+      <div class="result">
+        <div class="rn">&#8734;</div>
+        <div class="rl">Sensitivity to initial conditions — the signature of chaos</div>
+      </div>
+    </div>
+
+    <div class="colophon reveal">
+      <span class="ck">Stack</span>
+      <span class="chip">MATLAB</span>
+      <span class="chip">Nonlinear Dynamics</span>
+      <span class="chip">Numerical Integration</span>
+      <span class="chip">Physical Validation</span>
+    </div>
+  </div>
+</article>
+
+<!-- ============================== FEATURE 04 — VACUUM CANNON ============================== -->
+<article class="feature section" id="feat-cannon">
+  <div class="wrap">
+    <header class="feature-titlepage">
+      <div class="feature-meta reveal">
+        <span class="feature-folio">Feature 04</span>
+        <span class="feature-domain">Simulation · Fluid &amp; Dynamics · RIT</span>
+      </div>
+      <h2 class="feature-name reveal reveal-d1">Vacuum<br>Cannon</h2>
+      <p class="feature-dek reveal reveal-d2">
+        How fast can air alone throw a ping-pong ball down a <b>1.52&nbsp;m</b> barrel? Solve it before you build it.
+      </p>
+    </header>
+
+    <div class="feature-body reveal">
+      <div class="fb-label">The Problem</div>
+      <div class="fb-content">
+        <p class="big">Atmospheric pressure is free, abundant, and surprisingly violent when you let it do work.</p>
+        <p>Evacuate a tube, seal a light ball at one end, then break the seal: the atmosphere rushes in and accelerates the ball down the barrel. Predicting the exit velocity means tracking pressure, drag, and acceleration along the entire length of travel.</p>
+      </div>
+    </div>
+
+    <div class="feature-body reveal">
+      <div class="fb-label">The Approach</div>
+      <div class="fb-content">
+        <p>A simulation models the ball's acceleration as it travels the <b>1.52&nbsp;metre barrel</b>, integrating the net force from the pressure differential against drag to predict <b>exit velocity</b>.</p>
+        <p>The result is a design tool: change barrel length or vacuum level, and the model tells you what comes out the muzzle — no live fire required.</p>
+      </div>
+    </div>
+
+    <div class="loop-block reveal">
+      <div class="fb-label" style="margin-bottom:26px">How the loop works</div>
+      <svg class="loop-diagram js-loop" viewBox="0 0 1000 240" role="img" aria-label="Vacuum cannon: pressure differential drives net force, integrated over the barrel length into exit velocity.">
+        <!-- barrel -->
+        <rect class="node" x="80" y="100" width="700" height="44" rx="6"></rect>
+        <text class="sublabel" x="120" y="92" text-anchor="start">BARREL — 1.52 m</text>
+        <!-- ball travelling -->
+        <circle class="pulse js-ball" cx="120" cy="122" r="11"></circle>
+        <!-- pressure arrows -->
+        <path class="flow draw-line" d="M40 122 H78"></path>
+        <polygon class="arrow ar" points="78,122 68,117 68,127"></polygon>
+        <text class="sublabel" x="40" y="112" text-anchor="start">ATM</text>
+        <text class="sublabel" x="740" y="96" text-anchor="middle">VACUUM</text>
+        <!-- exit velocity readout -->
+        <path class="flow draw-line" d="M780 122 H900"></path>
+        <polygon class="arrow ar" points="898,122 888,117 888,127"></polygon>
+        <text class="nodelabel" x="900" y="112" text-anchor="middle">v_exit</text>
+        <!-- equation row -->
+        <text class="sublabel" x="430" y="190" text-anchor="middle">F_net = (P_atm − P_vac)·A − F_drag &nbsp;→&nbsp; ∫ a dx</text>
+        <line class="axis draw-line" x1="80" y1="166" x2="780" y2="166"></line>
+      </svg>
+      <div class="loop-caption">Fig. 4 — Net force integrated along the barrel yields predicted muzzle velocity.</div>
+    </div>
+
+    <div class="results reveal">
+      <div class="result">
+        <div class="rn">1.52<span class="u">m</span></div>
+        <div class="rl">Barrel length simulated end to end</div>
+      </div>
+      <div class="result">
+        <div class="rn">1<span class="u">atm</span></div>
+        <div class="rl">Pressure differential doing all the work</div>
+      </div>
+      <div class="result">
+        <div class="rn">v</div>
+        <div class="rl">Exit velocity predicted before firing</div>
+      </div>
+    </div>
+
+    <div class="colophon reveal">
+      <span class="ck">Stack</span>
+      <span class="chip">MATLAB</span>
+      <span class="chip">Dynamics</span>
+      <span class="chip">Fluid Mechanics</span>
+      <span class="chip">Numerical Integration</span>
+    </div>
+  </div>
+</article>
+
+<!-- ============================== FEATURE 05 — F-1 NOZZLE ============================== -->
+<article class="feature section" id="feat-nozzle">
+  <div class="wrap">
+    <header class="feature-titlepage">
+      <div class="feature-meta reveal">
+        <span class="feature-folio">Feature 05</span>
+        <span class="feature-domain">FEA · Structural · RIT · Ansys</span>
+      </div>
+      <h2 class="feature-name reveal reveal-d1">F-1<br>Nozzle</h2>
+      <p class="feature-dek reveal reveal-d2">
+        Putting the engine that lifted Apollo under the microscope: <b>7.5&nbsp;million pounds of thrust</b>, and a demand that nothing fails.
+      </p>
+    </header>
+
+    <div class="feature-body reveal">
+      <div class="fb-label">The Problem</div>
+      <div class="fb-content">
+        <p class="big">The Rocketdyne F-1 remains one of the most powerful liquid-fuel engines ever flown.</p>
+        <p>Its nozzle endures extraordinary loads — the structure must carry the stresses of <b>7.5 million pounds of thrust</b> without yielding or failing. The question for analysis is simple to state and demanding to answer: does it hold?</p>
+      </div>
+    </div>
+
+    <div class="feature-body reveal">
+      <div class="fb-label">The Approach</div>
+      <div class="fb-content">
+        <p>A <b>structural finite-element analysis</b> of the F-1 nozzle was performed in <b>Ansys</b>, applying operating loads to the geometry and resolving the resulting stress field across the structure.</p>
+        <p>The objective: <b>verify no failure under operating stress</b> — confirming the nozzle stays within material limits where it matters most.</p>
+      </div>
+    </div>
+
+    <div class="loop-block reveal">
+      <div class="fb-label" style="margin-bottom:26px">How the loop works</div>
+      <svg class="loop-diagram js-loop" viewBox="0 0 1000 260" role="img" aria-label="FEA pipeline: geometry meshed, operating loads applied, solver produces a stress field, checked against material limits.">
+        <!-- nozzle profile -->
+        <path class="draw draw-line" d="M120 40 L160 40 L210 200 L70 200 Z"></path>
+        <text class="sublabel" x="140" y="226" text-anchor="middle">F-1 NOZZLE</text>
+        <!-- pipeline -->
+        <g class="loop-node">
+          <rect class="node" x="300" y="70" width="150" height="70" rx="6"></rect>
+          <text class="nodelabel" x="375" y="100" text-anchor="middle">Mesh</text>
+          <text class="sublabel" x="375" y="120" text-anchor="middle">GEOMETRY</text>
+        </g>
+        <g class="loop-node">
+          <rect class="node" x="520" y="70" width="150" height="70" rx="6"></rect>
+          <text class="nodelabel" x="595" y="100" text-anchor="middle">Load</text>
+          <text class="sublabel" x="595" y="120" text-anchor="middle">7.5M LB</text>
+        </g>
+        <g class="loop-node">
+          <rect class="node" x="740" y="70" width="180" height="70" rx="6"></rect>
+          <text class="nodelabel" x="830" y="100" text-anchor="middle">Solve</text>
+          <text class="sublabel" x="830" y="120" text-anchor="middle">STRESS FIELD</text>
+        </g>
+        <path class="flow draw-line" d="M220 105 H300"></path>
+        <path class="flow draw-line" d="M450 105 H520"></path>
+        <path class="flow draw-line" d="M670 105 H740"></path>
+        <polygon class="arrow ar" points="298,105 288,100 288,110"></polygon>
+        <polygon class="arrow ar" points="518,105 508,100 508,110"></polygon>
+        <polygon class="arrow ar" points="738,105 728,100 728,110"></polygon>
+        <!-- check -->
+        <path class="flow draw-line" d="M830 140 V200 H595 V140"></path>
+        <polygon class="arrow ar" points="595,142 590,152 600,152"></polygon>
+        <text class="sublabel" x="712" y="194" text-anchor="middle">σ &lt; σ_yield ? — VERIFY NO FAILURE</text>
+        <circle class="pulse js-pulse" cx="375" cy="105" r="4"></circle>
+      </svg>
+      <div class="loop-caption">Fig. 5 — Mesh, load, solve, verify. The whole pipeline answers one question: does it hold?</div>
+    </div>
+
+    <div class="results reveal">
+      <div class="result">
+        <div class="rn">7.5<span class="u">M</span></div>
+        <div class="rl">Pounds of thrust analyzed</div>
+      </div>
+      <div class="result">
+        <div class="rn">FEA</div>
+        <div class="rl">Structural finite-element analysis in Ansys</div>
+      </div>
+      <div class="result">
+        <div class="rn">0</div>
+        <div class="rl">Failures under verified operating stress</div>
+      </div>
+    </div>
+
+    <div class="colophon reveal">
+      <span class="ck">Stack</span>
+      <span class="chip">Ansys</span>
+      <span class="chip">Structural FEA</span>
+      <span class="chip">Stress Analysis</span>
+      <span class="chip">CAD</span>
+    </div>
+  </div>
+</article>
+
+<!-- ============================== FEATURE 06 — PRINTNC ============================== -->
+<article class="feature section" id="feat-cnc">
+  <div class="wrap">
+    <header class="feature-titlepage">
+      <div class="feature-meta reveal">
+        <span class="feature-folio">Feature 06</span>
+        <span class="feature-domain">Additive · Build · Personal</span>
+      </div>
+      <h2 class="feature-name reveal reveal-d1">PrintNC<br>Router</h2>
+      <p class="feature-dek reveal reveal-d2">
+        A CNC machine that is <b>part steel, part 3D-printed, all self-built</b> — a workshop you bootstrap into existence.
+      </p>
+    </header>
+
+    <div class="feature-body reveal">
+      <div class="fb-label">The Problem</div>
+      <div class="fb-content">
+        <p class="big">To make precise parts, you need a precise machine — but precise machines are expensive.</p>
+        <p>The way out is a classic engineer's move: build the tool that builds the tools. A capable CNC router opens the door to cutting metal and wood at home with real accuracy — if you can make it rigid enough.</p>
+      </div>
+    </div>
+
+    <div class="feature-body reveal">
+      <div class="fb-label">The Approach</div>
+      <div class="fb-content">
+        <p>A <b>PrintNC</b>-style machine built from the ground up: a <b>hybrid steel frame</b> for stiffness and damping, combined with <b>3D-printed parts</b> for the geometry that would otherwise be hard or costly to fabricate.</p>
+        <p>Entirely <b>self-built</b> — sourcing, machining, printing, wiring, and tuning a working router that earns its place on the bench.</p>
+      </div>
+    </div>
+
+    <div class="loop-block reveal">
+      <div class="fb-label" style="margin-bottom:26px">How the loop works</div>
+      <svg class="loop-diagram js-loop" viewBox="0 0 1000 240" role="img" aria-label="CNC motion loop: G-code commands the controller, steppers drive the gantry, position feeds back for closed motion.">
+        <line class="axis draw-line" x1="40" y1="120" x2="960" y2="120"></line>
+        <g class="loop-node">
+          <rect class="node" x="60" y="84" width="170" height="72" rx="6"></rect>
+          <text class="nodelabel" x="145" y="114" text-anchor="middle">G-code</text>
+          <text class="sublabel" x="145" y="134" text-anchor="middle">TOOLPATH</text>
+        </g>
+        <g class="loop-node">
+          <rect class="node" x="350" y="84" width="170" height="72" rx="6"></rect>
+          <text class="nodelabel" x="435" y="114" text-anchor="middle">Controller</text>
+          <text class="sublabel" x="435" y="134" text-anchor="middle">STEPS / DIR</text>
+        </g>
+        <g class="loop-node">
+          <rect class="node" x="640" y="84" width="170" height="72" rx="6"></rect>
+          <text class="nodelabel" x="725" y="110" text-anchor="middle">Gantry</text>
+          <text class="sublabel" x="725" y="130" text-anchor="middle">STEEL + PRINTED</text>
+        </g>
+        <path class="flow draw-line" d="M230 120 H350"></path>
+        <path class="flow draw-line" d="M520 120 H640"></path>
+        <path class="flow draw-line" d="M810 120 H910"></path>
+        <polygon class="arrow ar" points="348,120 338,115 338,125"></polygon>
+        <polygon class="arrow ar" points="638,120 628,115 628,125"></polygon>
+        <polygon class="arrow ar" points="908,120 898,115 898,125"></polygon>
+        <text class="sublabel" x="888" y="110" text-anchor="middle">CUT</text>
+        <path class="flow draw-line" d="M725 156 V200 H145 V156"></path>
+        <polygon class="arrow ar" points="145,158 140,168 150,168"></polygon>
+        <text class="sublabel" x="430" y="194" text-anchor="middle">POSITION FEEDBACK</text>
+        <circle class="pulse js-pulse" cx="145" cy="120" r="4"></circle>
+      </svg>
+      <div class="loop-caption">Fig. 6 — From toolpath to cut, with the frame's rigidity deciding how true the line stays.</div>
+    </div>
+
+    <div class="results reveal">
+      <div class="result">
+        <div class="rn">100<span class="u">%</span></div>
+        <div class="rl">Self-built — design, fabrication, and tuning</div>
+      </div>
+      <div class="result">
+        <div class="rn">2</div>
+        <div class="rl">Materials by role — steel for rigidity, print for geometry</div>
+      </div>
+      <div class="result">
+        <div class="rn">3<span class="u">-axis</span></div>
+        <div class="rl">CNC routing on a bootstrapped machine</div>
+      </div>
+    </div>
+
+    <div class="colophon reveal">
+      <span class="ck">Stack</span>
+      <span class="chip">Steel Fabrication</span>
+      <span class="chip">3D Printing</span>
+      <span class="chip">CNC</span>
+      <span class="chip">G-code</span>
+      <span class="chip">Mechatronics</span>
+    </div>
+  </div>
+</article>
+
+<!-- ============================== FEATURE 07 — SLICER ============================== -->
+<article class="feature section" id="feat-slicer">
+  <div class="wrap">
+    <header class="feature-titlepage">
+      <div class="feature-meta reveal">
+        <span class="feature-folio">Feature 07</span>
+        <span class="feature-domain">Additive · Code · Personal</span>
+      </div>
+      <h2 class="feature-name reveal reveal-d1">G-code<br>Slicer</h2>
+      <p class="feature-dek reveal reveal-d2">
+        A custom <b>STL&nbsp;&rarr;&nbsp;G-code</b> pipeline that asks: what if we sliced at the &ldquo;wrong&rdquo; angle on purpose?
+      </p>
+    </header>
+
+    <div class="feature-body reveal">
+      <div class="fb-label">The Problem</div>
+      <div class="fb-content">
+        <p class="big">Every overhang in 3D printing pays a tax: support material that wastes filament and scars the surface.</p>
+        <p>Standard slicers cut a model into flat, horizontal layers — which is convenient, but not always optimal. Reducing supports might mean rethinking the most basic assumption: the slicing angle itself.</p>
+      </div>
+    </div>
+
+    <div class="feature-body reveal">
+      <div class="fb-label">The Approach</div>
+      <div class="fb-content">
+        <p>A custom slicer written in <b>Python</b> takes an <b>STL mesh and generates G-code directly</b> — a full pipeline owned end to end, with no black box in the middle.</p>
+        <p>Built as a research vehicle for <b>support reduction</b>: by slicing along <b>non-standard angles</b> instead of flat horizontal layers, it explores how orientation can cut away the need for supports in the first place.</p>
+      </div>
+    </div>
+
+    <div class="loop-block reveal">
+      <div class="fb-label" style="margin-bottom:26px">How the loop works</div>
+      <svg class="loop-diagram js-loop" viewBox="0 0 1000 240" role="img" aria-label="Slicer pipeline: STL mesh sliced at a chosen angle into layers, converted to toolpaths, written as G-code.">
+        <!-- mesh with angled slicing planes -->
+        <path class="draw draw-line" d="M70 60 L170 40 L210 150 L110 180 Z"></path>
+        <line class="axis draw-line js-slice" x1="60" y1="100" x2="220" y2="74"></line>
+        <line class="axis draw-line js-slice" x1="60" y1="130" x2="220" y2="104"></line>
+        <line class="axis draw-line js-slice" x1="80" y1="160" x2="220" y2="134"></line>
+        <text class="sublabel" x="140" y="206" text-anchor="middle">ANGLED SLICING</text>
+        <!-- pipeline -->
+        <g class="loop-node">
+          <rect class="node" x="320" y="70" width="140" height="68" rx="6"></rect>
+          <text class="nodelabel" x="390" y="100" text-anchor="middle">STL</text>
+          <text class="sublabel" x="390" y="120" text-anchor="middle">MESH</text>
+        </g>
+        <g class="loop-node">
+          <rect class="node" x="520" y="70" width="140" height="68" rx="6"></rect>
+          <text class="nodelabel" x="590" y="100" text-anchor="middle">Slice</text>
+          <text class="sublabel" x="590" y="120" text-anchor="middle">θ ≠ 0</text>
+        </g>
+        <g class="loop-node">
+          <rect class="node" x="720" y="70" width="200" height="68" rx="6"></rect>
+          <text class="nodelabel" x="820" y="100" text-anchor="middle">G-code</text>
+          <text class="sublabel" x="820" y="120" text-anchor="middle">TOOLPATHS</text>
+        </g>
+        <path class="flow draw-line" d="M230 104 H320"></path>
+        <path class="flow draw-line" d="M460 104 H520"></path>
+        <path class="flow draw-line" d="M660 104 H720"></path>
+        <polygon class="arrow ar" points="318,104 308,99 308,109"></polygon>
+        <polygon class="arrow ar" points="518,104 508,99 508,109"></polygon>
+        <polygon class="arrow ar" points="718,104 708,99 708,109"></polygon>
+        <circle class="pulse js-pulse" cx="390" cy="104" r="4"></circle>
+      </svg>
+      <div class="loop-caption">Fig. 7 — Non-standard slicing angles, chosen to design out the need for support.</div>
+    </div>
+
+    <div class="results reveal">
+      <div class="result">
+        <div class="rn">STL<span class="u">→G</span></div>
+        <div class="rl">End-to-end pipeline, custom-built</div>
+      </div>
+      <div class="result">
+        <div class="rn">θ</div>
+        <div class="rl">Non-standard slicing angles as the variable</div>
+      </div>
+      <div class="result">
+        <div class="rn">&darr;</div>
+        <div class="rl">Support reduction as the research goal</div>
+      </div>
+    </div>
+
+    <div class="colophon reveal">
+      <span class="ck">Stack</span>
+      <span class="chip">Python</span>
+      <span class="chip">STL / Mesh</span>
+      <span class="chip">G-code Generation</span>
+      <span class="chip">Additive Research</span>
+    </div>
+  </div>
+</article>
+
+<!-- ============================== FEATURE 08 — RESEARCH ============================== -->
+<article class="feature section" id="feat-research">
+  <div class="wrap">
+    <header class="feature-titlepage">
+      <div class="feature-meta reveal">
+        <span class="feature-folio">Feature 08</span>
+        <span class="feature-domain">Simulation · Materials · RIT AMPrint Center</span>
+      </div>
+      <h2 class="feature-name reveal reveal-d1">Lab<br>Research</h2>
+      <p class="feature-dek reveal reveal-d2">
+        From <b>investment casting and CFD</b> to <b>polymer lithography at the molecular scale</b> — simulation first, always.
+      </p>
+    </header>
+
+    <div class="feature-body reveal">
+      <div class="fb-label">The Problem</div>
+      <div class="fb-content">
+        <p class="big">Some questions are too expensive, too slow, or too small to answer by trial and error alone.</p>
+        <p>Across the <b>RIT AMPrint Center</b>, the work spanned investment casting, additive manufacturing, and computational fluid dynamics — alongside polymer lithography, where the behavior of interest lives at the molecular level and resists direct observation.</p>
+      </div>
+    </div>
+
+    <div class="feature-body reveal">
+      <div class="fb-label">The Approach</div>
+      <div class="fb-content">
+        <p>The throughline is a <b>simulation-first</b> philosophy: model the system before committing material and machine time. In <b>polymer lithography</b>, that meant molecular-scale simulation with <b>LAMMPS</b> to study behavior ahead of the bench.</p>
+        <p>Combined with <b>CFD</b> and additive/casting work, the research builds predictive understanding first — then lets the physical experiment confirm it.</p>
+      </div>
+    </div>
+
+    <div class="loop-block reveal">
+      <div class="fb-label" style="margin-bottom:26px">How the loop works</div>
+      <svg class="loop-diagram js-loop" viewBox="0 0 1000 250" role="img" aria-label="Research loop: build a model, simulate, predict, then validate experimentally, feeding back to refine the model.">
+        <line class="axis draw-line" x1="40" y1="120" x2="960" y2="120"></line>
+        <g class="loop-node">
+          <rect class="node" x="60" y="84" width="170" height="72" rx="6"></rect>
+          <text class="nodelabel" x="145" y="114" text-anchor="middle">Model</text>
+          <text class="sublabel" x="145" y="134" text-anchor="middle">PHYSICS</text>
+        </g>
+        <g class="loop-node">
+          <rect class="node" x="350" y="84" width="170" height="72" rx="6"></rect>
+          <text class="nodelabel" x="435" y="110" text-anchor="middle">Simulate</text>
+          <text class="sublabel" x="435" y="130" text-anchor="middle">LAMMPS / CFD</text>
+        </g>
+        <g class="loop-node">
+          <rect class="node" x="640" y="84" width="170" height="72" rx="6"></rect>
+          <text class="nodelabel" x="725" y="110" text-anchor="middle">Predict</text>
+          <text class="sublabel" x="725" y="130" text-anchor="middle">BEHAVIOR</text>
+        </g>
+        <path class="flow draw-line" d="M230 120 H350"></path>
+        <path class="flow draw-line" d="M520 120 H640"></path>
+        <path class="flow draw-line" d="M810 120 H910"></path>
+        <polygon class="arrow ar" points="348,120 338,115 338,125"></polygon>
+        <polygon class="arrow ar" points="638,120 628,115 628,125"></polygon>
+        <polygon class="arrow ar" points="908,120 898,115 898,125"></polygon>
+        <text class="sublabel" x="888" y="110" text-anchor="middle">TEST</text>
+        <path class="flow draw-line" d="M725 156 V204 H145 V156"></path>
+        <polygon class="arrow ar" points="145,158 140,168 150,168"></polygon>
+        <text class="sublabel" x="430" y="198" text-anchor="middle">EXPERIMENT REFINES THE MODEL</text>
+        <circle class="pulse js-pulse" cx="145" cy="120" r="4"></circle>
+      </svg>
+      <div class="loop-caption">Fig. 8 — Model, simulate, predict, validate — then close the loop and refine.</div>
+    </div>
+
+    <div class="results reveal">
+      <div class="result">
+        <div class="rn">3</div>
+        <div class="rl">Domains — casting, additive, CFD</div>
+      </div>
+      <div class="result">
+        <div class="rn">MD</div>
+        <div class="rl">Molecular dynamics in LAMMPS for polymer lithography</div>
+      </div>
+      <div class="result">
+        <div class="rn">1<span class="u">st</span></div>
+        <div class="rl">Simulation-first, before material and machine time</div>
+      </div>
+    </div>
+
+    <div class="colophon reveal">
+      <span class="ck">Stack</span>
+      <span class="chip">LAMMPS</span>
+      <span class="chip">CFD</span>
+      <span class="chip">Investment Casting</span>
+      <span class="chip">Additive</span>
+      <span class="chip">Polymer Lithography</span>
+    </div>
+  </div>
+</article>
+
+<!-- ============================== CONTACT / BACK COVER ============================== -->
+<section class="contact section" id="contact">
+  <div class="eyebrow reveal">Back Cover — The Open Invitation</div>
+  <h2 class="contact-head reveal reveal-d1">
+    Let&rsquo;s build<br><span class="ln2">the loop.</span>
+  </h2>
+
+  <a class="contact-email reveal reveal-d2" href="mailto:kambarmangibayev@gmail.com">kambarmangibayev@gmail.com</a>
+
+  <div class="contact-foot reveal reveal-d2">
+    <div class="contact-links">
+      <a href="mailto:kambarmangibayev@gmail.com">Email</a>
+      <a href="tel:+15853099467">+1 585-309-9467</a>
+      <a href="#top">Back to top &uarr;</a>
+    </div>
+    <div class="contact-colophon">
+      Kambar Mangibayev<br>
+      Mechanical Systems Engineer · Controls<br>
+      Rochester, NY · Born Semey, Kazakhstan
+    </div>
+  </div>
+</section>
+
+<!-- ============================== LIBRARIES ============================== -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+
+<script>
+(function(){
+  "use strict";
+
+  var reduceMotion = window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var hasGSAP = (typeof window.gsap !== "undefined");
+  var hasST   = hasGSAP && (typeof window.ScrollTrigger !== "undefined");
+
+  if (hasST) { gsap.registerPlugin(ScrollTrigger); }
+
+  /* -------- Lenis smooth scroll -------- */
+  var lenis = null;
+  if (!reduceMotion && typeof window.Lenis !== "undefined") {
+    try {
+      lenis = new Lenis({
+        duration: 1.15,
+        easing: function(t){ return Math.min(1, 1.001 - Math.pow(2, -10 * t)); },
+        smoothWheel: true
+      });
+      if (hasST) {
+        lenis.on("scroll", ScrollTrigger.update);
+        gsap.ticker.add(function(time){ lenis.raf(time * 1000); });
+        gsap.ticker.lagSmoothing(0);
+      } else {
+        var raf = function(t){ lenis.raf(t); requestAnimationFrame(raf); };
+        requestAnimationFrame(raf);
+      }
+    } catch (e) { lenis = null; }
+  }
+
+  /* -------- Anchor links via Lenis (smooth) -------- */
+  document.querySelectorAll('a[href^="#"]').forEach(function(a){
+    a.addEventListener("click", function(e){
+      var id = a.getAttribute("href");
+      if (id === "#" || id.length < 2) return;
+      var el = document.querySelector(id);
+      if (!el) return;
+      e.preventDefault();
+      if (lenis) { lenis.scrollTo(el, { offset: -10, duration: 1.3 }); }
+      else { el.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" }); }
+    });
+  });
+
+  /* -------- Scroll progress hairline -------- */
+  var progress = document.getElementById("progress");
+  function updateProgress(){
+    var h = document.documentElement;
+    var max = h.scrollHeight - h.clientHeight;
+    var p = max > 0 ? (h.scrollTop || window.pageYOffset) / max : 0;
+    if (progress) progress.style.width = (p * 100) + "%";
+  }
+  window.addEventListener("scroll", updateProgress, { passive: true });
+  if (lenis) lenis.on("scroll", updateProgress);
+  updateProgress();
+
+  /* -------- Generic reveal (IntersectionObserver) -------- */
+  var reveals = document.querySelectorAll(".reveal");
+  if (reduceMotion || !("IntersectionObserver" in window)) {
+    reveals.forEach(function(el){ el.classList.add("in"); });
+  } else {
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if (en.isIntersecting){
+          en.target.classList.add("in");
+          io.unobserve(en.target);
+        }
+      });
+    }, { threshold: 0.14, rootMargin: "0px 0px -8% 0px" });
+    reveals.forEach(function(el){ io.observe(el); });
+  }
+
+  /* ===================================================
+     HERO — kinetic headline (weight/width on a beat)
+     =================================================== */
+  var words = document.querySelectorAll(".hero-head .word");
+  if (!reduceMotion && hasGSAP && words.length){
+    gsap.set(words, { opacity: 0, yPercent: 18 });
+    gsap.set(words, { "--placeholder": 0 });
+    var tl = gsap.timeline({ delay: 0.25 });
+    words.forEach(function(w, i){
+      tl.fromTo(w,
+        { opacity: 0, yPercent: 22, fontVariationSettings: '"wght" 300, "wdth" 60, "opsz" 144' },
+        { opacity: 1, yPercent: 0, fontVariationSettings: '"wght" 780, "wdth" 100, "opsz" 144',
+          duration: 1.05, ease: "expo.out" },
+        i * 0.18
+      );
+    });
+    // settle the last word to a slightly heavier equilibrium
+    tl.to(words[words.length-1],
+      { fontVariationSettings: '"wght" 820, "wdth" 118, "opsz" 144', duration: .9, ease: "power2.out" },
+      "-=0.2");
+
+    /* scroll reaction: type tightens/expands like a system settling */
+    if (hasST){
+      words.forEach(function(w, i){
+        var wd = 100 + (i - 1) * 10; // staggered target widths
+        gsap.to(w, {
+          fontVariationSettings: '"wght" ' + (560 + i*40) + ', "wdth" ' + (78 + i*6) + ', "opsz" 144',
+          ease: "none",
+          scrollTrigger: {
+            trigger: ".hero",
+            start: "top top",
+            end: "bottom top",
+            scrub: 1
+          }
+        });
+      });
+    }
+  }
+
+  /* ===================================================
+     STAT + RESULT count-up
+     =================================================== */
+  function animateCount(el){
+    var target = parseFloat(el.getAttribute("data-count"));
+    var decimals = parseInt(el.getAttribute("data-decimals") || "0", 10);
+    var suffix = el.getAttribute("data-suffix") || "";
+    if (isNaN(target)) return;
+    if (reduceMotion){
+      el.textContent = (decimals ? target.toFixed(decimals) : target) + "";
+      if (suffix){ el.innerHTML = (decimals ? target.toFixed(decimals) : target) + '<span class="suffix">' + suffix + '</span>'; }
+      return;
+    }
+    var obj = { v: 0 };
+    var render = function(){
+      var val = decimals ? obj.v.toFixed(decimals) : Math.round(obj.v);
+      el.innerHTML = val + (suffix ? '<span class="suffix">' + suffix + '</span>' : '');
+    };
+    if (hasGSAP){
+      gsap.to(obj, { v: target, duration: 1.6, ease: "power2.out", onUpdate: render });
+    } else {
+      var start = null, dur = 1400;
+      var step = function(ts){
+        if (!start) start = ts;
+        var t = Math.min(1, (ts - start) / dur);
+        obj.v = target * (1 - Math.pow(1 - t, 3));
+        render();
+        if (t < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    }
+  }
+
+  var counters = document.querySelectorAll("[data-count]");
+  if (!("IntersectionObserver" in window)){
+    counters.forEach(animateCount);
+  } else {
+    var cio = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if (en.isIntersecting){
+          animateCount(en.target);
+          cio.unobserve(en.target);
+        }
+      });
+    }, { threshold: 0.5 });
+    counters.forEach(function(el){ cio.observe(el); });
+  }
+
+  /* ===================================================
+     SELF-DRAWING SVG LOOP DIAGRAMS
+     =================================================== */
+  var loops = document.querySelectorAll(".js-loop");
+  loops.forEach(function(svg){
+    var lines = svg.querySelectorAll(".draw-line");
+    var nodes = svg.querySelectorAll(".loop-node, .node");
+    var arrows = svg.querySelectorAll(".arrow");
+    var labels = svg.querySelectorAll(".nodelabel, .sublabel");
+    var pulse = svg.querySelector(".js-pulse");
+
+    if (reduceMotion || !hasGSAP || !hasST){
+      // ensure everything visible
+      lines.forEach(function(l){ l.style.strokeDasharray = "none"; l.style.strokeDashoffset = "0"; });
+      return;
+    }
+
+    // prepare dash for self-draw
+    lines.forEach(function(l){
+      var len;
+      try { len = l.getTotalLength(); } catch(e){ len = 0; }
+      if (!len || !isFinite(len)) return;
+      l.style.strokeDasharray = len;
+      l.style.strokeDashoffset = len;
+    });
+
+    gsap.set(nodes, { opacity: 0, transformOrigin: "center center", scale: 0.9 });
+    gsap.set(arrows, { opacity: 0 });
+    gsap.set(labels, { opacity: 0 });
+    if (pulse) gsap.set(pulse, { opacity: 0 });
+
+    var t = gsap.timeline({
+      scrollTrigger: { trigger: svg, start: "top 78%", once: true }
+    });
+
+    t.to(nodes, { opacity: 1, scale: 1, duration: 0.7, stagger: 0.08, ease: "power2.out" })
+     .to(labels, { opacity: 1, duration: 0.5, stagger: 0.03 }, "-=0.4")
+     .to(lines, { strokeDashoffset: 0, duration: 1.1, stagger: 0.12, ease: "power1.inOut" }, "-=0.45")
+     .to(arrows, { opacity: 1, duration: 0.4, stagger: 0.06 }, "-=0.4");
+
+    // travelling pulse around the loop after draw
+    if (pulse){
+      var path = svg.querySelector(".flow") || lines[0];
+      t.to(pulse, { opacity: 1, duration: 0.3 });
+      // simple ping motion along x of the diagram
+      gsap.fromTo(pulse,
+        { attr: { cx: pulse.getAttribute("cx") } },
+        { opacity: 0.35, duration: 1.4, repeat: -1, yoyo: true, ease: "sine.inOut", delay: 1.8 });
+    }
+  });
+
+  /* ===================================================
+     FEATURE titles — subtle weight shift on scroll
+     =================================================== */
+  if (!reduceMotion && hasGSAP && hasST){
+    document.querySelectorAll(".feature-name").forEach(function(name){
+      gsap.fromTo(name,
+        { fontVariationSettings: '"wght" 600, "wdth" 92, "opsz" 144' },
+        { fontVariationSettings: '"wght" 820, "wdth" 118, "opsz" 144',
+          ease: "none",
+          scrollTrigger: { trigger: name, start: "top 90%", end: "top 30%", scrub: 1 } });
+    });
+  }
+
+  /* refresh after fonts load so measurements are correct */
+  if (document.fonts && document.fonts.ready){
+    document.fonts.ready.then(function(){
+      if (hasST) ScrollTrigger.refresh();
+    });
+  }
+  window.addEventListener("load", function(){ if (hasST) ScrollTrigger.refresh(); });
+
+})();
+</script>
+</body>
+</html>

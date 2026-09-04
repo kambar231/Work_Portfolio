@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kambar Mangibayev — The Bench</title>
+<meta name="description" content="Kambar Mangibayev — Mechanical Systems Engineer, Controls. One lamp-lit workbench. Every object is a thing I built." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0b0c0e;
+    --bg-2:#0e0f12;
+    --ink:#eef2f6;
+    --ink-dim:#9aa3ad;
+    --ink-faint:#5b636c;
+    --amber:#ffcf8a;
+    --amber-deep:#e9a85a;
+    --amber-glow:rgba(255,207,138,.16);
+    --cool:#5ee6a8;
+    --line:#2a2d33;
+    --line-soft:#1a1c20;
+    --panel:#101216;
+    --radius:16px;
+    --ease:cubic-bezier(.16,1,.3,1);
+    --ease-soft:cubic-bezier(.4,0,.2,1);
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Space Grotesk",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+    line-height:1.5;
+  }
+  body.locked{overflow:hidden}
+  .mono{font-family:"JetBrains Mono",monospace}
+
+  /* ====== ATMOSPHERE / VIGNETTE ====== */
+  .grain{
+    position:fixed;inset:0;z-index:60;pointer-events:none;opacity:.04;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+  .vignette{
+    position:fixed;inset:0;z-index:55;pointer-events:none;
+    background:radial-gradient(125% 90% at 50% 42%, transparent 38%, rgba(0,0,0,.55) 100%);
+  }
+
+  /* ====== STAGE (the camera) ====== */
+  .stage{
+    position:relative;width:100%;
+  }
+
+  /* ====== ACT 1 — THE ROOM ====== */
+  #room{
+    position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;
+    overflow:hidden;
+  }
+  .room-scene{
+    position:absolute;inset:0;
+    background:
+      radial-gradient(60% 48% at 50% 64%, rgba(255,207,138,.10), transparent 70%),
+      radial-gradient(120% 80% at 50% 50%, #121317 0%, #0b0c0e 60%, #060708 100%);
+  }
+  .room-svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .room-copy{
+    position:relative;z-index:5;text-align:center;max-width:760px;padding:0 28px;
+    transform:translateY(-6vh);
+  }
+  .eyebrow{
+    font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.42em;text-transform:uppercase;
+    color:var(--amber);opacity:.85;margin-bottom:26px;
+  }
+  .room-name{
+    font-size:clamp(40px,8vw,92px);font-weight:600;letter-spacing:-.02em;line-height:.98;
+    background:linear-gradient(180deg,#fff 0%, #dfe6ec 60%, #aeb6bf 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .room-line{
+    margin-top:26px;font-size:clamp(15px,2vw,20px);color:var(--ink-dim);font-weight:300;max-width:540px;
+    margin-left:auto;margin-right:auto;
+  }
+  .room-line b{color:var(--ink);font-weight:500}
+  .scroll-cue{
+    position:absolute;left:50%;bottom:42px;transform:translateX(-50%);z-index:6;
+    display:flex;flex-direction:column;align-items:center;gap:14px;cursor:pointer;
+    background:none;border:0;color:inherit;
+  }
+  .scroll-cue .label{
+    font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.32em;text-transform:uppercase;
+    color:var(--cool);opacity:.9;
+  }
+  .scroll-cue .arrow{
+    width:26px;height:26px;border-radius:50%;border:1px solid rgba(94,230,168,.4);
+    display:grid;place-items:center;animation:bob 2.4s var(--ease-soft) infinite;
+  }
+  .scroll-cue .arrow svg{width:12px;height:12px;stroke:var(--cool)}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+
+  /* ====== ACT 2 — THE BENCH ====== */
+  #bench{
+    position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:96px 24px 120px;overflow:hidden;
+  }
+  .bench-bg{
+    position:absolute;inset:0;
+    background:
+      radial-gradient(46% 42% at 50% 46%, rgba(255,207,138,.13), transparent 72%),
+      linear-gradient(180deg,#070809 0%, #0b0c0e 50%, #060708 100%);
+  }
+  .bench-heading{position:relative;z-index:4;text-align:center;margin-bottom:8px}
+  .bench-heading .k{
+    font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.36em;text-transform:uppercase;color:var(--ink-faint);
+  }
+  .bench-heading h2{
+    font-size:clamp(26px,4.4vw,46px);font-weight:500;letter-spacing:-.01em;margin-top:14px;
+  }
+  .bench-heading h2 em{font-style:normal;color:var(--amber)}
+  .bench-heading p{color:var(--ink-dim);margin-top:12px;font-weight:300;font-size:15px}
+
+  .bench-wrap{position:relative;z-index:3;width:100%;max-width:1180px;margin-top:18px}
+  .bench-svg{width:100%;height:auto;display:block;overflow:visible}
+
+  /* object groups */
+  .obj{cursor:pointer;outline:none}
+  .obj .obj-body{transition:transform .55s var(--ease), filter .45s var(--ease-soft), opacity .5s var(--ease)}
+  .obj .glow-pool{opacity:0;transition:opacity .5s var(--ease)}
+  .obj .obj-label{opacity:0;transition:opacity .35s var(--ease), transform .45s var(--ease);transform:translateY(6px)}
+  .obj:hover .obj-body, .obj:focus-visible .obj-body{transform:translateY(-9px);filter:drop-shadow(0 14px 22px rgba(255,180,90,.28))}
+  .obj:hover .glow-pool, .obj:focus-visible .glow-pool{opacity:1}
+  .obj:hover .obj-label, .obj:focus-visible .obj-label{opacity:1;transform:translateY(0)}
+  .obj.featured .pulse-ring{animation:pulse 3.2s ease-in-out infinite;transform-origin:center}
+  @keyframes pulse{0%,100%{opacity:.0}50%{opacity:.55}}
+
+  .obj-label text{font-family:"JetBrains Mono",monospace;font-size:12.5px;fill:var(--ink)}
+  .obj-label .sub{font-size:9.5px;fill:var(--cool);letter-spacing:.1em}
+  .obj-label rect{fill:rgba(12,13,16,.86);stroke:rgba(255,207,138,.3)}
+
+  .featured-tag{
+    position:relative;z-index:4;margin-top:30px;display:flex;align-items:center;gap:10px;
+    font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-faint);
+  }
+  .featured-tag .dot{width:7px;height:7px;border-radius:50%;background:var(--cool);box-shadow:0 0 12px var(--cool)}
+
+  /* ====== REDUCED-MOTION / MOBILE LIST ====== */
+  .obj-list{display:none}
+  .obj-list-grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;width:100%;max-width:760px;margin-top:8px;
+  }
+  .obj-list button{
+    text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 18px;
+    color:var(--ink);cursor:pointer;transition:border-color .3s var(--ease), transform .3s var(--ease), background .3s;
+    display:flex;flex-direction:column;gap:6px;
+  }
+  .obj-list button:hover,.obj-list button:focus-visible{border-color:var(--amber);transform:translateY(-3px);background:#13151a;outline:none}
+  .obj-list button .ttl{font-weight:500;font-size:16px}
+  .obj-list button .one{color:var(--ink-dim);font-size:13px;font-weight:300}
+  .obj-list button .tag{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);margin-top:4px}
+  .obj-list button.feat{border-color:rgba(94,230,168,.45)}
+  .obj-list button.feat .tag{color:var(--cool)}
+
+  /* ====== ACT 3 — DETAIL PANEL (overlay) ====== */
+  .detail{
+    position:fixed;inset:0;z-index:80;display:none;
+    background:radial-gradient(70% 60% at 30% 40%, rgba(255,207,138,.10), transparent 70%), rgba(6,7,8,.97);
+    backdrop-filter:blur(4px);
+  }
+  .detail.open{display:block}
+  .detail-inner{
+    position:absolute;inset:0;display:grid;grid-template-columns:1.05fr 1fr;gap:0;
+    max-width:1240px;margin:0 auto;height:100%;
+  }
+  .detail-stage{
+    position:relative;display:flex;align-items:center;justify-content:center;padding:40px;overflow:hidden;
+  }
+  .detail-stage::after{
+    content:"";position:absolute;inset:0;
+    background:radial-gradient(48% 42% at 50% 46%, rgba(255,207,138,.16), transparent 72%);pointer-events:none;
+  }
+  .detail-art{width:100%;max-width:440px;height:auto;position:relative;z-index:2}
+  .detail-panel{
+    position:relative;overflow-y:auto;padding:64px 60px 80px;
+    border-left:1px solid var(--line-soft);
+    background:linear-gradient(180deg, rgba(16,18,22,.6), rgba(10,11,13,.6));
+  }
+  .detail-panel .idx{
+    font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.3em;color:var(--amber);text-transform:uppercase;
+  }
+  .detail-panel h3{font-size:clamp(28px,3.6vw,42px);font-weight:600;letter-spacing:-.015em;margin:14px 0 6px;line-height:1.04}
+  .detail-panel .one{color:var(--ink-dim);font-weight:300;font-size:16px;margin-bottom:30px}
+  .loop-row{
+    display:grid;grid-template-columns:118px 1fr;gap:0 22px;padding:18px 0;border-top:1px solid var(--line-soft);
+  }
+  .loop-row:last-of-type{border-bottom:1px solid var(--line-soft)}
+  .loop-row .k{
+    font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint);
+    padding-top:2px;
+  }
+  .loop-row .v{color:var(--ink);font-weight:300;font-size:15px}
+  .loop-row .v b{font-weight:500}
+  .tools{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px}
+  .tools span{
+    font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.06em;color:var(--ink-dim);
+    border:1px solid var(--line);border-radius:999px;padding:6px 12px;
+  }
+  .detail-nav{
+    position:fixed;top:26px;right:30px;z-index:90;display:flex;gap:10px;
+  }
+  .detail-nav button, .det-btn{
+    font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    background:rgba(16,18,22,.85);color:var(--ink);border:1px solid var(--line);border-radius:999px;
+    padding:10px 16px;cursor:pointer;transition:border-color .3s var(--ease), color .3s, background .3s;display:flex;align-items:center;gap:8px;
+  }
+  .detail-nav button:hover,.det-btn:hover{border-color:var(--amber);color:var(--amber)}
+  .detail-nav .next:hover{border-color:var(--cool);color:var(--cool)}
+  .det-loop-line{
+    display:flex;align-items:center;gap:8px;margin:26px 0 8px;
+    font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-faint);
+  }
+  .det-loop-line .pill{border:1px solid var(--line);border-radius:999px;padding:4px 9px;color:var(--cool)}
+  .det-loop-line .arr{color:var(--ink-faint)}
+  .detail-detail{
+    margin-top:30px;padding:18px 20px;border-radius:12px;border:1px solid var(--line-soft);
+    background:rgba(255,207,138,.04);
+  }
+  .detail-detail .lab{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--amber);margin-bottom:8px}
+  .detail-detail p{color:var(--ink-dim);font-size:14px;font-weight:300}
+
+  /* ====== ACT 4 — LIGHTS ON ====== */
+  #lights{
+    position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;
+    padding:120px 24px;overflow:hidden;
+  }
+  .lights-bg{
+    position:absolute;inset:0;
+    background:
+      radial-gradient(60% 70% at 50% 30%, rgba(255,207,138,.16), transparent 70%),
+      linear-gradient(180deg,#0d0e11,#0b0c0e);
+  }
+  .lights-card{
+    position:relative;z-index:3;width:100%;max-width:760px;text-align:center;
+    border:1px solid var(--line);border-radius:24px;padding:64px 48px;
+    background:linear-gradient(180deg, rgba(16,18,22,.7), rgba(10,11,13,.55));
+    box-shadow:0 40px 120px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .lights-card .k{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.32em;text-transform:uppercase;color:var(--amber)}
+  .lights-card h2{font-size:clamp(30px,5vw,56px);font-weight:600;letter-spacing:-.02em;margin:18px 0 10px;line-height:1.02}
+  .lights-card .tag{color:var(--ink-dim);font-weight:300;font-size:17px;max-width:520px;margin:0 auto 40px}
+  .contact-grid{display:flex;flex-wrap:wrap;gap:14px;justify-content:center}
+  .contact-grid a{
+    display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--ink);
+    border:1px solid var(--line);border-radius:14px;padding:16px 22px;min-width:200px;justify-content:flex-start;
+    transition:border-color .3s var(--ease), transform .3s var(--ease), background .3s;background:rgba(255,255,255,.012);
+  }
+  .contact-grid a:hover{border-color:var(--amber);transform:translateY(-3px);background:rgba(255,207,138,.05)}
+  .contact-grid a .ico{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;border:1px solid var(--line);flex:0 0 auto}
+  .contact-grid a .ico svg{width:16px;height:16px;stroke:var(--amber);fill:none}
+  .contact-grid a .t{text-align:left}
+  .contact-grid a .t .lab{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-faint)}
+  .contact-grid a .t .val{font-size:14px;margin-top:2px}
+  .lights-foot{margin-top:38px;font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.14em;color:var(--ink-faint)}
+  .lights-foot b{color:var(--cool)}
+
+  /* progress / narration rail */
+  .rail{
+    position:fixed;left:26px;top:50%;transform:translateY(-50%);z-index:50;display:flex;flex-direction:column;gap:14px;
+  }
+  .rail a{display:flex;align-items:center;gap:12px;text-decoration:none}
+  .rail .dot{width:8px;height:8px;border-radius:50%;border:1px solid var(--line);background:transparent;transition:.3s var(--ease)}
+  .rail .nm{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-faint);opacity:0;transform:translateX(-4px);transition:.3s var(--ease)}
+  .rail a:hover .nm, .rail a.active .nm{opacity:1;transform:translateX(0)}
+  .rail a.active .dot{background:var(--amber);border-color:var(--amber);box-shadow:0 0 10px var(--amber-glow)}
+
+  @media (max-width:1024px){
+    .rail{display:none}
+    .detail-inner{grid-template-columns:1fr;grid-template-rows:40% 60%}
+    .detail-panel{padding:36px 28px 60px}
+    .detail-stage{padding:28px}
+  }
+  @media (max-width:760px){
+    .bench-svg{display:none}
+    .obj-list{display:block;width:100%}
+    .featured-tag{display:none}
+    .detail-inner{grid-template-rows:34% 66%}
+    .loop-row{grid-template-columns:1fr;gap:6px}
+    .loop-row .k{padding-top:0}
+    .detail-nav{top:auto;bottom:18px;right:50%;transform:translateX(50%)}
+    .room-copy{transform:translateY(-2vh)}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important;scroll-behavior:auto !important}
+    .obj .obj-body{transition:none}
+    .bench-svg{display:none}
+    .obj-list{display:block;width:100%}
+  }
+</style>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<div class="vignette" aria-hidden="true"></div>
+
+<!-- side rail -->
+<nav class="rail" aria-label="sections">
+  <a href="#room" data-rail="room"><span class="dot"></span><span class="nm">The Room</span></a>
+  <a href="#bench" data-rail="bench"><span class="dot"></span><span class="nm">The Bench</span></a>
+  <a href="#lights" data-rail="lights"><span class="dot"></span><span class="nm">Lights On</span></a>
+</nav>
+
+<main class="stage">
+
+  <!-- ============ ACT 1 — THE ROOM ============ -->
+  <section id="room">
+    <div class="room-scene"></div>
+    <svg class="room-svg" id="roomSvg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <radialGradient id="lampPool" cx="50%" cy="62%" r="48%">
+          <stop offset="0%" stop-color="#ffcf8a" stop-opacity=".5"/>
+          <stop offset="40%" stop-color="#e9a85a" stop-opacity=".14"/>
+          <stop offset="100%" stop-color="#e9a85a" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="bench1" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#23262c"/><stop offset="100%" stop-color="#15171b"/>
+        </linearGradient>
+        <linearGradient id="lampArm" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#3a3e46"/><stop offset="100%" stop-color="#2a2d33"/>
+        </linearGradient>
+      </defs>
+      <!-- room walls hint -->
+      <rect x="0" y="0" width="1440" height="900" fill="#0a0b0d"/>
+      <!-- floor / wall split -->
+      <rect x="0" y="640" width="1440" height="260" fill="#070809"/>
+      <line x1="0" y1="640" x2="1440" y2="640" stroke="#16181c" stroke-width="2"/>
+      <!-- lamp light cone from upper area -->
+      <polygon points="540,150 900,150 1060,640 380,640" fill="url(#lampPool)" opacity=".8"/>
+      <ellipse cx="720" cy="660" rx="430" ry="120" fill="url(#lampPool)"/>
+      <!-- the bench (far) -->
+      <g id="roomBench">
+        <rect x="360" y="612" width="720" height="44" rx="4" fill="url(#bench1)" stroke="#3a3e46" stroke-width="1"/>
+        <rect x="392" y="656" width="22" height="150" fill="#15171b"/>
+        <rect x="1026" y="656" width="22" height="150" fill="#15171b"/>
+        <!-- vise hint -->
+        <rect x="430" y="582" width="58" height="30" rx="3" fill="#2a2d33" stroke="#454a52" stroke-width="1"/>
+        <!-- laptop hint -->
+        <g transform="translate(620,560)">
+          <rect x="0" y="20" width="92" height="8" rx="2" fill="#2a2d33"/>
+          <path d="M8 20 L18 -16 L82 -16 L92 20 Z" fill="#1b1d22" stroke="#3a3e46" stroke-width="1"/>
+          <rect x="22" y="-12" width="56" height="28" fill="#0e0f12"/>
+          <rect x="26" y="-8" width="30" height="2" fill="#5ee6a8" opacity=".5"/>
+          <rect x="26" y="-3" width="44" height="2" fill="#ffcf8a" opacity=".35"/>
+        </g>
+        <!-- small object hints -->
+        <circle cx="900" cy="600" r="11" fill="#23262c" stroke="#454a52"/>
+        <rect x="960" y="588" width="40" height="24" rx="2" fill="#23262c" stroke="#454a52"/>
+      </g>
+      <!-- the lamp -->
+      <g id="roomLamp">
+        <rect x="436" y="600" width="46" height="9" rx="3" fill="#2a2d33"/>
+        <line x1="459" y1="600" x2="540" y2="430" stroke="url(#lampArm)" stroke-width="7" stroke-linecap="round"/>
+        <line x1="540" y1="430" x2="700" y2="360" stroke="url(#lampArm)" stroke-width="7" stroke-linecap="round"/>
+        <circle cx="540" cy="430" r="7" fill="#454a52"/>
+        <g transform="translate(700,360) rotate(28)">
+          <path d="M-6 -6 L70 -22 L74 26 L-2 22 Z" fill="#2a2d33" stroke="#454a52" stroke-width="1.5"/>
+          <ellipse cx="70" cy="2" rx="9" ry="22" fill="#ffcf8a" opacity=".9"/>
+          <ellipse cx="70" cy="2" rx="5" ry="14" fill="#fff6e6"/>
+        </g>
+      </g>
+    </svg>
+
+    <div class="room-copy">
+      <div class="eyebrow">A workshop, one lamp on</div>
+      <h1 class="room-name">Kambar Mangibayev</h1>
+      <p class="room-line"><b>Mechanical &amp; controls engineer.</b> Everything here, I built.</p>
+    </div>
+
+    <button class="scroll-cue" id="comeCloser" aria-label="Come closer to the bench">
+      <span class="label">Come closer</span>
+      <span class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></span>
+    </button>
+  </section>
+
+  <!-- ============ ACT 2 — THE BENCH ============ -->
+  <section id="bench">
+    <div class="bench-bg"></div>
+    <div class="bench-heading">
+      <div class="k">The bench — sense · decide · respond</div>
+      <h2>Pick something up. <em>Each object is a thing I made.</em></h2>
+      <p>Hover an object to lift it into the light. Click to take it apart.</p>
+    </div>
+
+    <div class="bench-wrap">
+      <svg class="bench-svg" id="benchSvg" viewBox="0 0 1180 560" aria-hidden="false" role="group" aria-label="Workbench with project objects">
+        <defs>
+          <radialGradient id="deskPool" cx="50%" cy="42%" r="60%">
+            <stop offset="0%" stop-color="#ffcf8a" stop-opacity=".22"/>
+            <stop offset="55%" stop-color="#e9a85a" stop-opacity=".06"/>
+            <stop offset="100%" stop-color="#e9a85a" stop-opacity="0"/>
+          </radialGradient>
+          <radialGradient id="objPool" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#ffcf8a" stop-opacity=".55"/>
+            <stop offset="100%" stop-color="#ffcf8a" stop-opacity="0"/>
+          </radialGradient>
+          <linearGradient id="deskTop" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#2b2e34"/><stop offset="100%" stop-color="#1a1c21"/>
+          </linearGradient>
+          <linearGradient id="deskEdge" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#15171b"/><stop offset="100%" stop-color="#0d0e11"/>
+          </linearGradient>
+          <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#cfd6dd"/><stop offset="50%" stop-color="#8b939c"/><stop offset="100%" stop-color="#5c636b"/>
+          </linearGradient>
+          <linearGradient id="alu" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#dfe5ea"/><stop offset="100%" stop-color="#9aa2ab"/>
+          </linearGradient>
+        </defs>
+
+        <!-- desk surface lamp pool -->
+        <ellipse cx="590" cy="300" rx="560" ry="190" fill="url(#deskPool)"/>
+
+        <!-- desk -->
+        <g id="desk">
+          <rect x="70" y="392" width="1040" height="20" rx="3" fill="url(#deskTop)" stroke="#3a3e46" stroke-width="1"/>
+          <rect x="70" y="412" width="1040" height="14" fill="url(#deskEdge)"/>
+          <!-- wood grain hints -->
+          <line x1="120" y1="402" x2="1060" y2="402" stroke="#000" stroke-opacity=".18" stroke-width="1"/>
+          <line x1="120" y1="406" x2="1060" y2="406" stroke="#fff" stroke-opacity=".03" stroke-width="1"/>
+        </g>
+
+        <!-- the lamp arching over -->
+        <g id="benchLamp">
+          <rect x="92" y="372" width="52" height="12" rx="4" fill="#2a2d33"/>
+          <line x1="118" y1="372" x2="150" y2="180" stroke="#3a3e46" stroke-width="6" stroke-linecap="round"/>
+          <line x1="150" y1="180" x2="330" y2="120" stroke="#3a3e46" stroke-width="6" stroke-linecap="round"/>
+          <circle cx="150" cy="180" r="6" fill="#454a52"/>
+          <g transform="translate(330,120) rotate(34)">
+            <path d="M-4 -8 L60 -20 L64 24 L0 20 Z" fill="#2a2d33" stroke="#52575f" stroke-width="1.5"/>
+            <ellipse cx="60" cy="2" rx="8" ry="20" fill="#ffcf8a"/>
+            <ellipse cx="60" cy="2" rx="4" ry="12" fill="#fff6e6"/>
+          </g>
+        </g>
+
+        <!-- ============ OBJECTS ============ -->
+
+        <!-- 1) PrintNC CNC — aluminum bracket in a bench vise -->
+        <g class="obj" id="o-cnc" data-key="cnc" tabindex="0" role="button" aria-label="PrintNC CNC router">
+          <ellipse class="glow-pool" cx="200" cy="372" rx="92" ry="34" fill="url(#objPool)"/>
+          <g class="obj-body" transform="translate(150,300)">
+            <!-- vise base -->
+            <rect x="0" y="78" width="108" height="14" rx="2" fill="#41464e" stroke="#5a6068"/>
+            <rect x="-6" y="58" width="40" height="24" rx="2" fill="#3a3e46" stroke="#5a6068"/>
+            <rect x="74" y="46" width="34" height="36" rx="2" fill="#3a3e46" stroke="#5a6068"/>
+            <line x1="-6" y1="66" x2="74" y2="66" stroke="#22252a" stroke-width="3"/>
+            <circle cx="-12" cy="70" r="8" fill="#5a6068" stroke="#71777f"/>
+            <!-- aluminum bracket clamped -->
+            <g transform="translate(30,18)">
+              <path d="M2 60 L2 6 L8 0 L40 0 L46 6 L46 24 L20 24 L20 60 Z" fill="url(#alu)" stroke="#6b727b" stroke-width="1.2"/>
+              <circle cx="12" cy="10" r="3.4" fill="#0d0e11"/>
+              <circle cx="34" cy="14" r="3.4" fill="#0d0e11"/>
+              <line x1="6" y1="44" x2="14" y2="44" stroke="#fff" stroke-opacity=".35"/>
+            </g>
+          </g>
+          <g class="obj-label" transform="translate(150,272)">
+            <rect x="0" y="-22" width="170" height="34" rx="8"/>
+            <text x="14" y="-2">PrintNC CNC</text>
+            <text class="sub" x="14" y="9">SELF-BUILT ROUTER</text>
+          </g>
+        </g>
+
+        <!-- 2) Laptop — Python G-code / slicer -->
+        <g class="obj" id="o-laptop" data-key="slicer" tabindex="0" role="button" aria-label="Python slicer and G-code">
+          <ellipse class="glow-pool" cx="392" cy="378" rx="110" ry="36" fill="url(#objPool)"/>
+          <g class="obj-body" transform="translate(320,318)">
+            <path d="M14 70 L0 76 L142 76 L128 70 Z" fill="#3a3e46"/>
+            <rect x="12" y="64" width="118" height="8" rx="2" fill="#41464e" stroke="#5a6068"/>
+            <path d="M20 64 L28 6 L114 6 L122 64 Z" fill="#22252a" stroke="#52575f" stroke-width="1.2"/>
+            <rect x="32" y="12" width="78" height="46" rx="2" fill="#0c0e12"/>
+            <!-- code/cad on screen -->
+            <line x1="38" y1="20" x2="64" y2="20" stroke="#5ee6a8" stroke-width="2"/>
+            <line x1="38" y1="26" x2="86" y2="26" stroke="#ffcf8a" stroke-width="2" opacity=".7"/>
+            <line x1="44" y1="32" x2="78" y2="32" stroke="#9aa3ad" stroke-width="2" opacity=".5"/>
+            <path d="M70 50 L82 40 L96 50 L82 54 Z" fill="none" stroke="#5ee6a8" stroke-width="1.4" opacity=".8"/>
+            <line x1="38" y1="44" x2="58" y2="44" stroke="#9aa3ad" stroke-width="2" opacity=".4"/>
+          </g>
+          <g class="obj-label" transform="translate(330,290)">
+            <rect x="0" y="-22" width="196" height="34" rx="8"/>
+            <text x="14" y="-2">Python Slicer &amp; G-code</text>
+            <text class="sub" x="14" y="9">STL → TOOLPATH, FROM SCRATCH</text>
+          </g>
+        </g>
+
+        <!-- 3) 3D-printed bracket -->
+        <g class="obj" id="o-print" data-key="print" tabindex="0" role="button" aria-label="3D printing">
+          <ellipse class="glow-pool" cx="560" cy="382" rx="78" ry="30" fill="url(#objPool)"/>
+          <g class="obj-body" transform="translate(522,330)">
+            <!-- printed L-bracket with layer lines -->
+            <path d="M2 52 L2 4 L40 4 L40 18 L18 18 L18 52 Z" fill="#2c5e8a" stroke="#3f7cb0" stroke-width="1.2"/>
+            <g stroke="#16466b" stroke-width="1">
+              <line x1="2" y1="10" x2="40" y2="10"/>
+              <line x1="2" y1="16" x2="40" y2="16"/>
+              <line x1="2" y1="24" x2="18" y2="24"/>
+              <line x1="2" y1="32" x2="18" y2="32"/>
+              <line x1="2" y1="40" x2="18" y2="40"/>
+              <line x1="2" y1="46" x2="18" y2="46"/>
+            </g>
+            <circle cx="29" cy="11" r="3" fill="#0d0e11"/>
+            <circle cx="10" cy="46" r="3" fill="#0d0e11"/>
+          </g>
+          <g class="obj-label" transform="translate(522,302)">
+            <rect x="0" y="-22" width="158" height="34" rx="8"/>
+            <text x="14" y="-2">3D Printing</text>
+            <text class="sub" x="14" y="9">LEARN BY BUILDING</text>
+          </g>
+        </g>
+
+        <!-- 4) Double pendulum -->
+        <g class="obj" id="o-pendulum" data-key="pendulum" tabindex="0" role="button" aria-label="Double pendulum">
+          <ellipse class="glow-pool" cx="688" cy="378" rx="78" ry="32" fill="url(#objPool)"/>
+          <g class="obj-body" transform="translate(650,286)">
+            <rect x="20" y="86" width="44" height="10" rx="2" fill="#41464e" stroke="#5a6068"/>
+            <rect x="38" y="6" width="8" height="80" fill="#3a3e46"/>
+            <circle cx="42" cy="8" r="5" fill="#5a6068"/>
+            <!-- arm 1 -->
+            <line x1="42" y1="8" x2="74" y2="44" stroke="url(#metal)" stroke-width="4" stroke-linecap="round"/>
+            <circle cx="74" cy="44" r="6" fill="#8b939c" stroke="#cfd6dd"/>
+            <!-- arm 2 -->
+            <line x1="74" y1="44" x2="56" y2="78" stroke="url(#metal)" stroke-width="4" stroke-linecap="round"/>
+            <circle cx="56" cy="78" r="7" fill="#ffcf8a" stroke="#e9a85a"/>
+            <!-- chaotic trace -->
+            <path d="M56 78 C72 70 70 54 60 50 C52 47 50 60 58 62" fill="none" stroke="#5ee6a8" stroke-width="1.2" opacity=".55"/>
+          </g>
+          <g class="obj-label" transform="translate(650,258)">
+            <rect x="0" y="-22" width="172" height="34" rx="8"/>
+            <text x="14" y="-2">Double Pendulum</text>
+            <text class="sub" x="14" y="9">CHAOS, VALIDATED VS RIG</text>
+          </g>
+        </g>
+
+        <!-- 5) Vacuum cannon — clear tube + ping-pong balls -->
+        <g class="obj" id="o-cannon" data-key="cannon" tabindex="0" role="button" aria-label="Vacuum cannon">
+          <ellipse class="glow-pool" cx="846" cy="380" rx="118" ry="30" fill="url(#objPool)"/>
+          <g class="obj-body" transform="translate(742,348)">
+            <!-- stand -->
+            <rect x="6" y="34" width="14" height="22" fill="#3a3e46"/>
+            <rect x="180" y="34" width="14" height="22" fill="#3a3e46"/>
+            <!-- clear tube -->
+            <rect x="0" y="14" width="206" height="24" rx="12" fill="#cfd6dd" fill-opacity=".10" stroke="#aeb6bf" stroke-width="1.4"/>
+            <line x1="0" y1="22" x2="206" y2="22" stroke="#fff" stroke-opacity=".18"/>
+            <!-- balls -->
+            <circle cx="40" cy="26" r="8" fill="#f4f6f8" stroke="#cfd6dd"/>
+            <circle cx="58" cy="26" r="8" fill="#f4f6f8" stroke="#cfd6dd"/>
+            <circle cx="120" cy="26" r="8" fill="#ffcf8a" stroke="#e9a85a"/>
+            <!-- exit motion -->
+            <path d="M210 26 L236 26" stroke="#5ee6a8" stroke-width="2" stroke-dasharray="2 4" stroke-linecap="round"/>
+            <circle cx="248" cy="26" r="8" fill="#ffcf8a" stroke="#e9a85a" opacity=".5"/>
+          </g>
+          <g class="obj-label" transform="translate(742,320)">
+            <rect x="0" y="-22" width="178" height="34" rx="8"/>
+            <text x="14" y="-2">Vacuum Cannon</text>
+            <text class="sub" x="14" y="9">1.52 M BARREL · EXIT VEL SIM</text>
+          </g>
+        </g>
+
+        <!-- 6) Model aircraft — flight dynamics -->
+        <g class="obj" id="o-aircraft" data-key="flight" tabindex="0" role="button" aria-label="Flight dynamics">
+          <ellipse class="glow-pool" cx="540" cy="250" rx="96" ry="30" fill="url(#objPool)"/>
+          <g class="obj-body" transform="translate(478,196)">
+            <!-- stand -->
+            <line x1="62" y1="44" x2="62" y2="78" stroke="#3a3e46" stroke-width="4"/>
+            <rect x="50" y="78" width="24" height="8" rx="2" fill="#41464e"/>
+            <!-- fuselage -->
+            <path d="M14 44 L96 38 Q116 38 124 44 Q116 50 96 50 L14 50 Q6 47 14 44 Z" fill="url(#metal)" stroke="#cfd6dd" stroke-width="1"/>
+            <!-- wing -->
+            <path d="M40 46 L72 18 L80 18 L62 46 Z" fill="#9aa3ad" stroke="#cfd6dd"/>
+            <path d="M40 48 L72 76 L80 76 L62 48 Z" fill="#7d858e" stroke="#aeb6bf"/>
+            <!-- tail -->
+            <path d="M16 44 L4 30 L12 30 L24 44 Z" fill="#9aa3ad" stroke="#cfd6dd"/>
+            <circle cx="120" cy="44" r="2.4" fill="#5ee6a8"/>
+          </g>
+          <g class="obj-label" transform="translate(478,168)">
+            <rect x="0" y="-22" width="184" height="34" rx="8"/>
+            <text x="14" y="-2">Flight Dynamics</text>
+            <text class="sub" x="14" y="9">9 AIRCRAFT · MATLAB/SIMULINK</text>
+          </g>
+        </g>
+
+        <!-- 7) Model rocket — Saturn V F-1 nozzle FEA -->
+        <g class="obj" id="o-rocket" data-key="rocket" tabindex="0" role="button" aria-label="Saturn V F-1 nozzle FEA">
+          <ellipse class="glow-pool" cx="858" cy="252" rx="64" ry="30" fill="url(#objPool)"/>
+          <g class="obj-body" transform="translate(836,180)">
+            <path d="M22 8 Q34 22 34 42 L34 92 L10 92 L10 42 Q10 22 22 8 Z" fill="url(#metal)" stroke="#cfd6dd" stroke-width="1"/>
+            <path d="M22 8 Q30 20 30 36 L14 36 Q14 20 22 8 Z" fill="#ffcf8a" opacity=".8"/>
+            <line x1="22" y1="40" x2="22" y2="86" stroke="#fff" stroke-opacity=".2"/>
+            <!-- fins -->
+            <path d="M10 76 L-4 96 L10 92 Z" fill="#7d858e"/>
+            <path d="M34 76 L48 96 L34 92 Z" fill="#7d858e"/>
+            <!-- nozzle / FEA stress glow -->
+            <path d="M12 92 L8 108 L36 108 L32 92 Z" fill="#e9a85a"/>
+            <path d="M14 92 L11 104 L33 104 L30 92 Z" fill="#5ee6a8" opacity=".4"/>
+          </g>
+          <g class="obj-label" transform="translate(810,152)">
+            <rect x="0" y="-22" width="206" height="34" rx="8"/>
+            <text x="14" y="-2">Saturn V F-1 Nozzle FEA</text>
+            <text class="sub" x="14" y="9">7.5M LB THRUST · ANSYS</text>
+          </g>
+        </g>
+
+        <!-- 8) FEATURED — Raymond reach-truck / forklift -->
+        <g class="obj featured" id="o-raymond" data-key="raymond" tabindex="0" role="button" aria-label="Raymond Corporation reach truck — featured">
+          <circle class="pulse-ring" cx="1000" cy="360" r="86" fill="none" stroke="#5ee6a8" stroke-opacity=".5" stroke-width="1.4"/>
+          <ellipse class="glow-pool" cx="1000" cy="380" rx="118" ry="38" fill="url(#objPool)"/>
+          <g class="obj-body" transform="translate(916,288)">
+            <!-- mast -->
+            <rect x="120" y="0" width="8" height="98" fill="#41464e"/>
+            <rect x="132" y="6" width="8" height="92" fill="#41464e"/>
+            <!-- forks -->
+            <path d="M128 92 L172 92 L172 100 L128 100 Z" fill="#5a6068"/>
+            <line x1="172" y1="96" x2="186" y2="96" stroke="#5a6068" stroke-width="5"/>
+            <!-- carriage -->
+            <rect x="118" y="44" width="22" height="20" rx="2" fill="#5ee6a8" opacity=".9"/>
+            <!-- body -->
+            <path d="M14 56 L30 30 L96 30 L112 56 L112 92 L14 92 Z" fill="#1f4f3a" stroke="#2f7a59" stroke-width="1.4"/>
+            <rect x="40" y="36" width="44" height="20" rx="2" fill="#0c1410" stroke="#2f7a59"/>
+            <line x1="44" y1="44" x2="80" y2="44" stroke="#5ee6a8" stroke-width="1.4" opacity=".7"/>
+            <!-- wheels -->
+            <circle cx="36" cy="98" r="12" fill="#15171b" stroke="#41464e" stroke-width="2"/>
+            <circle cx="92" cy="98" r="12" fill="#15171b" stroke="#41464e" stroke-width="2"/>
+            <circle cx="36" cy="98" r="4" fill="#2a2d33"/>
+            <circle cx="92" cy="98" r="4" fill="#2a2d33"/>
+            <!-- sensing cone (pedestrian detection) -->
+            <path d="M14 70 L-40 54 L-40 86 Z" fill="#5ee6a8" opacity=".14"/>
+            <path d="M14 70 L-40 70" stroke="#5ee6a8" stroke-width="1" stroke-dasharray="2 4" opacity=".6"/>
+          </g>
+          <g class="obj-label" transform="translate(900,260)">
+            <rect x="0" y="-22" width="216" height="44" rx="8"/>
+            <text x="14" y="-4">Raymond Corporation</text>
+            <text class="sub" x="14" y="8">FEATURED · SENSE → DECIDE → STOP</text>
+          </g>
+        </g>
+      </svg>
+
+      <!-- reduced-motion / mobile list -->
+      <div class="obj-list" id="objList">
+        <div class="obj-list-grid" id="objListGrid"><!-- injected --></div>
+      </div>
+    </div>
+
+    <div class="featured-tag">
+      <span class="dot"></span> The green one is what I do now. Save it for last.
+    </div>
+  </section>
+
+  <!-- ============ ACT 4 — LIGHTS ON ============ -->
+  <section id="lights">
+    <div class="lights-bg"></div>
+    <div class="lights-card">
+      <div class="k">Lights on</div>
+      <h2>The bench is always open.</h2>
+      <p class="tag">I build systems that sense, decide, and respond in the real world. If that sounds like something you need built, let's talk.</p>
+      <div class="contact-grid">
+        <a href="mailto:kambarmangibayev@gmail.com">
+          <span class="ico"><svg viewBox="0 0 24 24" stroke-width="1.7"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></span>
+          <span class="t"><span class="lab">Email</span><span class="val">kambarmangibayev@gmail.com</span></span>
+        </a>
+        <a href="tel:+15853099467">
+          <span class="ico"><svg viewBox="0 0 24 24" stroke-width="1.7"><path d="M5 4h4l2 5-3 2a12 12 0 005 5l2-3 5 2v4a2 2 0 01-2 2A17 17 0 013 6a2 2 0 012-2z"/></svg></span>
+          <span class="t"><span class="lab">Phone</span><span class="val">+1 585-309-9467</span></span>
+        </a>
+        <a href="#room" id="resumeLink">
+          <span class="ico"><svg viewBox="0 0 24 24" stroke-width="1.7"><path d="M14 3v5h5"/><path d="M7 3h8l5 5v11a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z"/><path d="M9 13h6M9 17h6"/></svg></span>
+          <span class="t"><span class="lab">Resume</span><span class="val">Mechanical Systems · Controls</span></span>
+        </a>
+      </div>
+      <div class="lights-foot">Rochester, NY · Born Semey, Kazakhstan · <b>Number-one hobby: engineering</b></div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ ACT 3 — DETAIL OVERLAY ============ -->
+<div class="detail" id="detail" role="dialog" aria-modal="true" aria-label="Project detail">
+  <div class="detail-nav">
+    <button class="back" id="detBack" aria-label="Back to the bench">← Back to the bench</button>
+    <button class="next" id="detNext" aria-label="Next object">Next →</button>
+  </div>
+  <div class="detail-inner">
+    <div class="detail-stage">
+      <svg class="detail-art" id="detArt" viewBox="0 0 300 300" aria-hidden="true"></svg>
+    </div>
+    <div class="detail-panel" id="detPanel">
+      <!-- injected -->
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  var prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var hasGSAP = (typeof window.gsap !== "undefined");
+
+  /* ============ PROJECT DATA ============ */
+  var PROJECTS = {
+    cnc: {
+      idx:"01 — sense",
+      title:"PrintNC CNC",
+      one:"A hybrid steel-frame + 3D-printed industrial router I built on my own bench.",
+      problem:"I wanted a CNC that could cut aluminum and steel without paying for an industrial machine — and without a shop to put it in.",
+      role:"Designer, fabricator, integrator. I sourced the steel, printed the structural joiners, squared the gantry, and tuned the motion system.",
+      loop:"It senses position through stepper feedback and limit switches, decides toolpaths from the G-code I feed it, and responds by driving the spindle through the cut — rigidly enough that the frame stays true.",
+      taught:"Rigidity is a system property, not a part property. The frame, the fasteners, the print orientation and the tuning all have to agree. (And — don't tell my landlord.)",
+      tools:["Steel tube","3D-printed joiners","Stepper drives","GRBL/motion tuning","Fusion 360"],
+      detail:"The structural plastic parts are printed in the same orientation the load travels — layer lines aligned with the force path, not against it."
+    },
+    slicer: {
+      idx:"02 — decide",
+      title:"Python Slicer & G-code",
+      one:"A custom STL → G-code pipeline written from scratch for support-reduction research.",
+      problem:"Off-the-shelf slicers won't let you slice at non-standard angles. My research needed exactly that, to study how slicing orientation reduces support material.",
+      role:"Author of the whole pipeline — geometry intake, slicing planes, path planning, and the G-code emitter — plus the research framing around it.",
+      loop:"It reads the mesh (sense), chooses slicing planes and toolpaths at unconventional angles (decide), then emits machine-ready G-code for the printer to run (respond).",
+      taught:"When you write the slicer yourself, the print stops being a black box. Every artifact on the part traces back to a line of code you can change.",
+      tools:["Python","NumPy","STL / mesh geometry","Custom G-code emitter","Slicing research"],
+      detail:"This is also where my research lives: the laptop on the bench is the same machine the toolpaths and validation plots come from."
+    },
+    print: {
+      idx:"03 — respond",
+      title:"3D Printing",
+      one:"Iterate fast, learn by building — the workshop's fastest feedback loop.",
+      problem:"Most ideas die because the loop from sketch to physical object is too slow. I wanted that loop to be hours, not weeks.",
+      role:"I treat the printer as a thinking tool: model, print, hold it in my hand, find what's wrong, repeat.",
+      loop:"Sketch the part (decide), print it overnight (respond), then measure and feel where it failed (sense) — and the next revision is already better.",
+      taught:"You learn more from one printed mistake than from ten perfect drawings. Tolerances, fit, and feel only show up in the real object.",
+      tools:["FDM printing","Fusion 360","PETG / PLA","Tolerance tuning"],
+      detail:"My favourite print isn't an engineering part — it's a MagSafe stand I made for my wife. The bench is for people too."
+    },
+    pendulum: {
+      idx:"04 — sense",
+      title:"Double Pendulum",
+      one:"A chaotic-dynamics model, validated against a physical rig I built.",
+      problem:"Chaotic systems are easy to simulate and easy to fool yourself about. I wanted a model I could actually trust against reality.",
+      role:"I built both halves: the numerical model of the double pendulum and the physical rig to check it against.",
+      loop:"The rig senses real motion, the model decides what the equations predict, and I respond by reconciling the two — tuning until simulation and hardware diverge only where chaos says they must.",
+      taught:"Validation is the whole game. A model that matches a real rig — even briefly, before chaos takes over — is worth more than a beautiful plot of nothing.",
+      tools:["Lagrangian dynamics","Numerical integration","Python / MATLAB","Physical test rig"],
+      detail:"Two identical pendulums released the same way drift apart within seconds. Watching the model predict that drift is the point."
+    },
+    cannon: {
+      idx:"05 — decide",
+      title:"Vacuum Cannon",
+      one:"A simulation of ping-pong-ball exit velocity from a 1.52 m barrel.",
+      problem:"How fast can atmospheric pressure alone push a ping-pong ball down a tube? I wanted the number before building anything dangerous.",
+      role:"I modeled the pressure-driven acceleration along the barrel and predicted the exit velocity.",
+      loop:"The model senses the pressure differential, decides the acceleration profile down the 1.52 m barrel, and responds with a predicted exit velocity — the answer you'd otherwise need a high-speed camera to get.",
+      taught:"A clean physical model can answer a 'what if' before you ever risk a part — or a window.",
+      tools:["Fluid / pressure modeling","Kinematics","Python","1.52 m barrel geometry"],
+      detail:"The whole event is over in milliseconds — which is exactly why simulating it first is the responsible move."
+    },
+    flight: {
+      idx:"06 — decide",
+      title:"Flight Dynamics",
+      one:"Dynamic models of 9 aircraft in MATLAB + Simulink — Euler and quaternion.",
+      problem:"Aircraft behave differently across regimes, and Euler-angle models break at the extremes. I wanted models that hold up.",
+      role:"I built and compared dynamic models for nine different aircraft, implementing both Euler-angle and quaternion formulations.",
+      loop:"Each model senses the aircraft state, decides the next state from the equations of motion, and responds with the simulated trajectory — quaternions stepping in where Euler angles hit gimbal lock.",
+      taught:"The right mathematical representation isn't cosmetic. Switching to quaternions is the difference between a model that flies and one that tears itself apart at 90 degrees.",
+      tools:["MATLAB","Simulink","Euler angles","Quaternions","6-DOF dynamics"],
+      detail:"Nine airframes, two formulations each — the comparison is where the intuition actually comes from."
+    },
+    rocket: {
+      idx:"07 — respond",
+      title:"Saturn V F-1 Nozzle FEA",
+      one:"Finite-element analysis of the F-1 nozzle under 7.5M lb of thrust, in Ansys.",
+      problem:"The F-1 engine produced 7.5 million pounds of thrust. I wanted to verify, in simulation, that the nozzle structure would not fail under that load.",
+      role:"I set up the geometry, loads, and boundary conditions in Ansys and interpreted the resulting stress field.",
+      loop:"The analysis senses the applied thrust load, decides the stress and deformation across the nozzle through the FE solve, and responds with a verdict: where the material is safe and where it's working hardest.",
+      taught:"FEA is only as honest as its boundary conditions. Getting the constraints right matters more than the prettiness of the mesh.",
+      tools:["Ansys","Finite-element analysis","Structural mechanics","Thermal/structural loads"],
+      detail:"7.5 million pounds of thrust is hard to picture — the stress plot makes it concrete: you can see exactly where the metal earns its keep."
+    },
+    raymond: {
+      idx:"08 — respond · the climax",
+      title:"Raymond Corporation",
+      one:"Mechanical Systems Engineer (2024–present) — pedestrian detection & automated braking on industrial trucks.",
+      problem:"Forklifts and reach trucks share floors with people. The hard part isn't stopping a truck — it's deciding, reliably, when it must.",
+      role:"Mechanical Systems Engineer working on pedestrian detection, automated braking, and performance-stability — bringing sensing, decision logic, and the machine together.",
+      loop:"This is the whole thesis made real: the truck senses pedestrians through sensor fusion and machine vision, decides whether a stop is warranted, and responds with automated braking — all over CAN, in embedded C, on a moving machine around real people.",
+      taught:"When 'respond' means a multi-ton machine stopping near a person, the loop has to be right every time. This is why I build the way I build — everything before this bench was practice for getting this one right.",
+      tools:["Sensor fusion","Machine vision","Embedded C","CAN bus","Automated braking","Performance & stability"],
+      detail:"Everything else on the bench is something I built to understand. This is the one where it has to work — and that's exactly why it's last."
+    }
+  };
+
+  var ORDER = ["cnc","slicer","print","pendulum","cannon","flight","rocket","raymond"];
+
+  /* ============ DETAIL ART (per project, simple line illustrations) ============ */
+  var ART = {
+    cnc:'<g fill="none" stroke="#ffcf8a" stroke-width="2.4" stroke-linejoin="round"><rect x="60" y="180" width="180" height="16" rx="3"/><rect x="50" y="150" width="46" height="34" rx="3"/><rect x="200" y="138" width="40" height="46" rx="3"/></g><g stroke="#5ee6a8" stroke-width="2.4" fill="none"><path d="M120 170 L120 90 L132 78 L188 78 L200 90 L200 120 L156 120 L156 170 Z"/></g><circle cx="142" cy="100" r="6" fill="#0b0c0e" stroke="#5ee6a8" stroke-width="2"/><circle cx="178" cy="106" r="6" fill="#0b0c0e" stroke="#5ee6a8" stroke-width="2"/>',
+    slicer:'<g fill="none" stroke="#ffcf8a" stroke-width="2.4" stroke-linejoin="round"><path d="M70 200 L230 200 L210 100 L90 100 Z"/><rect x="108" y="116" width="84" height="68" rx="3"/></g><g stroke="#5ee6a8" stroke-width="2.4"><line x1="120" y1="132" x2="170" y2="132"/><line x1="120" y1="146" x2="184" y2="146"/></g><g stroke="#9aa3ad" stroke-width="2"><line x1="120" y1="160" x2="160" y2="160"/></g><path d="M150 200 L150 224 M110 224 L190 224" stroke="#ffcf8a" stroke-width="2.4" fill="none"/>',
+    print:'<g fill="none" stroke="#5ee6a8" stroke-width="2.4" stroke-linejoin="round"><path d="M110 210 L110 90 L200 90 L200 124 L150 124 L150 210 Z"/></g><g stroke="#ffcf8a" stroke-width="1.6" opacity=".8"><line x1="110" y1="104" x2="200" y2="104"/><line x1="110" y1="116" x2="200" y2="116"/><line x1="110" y1="140" x2="150" y2="140"/><line x1="110" y1="156" x2="150" y2="156"/><line x1="110" y1="172" x2="150" y2="172"/><line x1="110" y1="188" x2="150" y2="188"/></g>',
+    pendulum:'<g stroke="#ffcf8a" stroke-width="2.4" fill="none"><rect x="120" y="210" width="60" height="12" rx="3"/><line x1="150" y1="60" x2="150" y2="210"/></g><circle cx="150" cy="62" r="6" fill="#0b0c0e" stroke="#ffcf8a" stroke-width="2"/><g stroke="#5ee6a8" stroke-width="3.4" fill="none" stroke-linecap="round"><line x1="150" y1="62" x2="206" y2="124"/><line x1="206" y1="124" x2="172" y2="186"/></g><circle cx="206" cy="124" r="9" fill="#0b0c0e" stroke="#5ee6a8" stroke-width="2.4"/><circle cx="172" cy="186" r="11" fill="#ffcf8a"/><path d="M172 186 C204 168 200 132 178 124" fill="none" stroke="#5ee6a8" stroke-width="1.6" opacity=".5"/>',
+    cannon:'<g fill="none" stroke="#ffcf8a" stroke-width="2.4"><rect x="50" y="130" width="170" height="40" rx="20"/><line x1="62" y1="170" x2="62" y2="200"/><line x1="208" y1="170" x2="208" y2="200"/></g><circle cx="92" cy="150" r="11" fill="none" stroke="#aeb6bf" stroke-width="2"/><circle cx="118" cy="150" r="11" fill="#ffcf8a"/><path d="M226 150 L262 150" stroke="#5ee6a8" stroke-width="2.6" stroke-dasharray="3 6" stroke-linecap="round"/><circle cx="278" cy="150" r="11" fill="none" stroke="#5ee6a8" stroke-width="2.4"/>',
+    flight:'<g fill="none" stroke="#ffcf8a" stroke-width="2.4" stroke-linejoin="round"><path d="M60 150 L210 138 Q236 138 250 150 Q236 162 210 162 L60 162 Q44 156 60 150 Z"/><path d="M120 154 L172 96 L186 96 L150 154 Z"/><path d="M120 158 L172 216 L186 216 L150 158 Z"/><path d="M64 150 L40 118 L54 118 L80 150 Z"/></g><circle cx="244" cy="150" r="4" fill="#5ee6a8"/><line x1="150" y1="216" x2="150" y2="250" stroke="#5ee6a8" stroke-width="2.4"/><line x1="120" y1="250" x2="180" y2="250" stroke="#5ee6a8" stroke-width="2.4"/>',
+    rocket:'<g fill="none" stroke="#ffcf8a" stroke-width="2.4" stroke-linejoin="round"><path d="M124 50 Q156 86 156 130 L156 210 L104 210 L104 130 Q104 86 124 50 Z"/><path d="M104 180 L74 224 L104 210 Z"/><path d="M156 180 L186 224 L156 210 Z"/></g><path d="M108 210 L96 250 L164 250 L152 210 Z" fill="none" stroke="#5ee6a8" stroke-width="2.6"/><path d="M124 50 Q140 84 140 120 L108 120 Q108 84 124 50 Z" fill="#ffcf8a" opacity=".35" stroke="none"/><line x1="130" y1="120" x2="130" y2="200" stroke="#ffcf8a" stroke-width="1.4" opacity=".5"/>',
+    raymond:'<g fill="none" stroke="#5ee6a8" stroke-width="2.6" stroke-linejoin="round"><path d="M60 170 L78 120 L160 120 L182 170 L182 218 L60 218 Z"/><rect x="92" y="130" width="58" height="28" rx="3"/></g><g stroke="#ffcf8a" stroke-width="2.6" fill="none"><line x1="206" y1="96" x2="206" y2="218"/><line x1="222" y1="104" x2="222" y2="218"/><path d="M206 210 L256 210 M256 210 L280 210"/></g><rect x="200" y="150" width="28" height="22" rx="3" fill="#5ee6a8"/><circle cx="92" cy="226" r="15" fill="none" stroke="#ffcf8a" stroke-width="2.6"/><circle cx="160" cy="226" r="15" fill="none" stroke="#ffcf8a" stroke-width="2.6"/><path d="M60 158 L8 138 L8 178 Z" fill="#5ee6a8" opacity=".16" stroke="none"/><path d="M60 158 L8 158" stroke="#5ee6a8" stroke-width="1.4" stroke-dasharray="3 6" opacity=".7"/>'
+  };
+
+  /* ============ ACT 1 -> ACT 2 camera push ============ */
+  function setupCameraPush(){
+    var room = document.getElementById("room");
+    var roomSvg = document.getElementById("roomSvg");
+    var roomCopy = document.querySelector(".room-copy");
+    if(prefersReduced || !hasGSAP){ return; }
+
+    gsap.registerPlugin(ScrollTrigger);
+
+    // continuous push-in: scale the room scene + fade copy as you scroll through act 1
+    gsap.to(roomSvg, {
+      scale:1.55, transformOrigin:"50% 64%", ease:"none",
+      scrollTrigger:{ trigger:room, start:"top top", end:"bottom top", scrub:true }
+    });
+    gsap.to(roomCopy, {
+      y:-90, opacity:0, ease:"none",
+      scrollTrigger:{ trigger:room, start:"top top", end:"40% top", scrub:true }
+    });
+    gsap.to(".scroll-cue", {
+      opacity:0, ease:"none",
+      scrollTrigger:{ trigger:room, start:"top top", end:"18% top", scrub:true }
+    });
+
+    // bench objects float-in
+    gsap.from(".obj", {
+      y:26, opacity:0, duration:.9, stagger:.06, ease:"power3.out",
+      scrollTrigger:{ trigger:"#bench", start:"top 72%" }
+    });
+    gsap.from(".bench-heading", {
+      y:20, opacity:0, duration:.8, ease:"power3.out",
+      scrollTrigger:{ trigger:"#bench", start:"top 78%" }
+    });
+  }
+
+  // gentle pendulum sway / breathing on the bench lamp
+  function ambientMotion(){
+    if(prefersReduced || !hasGSAP) return;
+    gsap.to("#benchLamp", { rotation:0.6, transformOrigin:"118px 372px", duration:5, yoyo:true, repeat:-1, ease:"sine.inOut" });
+  }
+
+  /* ============ "Come closer" smooth scroll ============ */
+  document.getElementById("comeCloser").addEventListener("click", function(){
+    document.getElementById("bench").scrollIntoView({behavior: prefersReduced ? "auto":"smooth"});
+  });
+
+  /* ============ DETAIL OVERLAY ============ */
+  var detail = document.getElementById("detail");
+  var detPanel = document.getElementById("detPanel");
+  var detArt = document.getElementById("detArt");
+  var currentKey = null;
+
+  function buildPanel(key){
+    var p = PROJECTS[key];
+    var toolsHtml = p.tools.map(function(t){ return "<span>"+t+"</span>"; }).join("");
+    detPanel.innerHTML =
+      '<div class="idx">'+p.idx+'</div>'+
+      '<h3>'+p.title+'</h3>'+
+      '<p class="one">'+p.one+'</p>'+
+      '<div class="det-loop-line"><span class="pill">sense</span><span class="arr">→</span><span class="pill">decide</span><span class="arr">→</span><span class="pill">respond</span></div>'+
+      '<div class="loop-row"><div class="k">The problem</div><div class="v">'+p.problem+'</div></div>'+
+      '<div class="loop-row"><div class="k">My role</div><div class="v">'+p.role+'</div></div>'+
+      '<div class="loop-row"><div class="k">The loop</div><div class="v">'+p.loop+'</div></div>'+
+      '<div class="loop-row"><div class="k">What it taught me</div><div class="v">'+p.taught+'</div></div>'+
+      '<div class="tools">'+toolsHtml+'</div>'+
+      '<div class="detail-detail"><div class="lab">A detail</div><p>'+p.detail+'</p></div>';
+    detArt.innerHTML = ART[key] || "";
+  }
+
+  function openProject(key){
+    currentKey = key;
+    buildPanel(key);
+    detail.classList.add("open");
+    document.body.classList.add("locked");
+    detail.setAttribute("aria-hidden","false");
+
+    if(!prefersReduced && hasGSAP){
+      gsap.fromTo(detArt, {scale:.7, opacity:0, rot:-3}, {scale:1, opacity:1, rot:0, duration:.9, ease:"power3.out"});
+      gsap.fromTo(detPanel, {x:40, opacity:0}, {x:0, opacity:1, duration:.7, ease:"power3.out", delay:.08});
+      gsap.fromTo(".detail", {opacity:0}, {opacity:1, duration:.4, ease:"power2.out"});
+    }
+    document.getElementById("detBack").focus();
+  }
+
+  function closeProject(){
+    if(!prefersReduced && hasGSAP){
+      gsap.to(".detail", {opacity:0, duration:.35, ease:"power2.in", onComplete:finishClose});
+    } else { finishClose(); }
+  }
+  function finishClose(){
+    detail.classList.remove("open");
+    detail.style.opacity="";
+    document.body.classList.remove("locked");
+    detail.setAttribute("aria-hidden","true");
+    var el = document.querySelector('[data-key="'+currentKey+'"]');
+    if(el && el.focus) el.focus();
+  }
+  function nextProject(){
+    var i = ORDER.indexOf(currentKey);
+    var nk = ORDER[(i+1) % ORDER.length];
+    if(!prefersReduced && hasGSAP){
+      gsap.to([detArt, detPanel], {opacity:0, x:-30, duration:.28, ease:"power2.in", onComplete:function(){
+        buildPanel(nk); currentKey=nk;
+        gsap.fromTo(detArt, {scale:.8, opacity:0, x:30}, {scale:1, opacity:1, x:0, duration:.7, ease:"power3.out"});
+        gsap.fromTo(detPanel, {opacity:0, x:30}, {opacity:1, x:0, duration:.6, ease:"power3.out"});
+      }});
+    } else {
+      currentKey=nk; buildPanel(nk);
+      detPanel.scrollTop = 0;
+    }
+  }
+
+  document.getElementById("detBack").addEventListener("click", closeProject);
+  document.getElementById("detNext").addEventListener("click", nextProject);
+  detail.addEventListener("click", function(e){ if(e.target === detail) closeProject(); });
+  document.addEventListener("keydown", function(e){
+    if(!detail.classList.contains("open")) return;
+    if(e.key === "Escape") closeProject();
+    if(e.key === "ArrowRight") nextProject();
+  });
+
+  /* ============ object click + the "pick it up" animation ============ */
+  function wireObject(el){
+    var key = el.getAttribute("data-key");
+    function activate(){
+      if(prefersReduced || !hasGSAP){ openProject(key); return; }
+      // others slide + fade into the dark; chosen scales toward center
+      var others = Array.prototype.filter.call(document.querySelectorAll(".obj"), function(o){ return o !== el; });
+      gsap.to(others, {opacity:0, y:24, duration:.45, ease:"power2.in", stagger:.02});
+      gsap.to(el, {scale:1.25, duration:.5, transformOrigin:"center", ease:"power3.out", onComplete:function(){
+        openProject(key);
+        // reset bench after overlay covers it
+        gsap.set(others, {opacity:1, y:0, clearProps:"transform"});
+        gsap.set(el, {clearProps:"transform"});
+      }});
+    }
+    el.addEventListener("click", activate);
+    el.addEventListener("keydown", function(e){
+      if(e.key === "Enter" || e.key === " "){ e.preventDefault(); activate(); }
+    });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll(".obj"), wireObject);
+
+  /* ============ reduced-motion / mobile list ============ */
+  function buildList(){
+    var grid = document.getElementById("objListGrid");
+    var html = "";
+    ORDER.forEach(function(key){
+      var p = PROJECTS[key];
+      var feat = (key === "raymond") ? " feat" : "";
+      var tag = (key === "raymond") ? "Featured · what I do now" : p.idx;
+      html += '<button class="'+feat+'" data-key="'+key+'">'+
+                '<span class="ttl">'+p.title+'</span>'+
+                '<span class="one">'+p.one+'</span>'+
+                '<span class="tag">'+tag+'</span>'+
+              '</button>';
+    });
+    grid.innerHTML = html;
+    Array.prototype.forEach.call(grid.querySelectorAll("button"), function(b){
+      b.addEventListener("click", function(){ openProject(b.getAttribute("data-key")); });
+    });
+  }
+  buildList();
+
+  /* ============ side rail active state ============ */
+  function setupRail(){
+    var sections = ["room","bench","lights"];
+    var links = {};
+    document.querySelectorAll(".rail a").forEach(function(a){ links[a.getAttribute("data-rail")] = a; });
+    if(hasGSAP && !prefersReduced){
+      sections.forEach(function(id){
+        ScrollTrigger.create({
+          trigger:"#"+id, start:"top 55%", end:"bottom 55%",
+          onToggle:function(self){ if(self.isActive){ updateRail(id, links); } }
+        });
+      });
+    } else {
+      var obs = new IntersectionObserver(function(entries){
+        entries.forEach(function(en){ if(en.isIntersecting) updateRail(en.target.id, links); });
+      }, {rootMargin:"-45% 0px -45% 0px"});
+      sections.forEach(function(id){ obs.observe(document.getElementById(id)); });
+    }
+  }
+  function updateRail(id, links){
+    Object.keys(links).forEach(function(k){ links[k].classList.toggle("active", k===id); });
+  }
+
+  /* ============ init ============ */
+  function init(){
+    setupCameraPush();
+    ambientMotion();
+    setupRail();
+    if(hasGSAP) ScrollTrigger.refresh();
+  }
+  if(document.readyState === "complete" || document.readyState === "interactive"){
+    setTimeout(init, 60);
+  } else {
+    window.addEventListener("DOMContentLoaded", init);
+  }
+})();
+</script>
+</body>
+</html>

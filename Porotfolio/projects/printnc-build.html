@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>PrintNC Build (CNC) — Kambar Mangibayev</title>
+  <meta name="description" content="I wanted a machine that could handle more than just wood, so I went with the PrintNC — a hybrid beast that uses a heavy steel frame for rigidity and 3D-printed parts for precision alignment. It&#x27;s essentially an industrial-grade router you can build in a garage or on the third floor of an apartment complex. Do not tell my landlord :)" />
+  <meta name="theme-color" content="#f4ede0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..900,0..100,0..1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="cursor" aria-hidden="true"></div>
+  <div class="cursor-dot" aria-hidden="true"></div>
+
+  <header class="nav">
+    <a href="../index.html" class="nav__brand">
+      <span class="nav__mono">KM</span>
+      <span class="nav__sep">/</span>
+      <span class="nav__name">Kambar Mangibayev</span>
+    </a>
+    <nav class="nav__links" aria-label="primary">
+      <a href="../index.html#work">Work</a>
+      <a href="../index.html#projects">Projects</a>
+      <a href="../index.html#reel">Reel</a>
+      <a href="../index.html#about">About</a>
+      <a href="../index.html#contact" class="nav__cta">Contact</a>
+    </nav>
+    <div class="nav__time" aria-hidden="true">
+      <span class="dot"></span><span id="clock">— —</span>
+    </div>
+  </header>
+
+  <main class="case-wrap">
+    <a href="../index.html#projects" class="case__back mono" data-reveal>
+      ← Personal &amp; Academic
+    </a>
+    <header class="case__head">
+      <span class="mono dim" data-reveal>P·03 &nbsp;·&nbsp; Manufacturing · CNC</span>
+      <h1 class="case__title" data-reveal>PrintNC Build (CNC)</h1>
+      <p class="case__tagline" data-reveal><em>An industrial-grade router you can build in a garage — or on the third floor of an apartment complex.</em></p>
+    </header>
+    <p class="case__lede" data-reveal>I wanted a machine that could handle more than just wood, so I went with the PrintNC — a hybrid beast that uses a heavy steel frame for rigidity and 3D-printed parts for precision alignment. It&#x27;s essentially an industrial-grade router you can build in a garage or on the third floor of an apartment complex. Do not tell my landlord :)</p>
+
+    <figure class="case__hero" data-reveal>
+      <img src="../assets/img/cnc-build.jpg" alt="PrintNC Build (CNC)" loading="eager" />
+      <figcaption class="case__media-cap mono dim">Frame welded, gantry assembled, spoilboard down. First test cuts about to run.</figcaption>
+    </figure>
+    <figure class="case__video" data-reveal>
+      <video class="case__video-el" muted loop playsinline preload="metadata"
+             poster="../assets/img/cnc-build.jpg"
+             data-src="../assets/video/cnc.mp4"></video>
+      <figcaption class="mono dim">In motion — looped automatically</figcaption>
+    </figure>
+    <div class="case__body">
+      <div class="case__prose">
+      <section class="case__sec" data-reveal>
+        <h2 class="case__sec-h">Spec sheet, in plain English</h2>
+        <p>Work area: 1200 × 800 mm — big enough to do real work. Spindle: 2.2 kW high-frequency, water-cooled — quiet, doesn't burn up under load. Tolerance: ±0.1 mm — accurate enough to cut a fitted bearing seat, not accurate enough to be a Swiss watch.</p>
+        
+      </section>
+      <section class="case__sec" data-reveal>
+        <h2 class="case__sec-h">Phase I — Design &amp; Purchase</h2>
+        <p>In Fusion 360 I customised the machine's footprint for my shop space. BOM was defined and parts were ordered. I always define a step-by-step guide for how everything will be built — this project was an exception, because the PrintNC community already has great documentation.</p>
+        
+        <figure class="case__sec-fig">
+          <img src="../assets/img/cnc-render.jpg" alt="PrintNC reference render. Steel where it has to be rigid, plastic where it just has to align." loading="lazy" />
+          <figcaption class="case__media-cap mono dim">PrintNC reference render. Steel where it has to be rigid, plastic where it just has to align.</figcaption>
+        </figure>
+      </section>
+      <section class="case__sec" data-reveal>
+        <h2 class="case__sec-h">Phase II — Fabrication &amp; Assembly</h2>
+        <p>This was the core physical build. I cut the steel members to length, then drilled and tapped the mounting points for the motion hardware. To keep everything square during assembly, I used high-infill 3D-printed components that acted as both structural joins and motor mounts.</p>
+        
+      </section>
+      <section class="case__sec" data-reveal>
+        <h2 class="case__sec-h">Phase III — Electronics &amp; Controls</h2>
+        <p>Integrated a 2.2 kW spindle and VFD, which required a dedicated EMI line filter to stop electrical noise from feeding back into the logic circuits. Used shielded 4-core cabling for the motors and grounded them at a single star point to avoid ground loops. After flashing the controller firmware, I calibrated the motor drivers and mapped the I/O for limit switches and emergency stops, so the machine was both precise and safe for long operations.</p>
+        
+      </section>
+      <section class="case__sec" data-reveal>
+        <h2 class="case__sec-h">First cuts</h2>
+        <p>MDF spoilboard, my initials. Rough first because the workholding wasn't dialled in yet — you can see the chips that didn't get cleared. Then again, with proper hold-downs and air assist.</p>
+        
+        <figure class="case__sec-fig">
+          <img src="../assets/img/cnc-cut-rough.jpg" alt="First cut. Chips piled up where the dust collection couldn&#x27;t reach — that got fixed." loading="lazy" />
+          <figcaption class="case__media-cap mono dim">First cut. Chips piled up where the dust collection couldn&#x27;t reach — that got fixed.</figcaption>
+        </figure>
+      </section>
+      <section class="case__sec" data-reveal>
+        
+        <p>Cleaner pass on the same letters, after I sorted the workholding and the dust shoe.</p>
+        
+        <figure class="case__sec-fig">
+          <img src="../assets/img/cnc-cut-clean.jpg" alt="Second pass. The walls are vertical now and the floor is clean — that&#x27;s what &quot;square and tight&quot; looks like." loading="lazy" />
+          <figcaption class="case__media-cap mono dim">Second pass. The walls are vertical now and the floor is clean — that&#x27;s what &quot;square and tight&quot; looks like.</figcaption>
+        </figure>
+      </section>
+      <section class="case__sec" data-reveal>
+        
+        <p>Same cut, lit warm. The tool path comes out as something you'd be happy to leave on the shelf.</p>
+        
+        <figure class="case__sec-fig">
+          <img src="../assets/img/cnc-cut-warm.jpg" alt="Third pass, soft light. The aesthetics are a bonus." loading="lazy" />
+          <figcaption class="case__media-cap mono dim">Third pass, soft light. The aesthetics are a bonus.</figcaption>
+        </figure>
+      </section>
+
+      <aside class="case__todos" data-reveal>
+        <h3 class="mono">Notes for Kambar</h3>
+        <p class="dim">Kept inline so they're easy to spot; remove these before sharing the link.</p>
+        <ul><li>Confirm motors / drives / controller</li><li>Aluminium-cut photo</li><li>Tooling list</li></ul>
+      </aside>
+      </div>
+      <aside class="case__specs" data-reveal>
+        <h3 class="mono dim">Spec sheet</h3>
+        <div class="case__spec"><span class="dim">Work area</span><span>1200 × 800 mm</span></div>
+        <div class="case__spec"><span class="dim">Spindle</span><span>2.2 kW, water-cooled</span></div>
+        <div class="case__spec"><span class="dim">Tolerance</span><span>± 0.1 mm</span></div>
+        <div class="case__spec"><span class="dim">Status</span><span>Operational</span></div>
+      </aside>
+    </div>
+
+      <nav class="case__nav" data-reveal>
+        <a class="case__nav-prev" href="./investment-casting.html">
+          <span class="mono dim">← Previous</span>
+          <span class="case__nav-title">Additive Manufacturing &amp; Investment Casting</span>
+        </a>
+        <a class="case__nav-next" href="./printing.html">
+          <span class="mono dim">Next →</span>
+          <span class="case__nav-title">3D Printing &amp; Fabrication</span>
+        </a>
+      </nav>
+    <footer class="foot">
+      <div class="foot__col"><span class="mono dim">© 2026 Kambar Mangibayev</span></div>
+      <div class="foot__col mono"><a href="../index.html" class="dim">Back to home</a></div>
+      <button class="foot__top mono" id="toTop" aria-label="Back to top">Back to top ↑</button>
+    </footer>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+  <script src="../assets/js/main.js" defer></script>
+</body>
+</html>

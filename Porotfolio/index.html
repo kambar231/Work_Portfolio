@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Kambar Mangibayev — Lead Engineer</title>
+  <meta name="description" content="Portfolio of Kambar Mangibayev — Lead Engineer working on vehicle systems, hydraulics, machine vision, and structural design." />
+  <meta name="theme-color" content="#f4ede0" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..900,0..100,0..1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body>
+
+  <div class="grain" aria-hidden="true"></div>
+  <div class="cursor" aria-hidden="true"></div>
+  <div class="cursor-dot" aria-hidden="true"></div>
+
+  <header class="nav" data-reveal>
+    <a href="#top" class="nav__brand">
+      <span class="nav__mono">KM</span>
+      <span class="nav__sep">/</span>
+      <span class="nav__name">Kambar Mangibayev</span>
+    </a>
+    <nav class="nav__links" aria-label="primary">
+      <a href="#work">Work</a>
+      <a href="#projects">Projects</a>
+      <a href="#reel">Reel</a>
+      <a href="#about">About</a>
+      <a href="#contact" class="nav__cta">Contact</a>
+    </nav>
+    <div class="nav__time" aria-hidden="true">
+      <span class="dot"></span><span id="clock">— —</span>
+    </div>
+  </header>
+
+  <main id="top">
+
+    <!-- hero -->
+    <section class="hero">
+      <div class="hero__meta">
+        <span class="mono">01 — Lead Engineer</span>
+        <span class="mono dim">Currently shipping vehicle systems</span>
+      </div>
+
+      <h1 class="hero__title">
+        <span class="line"><span class="reveal">Designing</span></span>
+        <span class="line"><span class="reveal">machines that</span></span>
+        <span class="line italic"><span class="reveal">don&rsquo;t fail</span><span class="reveal">&nbsp;quietly.</span></span>
+      </h1>
+
+      <div class="hero__bottom">
+        <p class="hero__lede" data-reveal>
+          I&rsquo;m Kambar — a lead engineer working on vehicle stability, hydraulic load sensing,
+          machine vision, and structural redesign. I take systems from research into the field,
+          where they&rsquo;re measured by what they prevent.
+        </p>
+        <a href="#work" class="hero__scroll" aria-label="Scroll to selected work">
+          <span class="mono">Selected work</span>
+          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M12 4v16m0 0l-6-6m6 6l6-6" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+        </a>
+      </div>
+    </section>
+
+    <!-- marquee -->
+    <section class="marquee" aria-hidden="true">
+      <div class="marquee__track">
+        <span>Vehicle Stability</span><span class="bullet">●</span>
+        <span>Hydraulic Sensing</span><span class="bullet">●</span>
+        <span>Machine Vision</span><span class="bullet">●</span>
+        <span>FEA &amp; Fatigue</span><span class="bullet">●</span>
+        <span>Functional Safety</span><span class="bullet">●</span>
+        <span>Signal Processing</span><span class="bullet">●</span>
+        <span>GD&amp;T / DFMA</span><span class="bullet">●</span>
+        <span>Python · MATLAB · Simulink</span><span class="bullet">●</span>
+        <span>Vehicle Stability</span><span class="bullet">●</span>
+        <span>Hydraulic Sensing</span><span class="bullet">●</span>
+        <span>Machine Vision</span><span class="bullet">●</span>
+        <span>FEA &amp; Fatigue</span><span class="bullet">●</span>
+        <span>Functional Safety</span><span class="bullet">●</span>
+        <span>Signal Processing</span><span class="bullet">●</span>
+        <span>GD&amp;T / DFMA</span><span class="bullet">●</span>
+        <span>Python · MATLAB · Simulink</span><span class="bullet">●</span>
+      </div>
+    </section>
+
+    <!-- selected work -->
+    <section id="work" class="section">
+      <header class="section__header" data-reveal>
+        <span class="mono">02 — Selected Work</span>
+        <h2 class="section__title">Production systems, in the field.</h2>
+        <p class="section__sub">Vehicle systems I&rsquo;ve led from concept and validation through to deployment.</p>
+      </header>
+
+      <ol class="worklist" id="worklist">
+
+        <li class="work">
+          <div class="work__row">
+            <span class="work__num mono">001</span>
+            <h3 class="work__title"><a class="work__title-link" href="work/performance-stability.html">Performance Stability System</a></h3>
+            <span class="work__tag mono">Stability · Controls</span>
+          </div>
+          <p class="work__desc">A control system that supports operators in unstable conditions without over-limiting the vehicle — preventing load spillage while keeping performance available when it&rsquo;s safe to use.</p>
+        </li>
+
+        <li class="work" data-preview="assets/img/sens-plus-flyer.jpg">
+          <div class="work__row">
+            <span class="work__num mono">002</span>
+            <h3 class="work__title"><a class="work__title-link" href="work/sens-plus.html">Smart Environment Sensor Plus (SEnS+)</a></h3>
+            <span class="work__tag mono">ML Vision · Braking</span>
+          </div>
+          <p class="work__desc">Stereoscopic camera detection for pedestrians and obstacles, integrated with regenerative braking. ML-based perception tied directly to the vehicle&rsquo;s safety stack.</p>
+        </li>
+
+        <li class="work">
+          <div class="work__row">
+            <span class="work__num mono">003</span>
+            <h3 class="work__title"><a class="work__title-link" href="work/hydraulic-weight-sensing.html">Hydraulic Weight Sensing</a></h3>
+            <span class="work__tag mono">Hydraulics · Signal Processing</span>
+          </div>
+          <p class="work__desc">Real-time load weighing using pressure transducers built into the hydraulic manifold. Drives operator display feedback and automatic speed reduction under overload.</p>
+        </li>
+
+        <li class="work" data-preview="assets/img/motor-study.jpg">
+          <div class="work__row">
+            <span class="work__num mono">004</span>
+            <h3 class="work__title"><a class="work__title-link" href="work/steer-differentiation.html">Steer Differentiation System</a></h3>
+            <span class="work__tag mono">Sensors · Geometry</span>
+          </div>
+          <p class="work__desc">Real-time refinement of steering geometry using high-fidelity sensor resolution — tighter handling envelopes without compromising the operator feel.</p>
+        </li>
+
+        <li class="work">
+          <div class="work__row">
+            <span class="work__num mono">005</span>
+            <h3 class="work__title"><a class="work__title-link" href="work/interface-logic.html">Interface Logic &amp; Access Control</a></h3>
+            <span class="work__tag mono">UX · Safety</span>
+          </div>
+          <p class="work__desc">Re-architected the vehicle menu system around safety classes and operator access levels — making the right action obvious and the wrong action hard.</p>
+        </li>
+
+        <li class="work">
+          <div class="work__row">
+            <span class="work__num mono">006</span>
+            <h3 class="work__title"><a class="work__title-link" href="work/structural-frame.html">Structural Frame Redesign</a></h3>
+            <span class="work__tag mono">FEA · Fatigue</span>
+          </div>
+          <p class="work__desc">Tractor frame redesigned for infinite fatigue life. FEA-driven, validated with strain gauges in the field — failure modes designed out before they reached customers.</p>
+        </li>
+
+      </ol>
+
+      <!-- floating image preview that follows the cursor over .work rows -->
+      <div class="work-peek" id="workPeek" aria-hidden="true"></div>
+    </section>
+
+    <!-- about -->
+    <section id="about" class="section about">
+      <header class="section__header" data-reveal>
+        <span class="mono">03 — About</span>
+        <h2 class="section__title">Engineering, end&#8209;to&#8209;end.</h2>
+      </header>
+
+      <div class="about__grid">
+        <figure class="about__portrait" data-reveal>
+          <img src="assets/img/portrait.jpg" alt="Finite element mesh from a structural study" loading="lazy" />
+          <figcaption class="mono">FIG. 01 &mdash; FEA mesh, fatigue study</figcaption>
+        </figure>
+
+        <div class="about__copy" data-reveal>
+          <p>
+            I lead engineering work on vehicle systems — stability, hydraulics, perception, structural —
+            and care most about the moments where research has to become a product. The interesting
+            problems sit at the seams: between sensors and control logic, between an FEA model and a
+            field strain gauge, between an ML pipeline and a brake actuator.
+          </p>
+          <p>
+            Before this, I built things on my own: a 3D slicer in Python to explore non-standard
+            print orientations, flight dynamics simulations in Simulink, a vacuum cannon model, a
+            double pendulum study with a physical rig, a full PrintNC build. The pattern is the same —
+            model it, instrument it, prove it.
+          </p>
+
+          <ul class="about__list mono">
+            <li><span class="dim">Focus</span><span>Vehicle systems · Controls · Mechanical</span></li>
+            <li><span class="dim">Tools</span><span>Python · MATLAB · Simulink · FEA</span></li>
+            <li><span class="dim">Methods</span><span>GD&amp;T · DFMA · Functional Safety</span></li>
+            <li><span class="dim">Status</span><span>Open to selective collaborations</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- personal projects -->
+    <section id="projects" class="section">
+      <header class="section__header" data-reveal>
+        <span class="mono">04 — Personal &amp; Academic</span>
+        <h2 class="section__title">Built to understand things.</h2>
+        <p class="section__sub">Side studies — written for the joy of figuring something out from first principles.</p>
+      </header>
+
+      <div class="grid">
+
+        <article class="card" data-reveal><a class="card-link" href="projects/slicer.html">
+          <div class="card__media">
+            <img src="assets/img/slicer-stl-viewer.jpg" alt="Custom STL Viewer / Python slicer showing a 3D model on the build plate" loading="lazy" />
+          </div>
+          <div class="card__body">
+            <span class="mono dim">Python · 3D Printing</span>
+            <h3 class="card__title">3D Slicer &amp; G-code Generator</h3>
+            <p>A custom STL viewer + slicer pipeline written from scratch in Python — built to study what happens when you slice at non-standard angles.</p>
+          </div>
+        </a></article>
+
+        <article class="card" data-reveal><a class="card-link" href="projects/investment-casting.html">
+          <div class="card__media card__media--placeholder">
+            <span class="mono">IC&middot;01</span>
+          </div>
+          <div class="card__body">
+            <span class="mono dim">AM · CFD · Casting</span>
+            <h3 class="card__title">Additive Manufacturing &amp; Investment Casting</h3>
+            <p>Investment casting of a water nozzle using a ceramic-printed mold reinforced with a generated lattice — at RIT&rsquo;s AMPrintCenter.</p>
+          </div>
+        </a></article>
+
+        <article class="card" data-reveal><a class="card-link" href="projects/printnc-build.html">
+          <div class="card__media">
+            <img src="assets/img/cnc-build.jpg" alt="PrintNC CNC build in workshop" loading="lazy" />
+          </div>
+          <div class="card__body">
+            <span class="mono dim">Manufacturing · CNC</span>
+            <h3 class="card__title">PrintNC Build</h3>
+            <p>Industrial-grade CNC router built in an apartment. Steel frame, 2.2 kW spindle, ±0.1 mm tolerance. Now cuts parts for downstream projects.</p>
+          </div>
+        </a></article>
+
+        <article class="card" data-reveal><a class="card-link" href="projects/printing.html">
+          <div class="card__media card__media--placeholder">
+            <span class="mono">3DP&middot;01</span>
+          </div>
+          <div class="card__body">
+            <span class="mono dim">3D Printing · Personal</span>
+            <h3 class="card__title">3D Printing &amp; Fabrication</h3>
+            <p>Iron Man helmet, a 3D-printed electric motor, and a MagSafe stand for my wife. The hobby that became how I approach engineering.</p>
+          </div>
+        </a></article>
+
+        <article class="card" data-reveal><a class="card-link" href="projects/polymer-lithography.html">
+          <div class="card__media card__media--placeholder">
+            <span class="mono">PL&middot;01</span>
+          </div>
+          <div class="card__body">
+            <span class="mono dim">Molecular Dynamics · Research</span>
+            <h3 class="card__title">Polymer Lithography Simulation</h3>
+            <p>Block copolymer phase separation simulated in LAMMPS on the RIT cluster &mdash; bridging the gap between simulation and experiment for microfabrication.</p>
+          </div>
+        </a></article>
+
+        <article class="card" data-reveal><a class="card-link" href="projects/flight-dynamics.html">
+          <div class="card__media">
+            <img src="assets/img/flight-dynamics.png" alt="Flight Dynamics simulation diagram" loading="lazy" />
+          </div>
+          <div class="card__body">
+            <span class="mono dim">Simulink · MATLAB</span>
+            <h3 class="card__title">Flight Dynamics</h3>
+            <p>Aircraft response simulated in Simulink &mdash; same kind of analysis used on the experimental X-62 VISTA. Quaternion model over Euler, every time.</p>
+          </div>
+        </a></article>
+
+        <article class="card" data-reveal><a class="card-link" href="projects/double-pendulum.html">
+          <div class="card__media card__media--placeholder">
+            <span class="mono">DP&middot;01</span>
+          </div>
+          <div class="card__body">
+            <span class="mono dim">Dynamics · Validation</span>
+            <h3 class="card__title">Double Pendulum</h3>
+            <p>Theoretical model of a chaotic system, validated against a physical rig with high-speed video and Kinovea tracking. Under 10% error for the first two seconds.</p>
+          </div>
+        </a></article>
+
+        <article class="card" data-reveal><a class="card-link" href="projects/vacuum-cannon.html">
+          <div class="card__media card__media--placeholder">
+            <span class="mono">VC&middot;01</span>
+          </div>
+          <div class="card__body">
+            <span class="mono dim">Fluid Dynamics · Validation</span>
+            <h3 class="card__title">Vacuum Cannon</h3>
+            <p>Ping-pong-ball exit velocity, predicted from compressible flow and measured in a 1.52 m PVC pipe at 2 and 8 kPa. Where the model meets reality.</p>
+          </div>
+        </a></article>
+
+      </div>
+    </section>
+
+    <!-- video reel -->
+    <section id="reel" class="section reel">
+      <header class="section__header" data-reveal>
+        <span class="mono">05 — Reel</span>
+        <h2 class="section__title">In motion.</h2>
+        <p class="section__sub">Simulations, machines, and brand work — playing automatically as you scroll past.</p>
+      </header>
+
+      <div class="reel__grid">
+
+        <figure class="reel__item" data-reveal>
+          <div class="reel__frame">
+            <video class="reel__video" muted loop playsinline preload="metadata"
+                   poster="assets/img/slicer-poster.jpg"
+                   data-src="assets/video/slicer.mp4">
+            </video>
+          </div>
+          <figcaption>
+            <span class="mono dim">01 / Slicer</span>
+            <span>Custom Python STL slicer rendering G-code paths in 3D.</span>
+          </figcaption>
+        </figure>
+
+        <figure class="reel__item" data-reveal>
+          <div class="reel__frame">
+            <video class="reel__video" muted loop playsinline preload="metadata"
+                   poster="assets/img/cnc-poster.jpg"
+                   data-src="assets/video/cnc.mp4">
+            </video>
+          </div>
+          <figcaption>
+            <span class="mono dim">02 / PrintNC</span>
+            <span>Gantry under motion — first cuts on the finished build.</span>
+          </figcaption>
+        </figure>
+
+        <figure class="reel__item" data-reveal>
+          <div class="reel__frame">
+            <video class="reel__video" muted loop playsinline preload="metadata"
+                   poster="assets/img/raymond-poster.jpg"
+                   data-src="assets/video/raymond.mp4">
+            </video>
+          </div>
+          <figcaption>
+            <span class="mono dim">03 / Raymond</span>
+            <span>Side-view brand animation — After Effects loop.</span>
+          </figcaption>
+        </figure>
+
+      </div>
+    </section>
+
+    <!-- contact -->
+    <section id="contact" class="section contact">
+      <div class="contact__inner" data-reveal>
+        <span class="mono">06 — Contact</span>
+        <h2 class="contact__title">
+          Have a system that <em>has</em> to work?<br/>
+          <span class="italic">Let&rsquo;s talk.</span>
+        </h2>
+
+        <a href="mailto:kambarmangibayev@gmail.com" class="contact__mail magnetic">
+          kambarmangibayev@gmail.com
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M5 12h14m0 0l-6-6m6 6l-6 6" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+        </a>
+
+        <div class="contact__meta mono">
+          <div><span class="dim">Reply window</span><span>~24 hours</span></div>
+          <div><span class="dim">Currently</span><span>Lead Engineer · Vehicle Systems</span></div>
+          <div><span class="dim">Open to</span><span>Consulting · Collaborations</span></div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <div class="foot__col">
+        <span class="mono dim">© 2026 Kambar Mangibayev</span>
+      </div>
+      <div class="foot__col mono">
+        <span class="dim">Built by hand. Hosted on GitHub Pages.</span>
+      </div>
+      <button class="foot__top mono" id="toTop" aria-label="Back to top">
+        Back to top &uarr;
+      </button>
+    </footer>
+
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+  <script src="assets/js/main.js" defer></script>
+</body>
+</html>

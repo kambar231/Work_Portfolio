@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Kambar Mangibayev — The Toolbox</title>
+<meta name="description" content="The toolbox of Kambar Mangibayev, mechanical & controls engineer. Built over a lifetime, most-used tools on top. Open a drawer."/>
+<meta name="theme-color" content="#16130e"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=Fraunces:ital,opsz,wght@0,9..144,300..500;1,9..144,300..500&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --ink:#16130e; --ink2:#1c1812;
+  --bone:#ece3d4; --bone-dim:#b3a892; --bone-faint:#7c7363;
+  --ember:#e2531d; --ember-soft:#c9582c;
+  --brass:#e8a44a; --steel:#88a0ab;
+  --metal:#2c2f34; --metal2:#23262b; --metal-edge:#3b3f45;
+  --line:#352c20; --line2:#473a2a;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --serif:"Fraunces",Georgia,serif;
+  --disp:"Archivo",system-ui,sans-serif;
+  --ease:cubic-bezier(.16,.84,.3,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{background:var(--ink);color:var(--bone);font-family:var(--serif);font-weight:340;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;position:relative}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--ember);color:#fff}
+.mono{font-family:var(--mono)}
+
+/* atmosphere */
+.lamp{position:fixed;left:62%;top:-26vh;width:120vw;height:92vh;transform:translateX(-50%);z-index:0;pointer-events:none;
+  background:radial-gradient(48% 60% at 50% 40%,rgba(232,164,74,.16),rgba(226,83,29,.05) 46%,transparent 72%)}
+.vig{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(135% 115% at 55% 25%,transparent 44%,rgba(8,6,4,.5))}
+.grain{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.05;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+main,header,footer{position:relative;z-index:3}
+
+.brand{position:fixed;top:15px;left:18px;z-index:30;font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--bone-dim)}
+.brand b{color:var(--bone)}
+.spec{position:fixed;top:15px;right:18px;z-index:30;font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--bone-faint);text-align:right}
+.spec b{color:var(--brass)}
+@media (max-width:680px){.spec{display:none}}
+
+.wrap{max-width:1140px;margin:0 auto;padding:0 clamp(20px,5vw,64px)}
+
+/* ============ HERO ============ */
+.hero{min-height:96svh;display:flex;flex-direction:column;justify-content:center;padding:120px 0 70px}
+.hero__grid{display:grid;grid-template-columns:1.35fr .65fr;gap:clamp(24px,5vw,60px);align-items:end}
+@media (max-width:820px){.hero__grid{grid-template-columns:1fr;gap:34px;align-items:start}}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.22em;color:var(--brass);margin-bottom:24px}
+.hero h1{font-family:var(--disp);font-weight:800;font-size:clamp(44px,9vw,118px);line-height:.9;letter-spacing:-.02em;color:var(--bone);text-transform:uppercase}
+.hero h1 .thin{display:block;font-weight:500;color:var(--bone-dim);font-size:.34em;letter-spacing:.02em;margin-top:18px;text-transform:none;font-family:var(--disp)}
+.hero__intro{font-family:var(--serif);font-size:clamp(16px,1.8vw,21px);line-height:1.55;color:#d8cdba;max-width:42ch;margin-top:4px}
+.hero__intro b{color:var(--bone);font-weight:500}
+.hero__cta{display:inline-flex;align-items:center;gap:11px;margin-top:34px;font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--bone-faint);cursor:pointer;background:none;border:none}
+.hero__cta:hover{color:var(--ember)}
+.hero__cta .ch{display:inline-block;animation:bob 2.4s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(4px)}}
+@media (prefers-reduced-motion:reduce){.hero__cta .ch{animation:none}}
+/* little stenciled toolbox glyph */
+.box-glyph{width:100%;max-width:280px;justify-self:end}
+.box-glyph svg{width:100%;height:auto;display:block;opacity:.92}
+@media (max-width:820px){.box-glyph{max-width:140px;margin-top:2px}}
+@media (max-width:560px){.box-glyph{display:none}}
+
+/* ============ KING NOTE ============ */
+.king{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:clamp(46px,7vw,84px) 0}
+.king__grid{display:grid;grid-template-columns:auto 1fr;gap:clamp(20px,4vw,48px);align-items:start}
+@media (max-width:680px){.king__grid{grid-template-columns:1fr;gap:18px}}
+.king__tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;color:var(--bone-faint);text-transform:uppercase;white-space:nowrap;padding-top:6px}
+.king p{font-family:var(--serif);font-size:clamp(18px,2.3vw,27px);line-height:1.45;font-weight:340;color:var(--bone);max-width:40ch}
+.king p .em{color:var(--ember);font-style:italic}
+.king .src{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--bone-faint);margin-top:18px}
+
+/* ============ THE TOOLBOX (drawers) ============ */
+.box{padding:clamp(46px,7vw,90px) 0 clamp(60px,9vw,120px)}
+.box__head{display:flex;align-items:baseline;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:30px}
+.box__head h2{font-family:var(--disp);font-weight:700;font-size:clamp(22px,3vw,38px);letter-spacing:-.01em;text-transform:uppercase}
+.box__head .hint{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--bone-faint)}
+
+.chest{border:1px solid var(--metal-edge);border-radius:8px;overflow:hidden;background:var(--metal2);
+  box-shadow:0 50px 90px -40px rgba(0,0,0,.95)}
+.drawer{border-bottom:2px solid #15171a}
+.drawer:last-child{border-bottom:0}
+.drawer__front{width:100%;text-align:left;cursor:pointer;border:0;display:grid;grid-template-columns:54px 1fr auto;gap:18px;align-items:center;
+  padding:20px clamp(16px,3vw,30px);color:var(--bone);
+  background:linear-gradient(180deg,var(--metal-edge),var(--metal) 14%,var(--metal2) 92%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05),inset 0 -1px 0 rgba(0,0,0,.4);
+  transition:filter .3s var(--ease)}
+.drawer__front{background:
+  repeating-linear-gradient(90deg,rgba(255,255,255,.02) 0 2px,transparent 2px 6px),
+  linear-gradient(180deg,var(--metal-edge),var(--metal) 14%,var(--metal2) 92%)}
+.drawer__front:hover{filter:brightness(1.12)}
+.drawer.open .drawer__front{filter:brightness(1.05);box-shadow:inset 4px 0 0 var(--ember),inset 0 1px 0 rgba(255,255,255,.06),inset 0 -1px 0 rgba(0,0,0,.4)}
+.drawer__num{font-family:var(--disp);font-weight:800;font-size:clamp(22px,3vw,34px);color:var(--bone-faint);line-height:1}
+.drawer.open .drawer__num{color:var(--ember)}
+.drawer__name{font-family:var(--disp);font-weight:700;font-size:clamp(15px,2vw,22px);letter-spacing:.02em;text-transform:uppercase}
+.drawer__sub{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--steel);margin-top:4px;opacity:.85}
+.drawer__right{display:flex;align-items:center;gap:16px}
+.drawer__count{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--bone-dim);text-align:right;line-height:1.5}
+.drawer__count b{color:var(--brass)}
+.handle{width:46px;height:13px;border-radius:7px;background:linear-gradient(180deg,#4a4e54,#2a2d31);box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 2px 4px rgba(0,0,0,.5);position:relative;flex:none}
+.handle::after{content:"";position:absolute;inset:3px 6px;border-radius:5px;background:linear-gradient(180deg,#222,#3a3d42)}
+.drawer.open .handle{background:linear-gradient(180deg,#5a3a22,#2a1a10)}
+
+.drawer__body{max-height:0;overflow:hidden;transition:max-height .55s var(--ease);background:
+  linear-gradient(180deg,#191b1e,#141517)}
+.drawer.open .drawer__body{max-height:1600px}
+.drawer__inner{padding:clamp(20px,3vw,34px);display:grid;grid-template-columns:.62fr 1.38fr;gap:clamp(22px,3vw,44px)}
+@media (max-width:780px){.drawer__inner{grid-template-columns:1fr;gap:22px}}
+.drawer__lede{font-family:var(--serif);font-size:clamp(15px,1.6vw,18px);line-height:1.55;color:#cdc2af;margin-bottom:20px}
+.drawer__lede b{color:var(--bone);font-weight:500}
+
+/* tools in foam */
+.foam{background:#0e0f11;border-radius:6px;padding:16px;box-shadow:inset 0 2px 14px rgba(0,0,0,.7);border:1px solid #0a0b0c}
+.foam h4{font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;color:var(--bone-faint);text-transform:uppercase;margin-bottom:13px}
+.tool{display:flex;align-items:center;gap:9px;padding:8px 11px;margin-bottom:8px;border-radius:5px;
+  background:linear-gradient(180deg,#26221b,#1c1812);border:1px solid #322b20;
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.02em;color:var(--bone)}
+.tool:last-child{margin-bottom:0}
+.tool .dot{width:6px;height:6px;border-radius:50%;background:var(--ember);flex:none;box-shadow:0 0 7px var(--ember)}
+
+/* project cards inside drawer */
+.outs{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:480px){.outs{grid-template-columns:1fr}}
+.out{cursor:pointer;border-radius:6px;overflow:hidden;background:#19140e;border:1px solid var(--line);transition:transform .3s var(--ease),border-color .3s,box-shadow .3s}
+.out:hover{transform:translateY(-6px);border-color:var(--brass);box-shadow:0 24px 40px -22px rgba(0,0,0,.9),0 0 26px -10px rgba(232,164,74,.2)}
+.out__media{position:relative;aspect-ratio:16/10;background:#0d0a07;overflow:hidden}
+.out__media img,.out__media canvas{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s ease;filter:brightness(1.08) saturate(1.03)}
+.out:hover .out__media img{transform:scale(1.05)}
+.out__media::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,6,4,.06) 40%,rgba(8,6,4,.5));pointer-events:none}
+.out__media .made{position:absolute;left:8px;bottom:8px;z-index:2;font-family:var(--mono);font-size:8px;letter-spacing:.1em;color:var(--bone);background:rgba(22,19,14,.8);padding:2px 7px;border-radius:3px;border:1px solid var(--line2)}
+/* featured (flagship) card per tray */
+.out--feat{grid-column:1 / -1}
+.out--feat .out__media{aspect-ratio:21/9}
+.out--feat .out__label{font-size:17px}
+.out--feat .out__title{font-size:11.5px}
+.out__b{padding:10px 11px 13px}
+.out__label{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--brass)}
+.out__title{font-family:var(--mono);font-size:10.5px;letter-spacing:.02em;color:var(--bone-dim);margin-top:2px;line-height:1.35}
+
+/* ============ ABOUT ============ */
+.person{padding:clamp(64px,10vw,140px) 0;display:grid;grid-template-columns:.75fr 1.25fr;gap:clamp(28px,6vw,76px);align-items:center;border-top:1px solid var(--line)}
+@media (max-width:820px){.person{grid-template-columns:1fr;gap:32px}}
+.person__photo img{width:100%;border-radius:8px;border:1px solid var(--line2);filter:saturate(.95)}
+.person .kq{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--brass);text-transform:uppercase;margin-bottom:18px}
+.person h2{font-family:var(--disp);font-weight:700;font-size:clamp(24px,3.4vw,42px);margin-bottom:18px;text-transform:uppercase;letter-spacing:-.01em}
+.person p{font-size:clamp(15.5px,1.7vw,18.5px);color:var(--bone-dim);max-width:58ch}
+.person p b{color:var(--bone);font-weight:500}
+
+/* ============ CONTACT ============ */
+.contact{padding:clamp(70px,11vw,150px) 0 70px;border-top:1px solid var(--line);text-align:center}
+.contact p{font-family:var(--serif);font-style:italic;font-size:clamp(19px,2.8vw,32px);max-width:34ch;margin:0 auto 30px;color:var(--bone);line-height:1.42}
+.contact .em{color:var(--ember);font-style:normal}
+.contact .mail{font-family:var(--mono);font-size:clamp(14px,2.2vw,22px);color:var(--brass);border-bottom:2px solid var(--ember-soft);padding-bottom:5px}
+.contact .mail:hover{color:var(--bone);border-color:var(--brass)}
+.contact .row{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;margin-top:24px;font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--bone-dim)}
+.contact .row a:hover{color:var(--ember)}
+.foot{text-align:center;padding:24px 0;font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--bone-faint);border-top:1px solid var(--line)}
+
+/* reveal */
+.rv{opacity:0;transform:translateY(20px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
+.rv.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}}
+
+/* ============ DETAIL OVERLAY ============ */
+.detail{position:fixed;inset:0;z-index:80;background:rgba(10,8,5,.88);backdrop-filter:blur(6px);opacity:0;visibility:hidden;transition:opacity .4s;overflow-y:auto;padding:clamp(20px,5vh,64px) 0}
+.detail.on{opacity:1;visibility:visible}
+.detail__box{max-width:1060px;margin:0 auto;padding:0 clamp(20px,5vw,52px);display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(24px,4vw,52px);align-items:start}
+@media (max-width:820px){.detail__box{grid-template-columns:1fr;gap:24px}}
+.detail__media{position:sticky;top:28px}
+@media (max-width:820px){.detail__media{position:static}}
+.detail__media .main{width:100%;border-radius:8px;border:1px solid var(--line2);display:block;background:#0d0a07;aspect-ratio:4/3;object-fit:cover}
+.detail__media canvas.mainviz{width:100%;aspect-ratio:4/3;border-radius:8px;border:1px solid var(--line2);background:linear-gradient(180deg,#19140e,#0f0c08);display:block}
+.detail__gallery{display:flex;gap:9px;margin-top:9px}
+.detail__gallery img{width:74px;height:56px;object-fit:cover;border-radius:4px;border:1px solid var(--line2);cursor:pointer;opacity:.72;transition:.2s}
+.detail__gallery img:hover{opacity:1;border-color:var(--brass)}
+.detail__viz{margin-top:11px}
+.detail__viz canvas{width:100%;height:140px;display:block;border:1px solid var(--line);border-radius:6px;background:linear-gradient(180deg,#19140e,#0f0c08)}
+.detail__viz .vcap{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;color:var(--bone-faint);margin-top:7px;text-transform:uppercase}
+.detail__from{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--steel);text-transform:uppercase;margin-bottom:9px}
+.detail__label{font-family:var(--serif);font-style:italic;font-size:clamp(19px,2.4vw,28px);color:var(--brass)}
+.detail__title{font-family:var(--disp);font-weight:700;font-size:clamp(23px,3.2vw,40px);line-height:1.04;margin:3px 0 7px;text-transform:uppercase;letter-spacing:-.01em}
+.detail__org{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--bone-faint);text-transform:uppercase;margin-bottom:20px}
+.detail__hook{font-family:var(--serif);font-style:italic;font-size:clamp(16px,1.9vw,21px);color:var(--bone);border-left:2px solid var(--ember);padding-left:15px;margin-bottom:20px}
+.detail__story{font-size:clamp(15px,1.6vw,17px);color:#cdc2af;margin-bottom:20px;max-width:54ch}
+.detail__tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
+.detail__tags span{font-family:var(--mono);font-size:10px;letter-spacing:.05em;color:var(--bone-dim);border:1px solid var(--line2);border-radius:999px;padding:3px 10px}
+.detail__nav{display:flex;justify-content:space-between;align-items:center;gap:14px;border-top:1px solid var(--line);padding-top:16px}
+.detail__nav button{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--bone-dim);background:none;border:1px solid var(--line2);border-radius:999px;padding:9px 14px;cursor:pointer;transition:.2s}
+.detail__nav button:hover{border-color:var(--brass);color:var(--brass)}
+.detail__close{position:fixed;top:16px;right:18px;z-index:90;font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--bone);background:rgba(22,19,14,.7);border:1px solid var(--line2);border-radius:999px;padding:9px 15px;cursor:pointer}
+.detail__close:hover{border-color:var(--ember);color:var(--ember)}
+</style>
+</head>
+<body>
+<div class="lamp"></div><div class="vig"></div><div class="grain"></div>
+
+<div class="brand mono">KAMBAR <b>MANGIBAYEV</b></div>
+<div class="spec mono">THE TOOLBOX · <b>5 TRAYS</b> · 11 BUILDS</div>
+
+<main>
+<!-- HERO -->
+<header class="hero">
+  <div class="wrap hero__grid">
+    <div>
+      <div class="eyebrow mono">MECHANICAL &amp; CONTROLS ENGINEER — ROCHESTER, NY</div>
+      <h1>The<br>Toolbox<span class="thin">Built one tool at a time. Most-used on top.</span></h1>
+      <p class="hero__intro">I came from <b>Semey, Kazakhstan</b> to the US in 2016 with not much more than a habit: I like to take things apart until they make sense. Ten years, two degrees, and one engineering job later, I still <b>come home from work to work</b>. This is the box I've been filling.</p>
+      <button class="hero__cta mono" id="openTop">OPEN THE TOP TRAY — IT'S WHAT I REACH FOR DAILY <span class="ch">↓</span></button>
+    </div>
+    <div class="box-glyph" aria-hidden="true">
+      <svg viewBox="0 0 200 200" fill="none" stroke="#88a0ab" stroke-width="2.2">
+        <rect x="28" y="64" width="144" height="108" rx="6" stroke="#e8a44a"/>
+        <path d="M28 92 H172 M28 120 H172 M28 148 H172" stroke="#473a2a"/>
+        <rect x="84" y="72" width="32" height="7" rx="3" fill="#473a2a" stroke="none"/>
+        <rect x="84" y="100" width="32" height="7" rx="3" fill="#473a2a" stroke="none"/>
+        <rect x="84" y="128" width="32" height="7" rx="3" fill="#473a2a" stroke="none"/>
+        <rect x="84" y="156" width="32" height="7" rx="3" fill="#473a2a" stroke="none"/>
+        <path d="M70 64 V48 a30 18 0 0 1 60 0 V64" stroke="#e8a44a"/>
+        <path d="M86 40 H114" stroke="#e2531d" stroke-width="3"/>
+      </svg>
+    </div>
+  </div>
+</header>
+
+<!-- KING NOTE -->
+<section class="king">
+  <div class="wrap king__grid">
+    <div class="king__tag mono">ON BUILDING<br>A TOOLBOX</div>
+    <div>
+      <p class="rv">Stephen King has an idea I keep coming back to: his grandfather hauled a heavy, multi-tier toolbox to every job so he was never running back for the one thing he forgot — he showed up already carrying everything. You spend a life stocking a box like that, <span class="em">most-used tools on top</span>, and carry it so the work never catches you empty-handed.</p>
+      <p class="rv" style="color:var(--bone-dim);font-size:clamp(16px,2vw,22px);margin-top:18px">I'm an engineer, not a novelist — but the box is the same. Everything below is what I've put in mine. The top tray is what I open every day; the deeper you go, the older and slower-earned the tools get.</p>
+      <div class="src mono rv">PARAPHRASED FROM STEPHEN KING, <i>ON WRITING</i></div>
+    </div>
+  </div>
+</section>
+
+<!-- TOOLBOX -->
+<section class="box" id="box">
+  <div class="wrap">
+    <div class="box__head">
+      <h2 class="rv">Open a drawer</h2>
+      <div class="hint mono rv">CLICK A TRAY · TOOLS LEFT, WHAT I BUILT WITH THEM RIGHT</div>
+    </div>
+    <div class="chest" id="chest"></div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="person" id="about">
+  <div class="person__photo rv"><img src="assets/portrait.jpg" alt="Kambar Mangibayev" loading="lazy"/></div>
+  <div class="rv">
+    <div class="kq mono">Semey, Kazakhstan → Rochester, NY</div>
+    <h2>The hand that fills the box</h2>
+    <p>I learned the language and the machine shop at roughly the same speed, picked up a BS and a master's in Mechanical Engineering from RIT — controls concentration, because that's the part that wouldn't leave me alone — and now I design mechanical and control systems for industrial vehicles at <b>The Raymond Corporation</b>. None of this makes me a finished engineer; King's right that owning good tools isn't the same as being a great builder. It just means that when the next interesting problem shows up, I'm not standing there empty-handed. So I keep stocking the box — <b>curiosity is the one tool I'll never finish using.</b></p>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="contact">
+  <div class="wrap">
+    <p class="rv">If something in the box made you want to ask a question, build a thing, or just argue about quaternions — the <span class="em">drawer's open</span>.</p>
+    <div class="rv"><a class="mail" href="mailto:kambarmangibayev@gmail.com">kambarmangibayev@gmail.com</a></div>
+    <div class="row rv"><a href="mailto:kambarmangibayev@gmail.com">EMAIL</a><a href="tel:+15853099467">+1 585-309-9467</a><span>ROCHESTER, NY</span></div>
+  </div>
+</section>
+</main>
+<div class="foot mono">KAMBAR MANGIBAYEV · THE TOOLBOX · THE RIGHT TOOL FOR THE JOB · © 2026</div>
+
+<!-- DETAIL -->
+<div class="detail" id="detail" aria-hidden="true">
+  <button class="detail__close mono" id="dClose">CLOSE ✕</button>
+  <div class="detail__box">
+    <div class="detail__media">
+      <img class="main" id="dMain" alt=""/>
+      <div class="detail__gallery" id="dGallery"></div>
+      <div class="detail__viz" id="dVizWrap"><canvas id="dViz"></canvas><div class="vcap mono" id="dVcap"></div></div>
+    </div>
+    <div>
+      <div class="detail__from mono" id="dFrom"></div>
+      <div class="detail__label" id="dLabel"></div>
+      <div class="detail__title" id="dTitle"></div>
+      <div class="detail__org mono" id="dOrg"></div>
+      <div class="detail__hook" id="dHook"></div>
+      <div class="detail__story" id="dStory"></div>
+      <div class="detail__tags" id="dTags"></div>
+      <div class="detail__nav"><button id="dPrev">← PREVIOUS</button><span class="mono" id="dCount" style="font-size:10px;color:var(--bone-faint);letter-spacing:.14em"></span><button id="dNext">NEXT →</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+const REDUCED=matchMedia("(prefers-reduced-motion:reduce)").matches;
+
+/* ===== PROJECTS ===== */
+const P=[
+ {obj:"The Eyes",title:"Pedestrian Detection & Automated Braking",org:"The Raymond Corporation · 2024 –",made:"BUILT WITH TRAY 01",
+  img:"assets/raymond-safety.jpg",viz:{type:"step",zeta:0.22,cap:"Step response · brake command"},
+  hook:"A forklift that notices you before you notice it.",
+  story:"A warehouse is a bad place to be small and on foot — the vehicles are heavy, the aisles tight, and the operator can't see everyone. I worked on the system that lets the truck watch its own surroundings and stop itself when a person is where they shouldn't be. Sensors feed a perception layer, the controller weighs what it sees against how fast and how loaded the truck is, and if the math turns ugly it commands the brakes faster than a startled human could. Braking hard for real danger while ignoring a thousand harmless things every shift is most of the work — confidence is cheap, good confidence is everything.",
+  tags:["Sensor fusion","Machine vision","Embedded C","CAN","Automated braking"]},
+ {obj:"The Inner Ear",title:"Performance Stability System",org:"The Raymond Corporation · 2024 –",made:"BUILT WITH TRAY 01",
+  img:"assets/raymond-stability.jpg",viz:{type:"step",zeta:0.14,cap:"Step response · stability trim"},
+  hook:"Keeping a loaded truck from believing it's lighter than it is.",
+  story:"A forklift carrying a heavy load up high is a tip-over waiting for an excuse. The job was a system that keeps the vehicle composed when the operator, the load, and physics all disagree at once. It reads what the truck is doing — speed, steering, load state — decides how close to the edge that puts it, and quietly trims the truck's behavior so the edge never arrives. The best stability work is invisible: if the operator notices it kicking in, you've already let things get more exciting than they should.",
+  tags:["Controls","Sensor fusion","Stability envelope","Vehicle dynamics"]},
+ {obj:"The Sky in a Box",title:"Flight Dynamics Simulation",org:"RIT · MATLAB & Simulink",made:"BUILT WITH TRAY 01",
+  img:"assets/flight.png",viz:{type:"step",zeta:0.12,cap:"Step response · attitude track"},
+  hook:"Nine aircraft, all flying inside a laptop.",
+  story:"I built a flight dynamics simulation covering nine different aircraft — the full six-degrees-of-freedom problem of how a thing actually moves through the air. It senses its own state, the model decides how forces and moments push it around, and it responds the way a real airframe would, frame after frame. I implemented it both ways — Euler angles and quaternions — specifically to feel the difference, including watching Euler angles fall apart at gimbal lock while quaternions kept their composure. It's the project that turned control theory from equations on a page into something I could fly badly and understand deeply.",
+  tags:["MATLAB","Simulink","Quaternions","6-DOF"]},
+ {obj:"The Big Burn",title:"Saturn V — F-1 Nozzle FEA",org:"RIT · Ansys",made:"BUILT WITH TRAY 02",
+  img:null,viz:{type:"step",zeta:0.05,cap:"Load ramp · stress to limit"},
+  hook:"Putting 7.5 million pounds of thrust into a simulation, on purpose.",
+  story:"The F-1 engine of the Saturn V produced around 7.5 million pounds of thrust per engine — an absurd number to type and a harder one to design hardware for. I ran a finite element analysis of the nozzle in Ansys to see how that load and heat actually distributes through the structure. The simulation senses the applied loads, decides where stress and strain concentrate, and shows you exactly which corners would fail first. It gave me real respect for the people who did this in the 1960s without a single one of the tools I had open.",
+  tags:["Ansys","Structural FEA","Launch loads","Thermal"]},
+ {obj:"The Soul of the Bench",title:"Double Pendulum",org:"RIT · model vs. rig",made:"BUILT WITH TRAY 02",
+  img:"assets/pendulum.jpg",viz:{type:"pendulum",cap:"Live · deterministic chaos"},
+  hook:"The one thing here I can model perfectly and still never predict.",
+  story:"The double pendulum is honest: two arms, one pivot, and behavior so sensitive that two identical starts split into two completely different futures. I modeled its chaotic dynamics from the equations of motion, then built the physical rig to watch model and reality drift apart in real time. It's the sense-decide-respond loop staring back at you — a system you understand completely and still cannot fully control. It's why everything else exists, and why it's the part that's always moving.",
+  tags:["Chaotic dynamics","Equations of motion","Validation","RK4"]},
+ {obj:"The Loud One",title:"Vacuum Cannon",org:"RIT · experiment",made:"BUILT WITH TRAY 02",
+  img:"assets/cannon.jpg",viz:{type:"step",zeta:0.9,cap:"Exit-velocity ramp"},
+  hook:"A 1.52-meter tube whose only job is to throw something very fast.",
+  story:"A vacuum cannon is delightfully simple and slightly alarming: evacuate the air from a 1.52-meter barrel, let atmospheric pressure do the rest, and a projectile leaves the end faster than feels reasonable. Before building it I simulated the exit velocity so I knew what I was signing up for, and where to stand. The model senses the pressure differential, the physics decides the acceleration down the barrel, and the projectile responds enthusiastically. The most fun I've had confirming that atmospheric pressure is not, in fact, 'just air.'",
+  tags:["Fluids","Ballistics","Pressure","1.52 m barrel"]},
+ {obj:"The Translator",title:"Python 3D Slicer & G-code Generator",org:"Personal · Python",made:"BUILT WITH TRAY 03",
+  img:"assets/slicer.jpg",gallery:["assets/slicer-ui.jpg","assets/slicer-plot.jpg"],viz:{type:"step",zeta:0.3,cap:"Step response · toolpath"},
+  hook:"I wrote the thing that tells my printer what to do.",
+  story:"I got tired of treating my slicer like a black box, so I wrote my own in Python — the software that turns a 3D model into the thousands of small instructions a printer actually understands. It takes a shape, decides how to carve it into layers and paths, and emits the G-code that drives the machine line by line. Every smooth print you've ever seen is hiding a stack of geometry decisions you never had to think about. Now I think about them — exactly the kind of problem I keep coming home to.",
+  tags:["Python","Computational geometry","Toolpaths","G-code"]},
+ {obj:"The Big One",title:"PrintNC — CNC Router",org:"Personal · self-built",made:"BUILT WITH TRAY 04",
+  img:"assets/printnc-machine.jpg",gallery:["assets/printnc.jpg","assets/printnc-cut.jpg"],viz:{type:"step",zeta:0.5,cap:"Step response · axis move"},
+  hook:"A steel CNC router I built on the third floor of an apartment.",
+  story:"I wanted a machine that could cut real material, not just foam and patience, so I built a PrintNC — a steel-framed CNC router — in my apartment. On the third floor. Don't tell my landlord. It senses position through its motion system, decides on a toolpath, and drags a spinning cutter through aluminum and wood with more authority than anything that size has a right to. Building it taught me the unglamorous half of engineering: squareness, rigidity, and the truth that a machine is only as accurate as its worst-bolted joint.",
+  tags:["Steel frame","3D-printed parts","Motion control","CAD","Fabrication"]},
+ {obj:"The Diamond Press",title:"3D Printing",org:"Personal · practice",made:"BUILT WITH TRAY 04",
+  img:"assets/printing.jpg",gallery:["assets/magsafe.jpg"],viz:{type:"step",zeta:0.4,cap:"Iteration · converge to fit"},
+  hook:'Where "good enough" went to get printed.',
+  story:"3D printing is how I prototype almost everything else, but it started closer to a vice. As a broke college student, every print felt like printing with diamonds — you don't casually waste a spool when it costs you a week of lunches, so I learned to get the geometry right before I ever hit print. Measure the real thing, decide tolerances and orientation, print, then hold it and find out where I lied to myself. My favorite output isn't a part — it's the MagSafe stand I made for my wife, still in daily use, and the only review I really care about.",
+  tags:["Additive","Rapid iteration","DFM","Tolerancing"]},
+ {obj:"The Cast",title:"Investment Casting at AMPrint",org:"RIT · AMPrint Center",made:"BUILT WITH TRAY 05",
+  img:"assets/casting.jpg",gallery:["assets/casting-real.jpg"],viz:{type:"step",zeta:0.7,cap:"CFD converge · flow"},
+  hook:"Pouring metal into shapes a printer made first.",
+  story:"At RIT's AMPrint Center I worked on investment casting that started with additive manufacturing — 3D-printed patterns and tooling instead of the traditional route. Part of it was designing custom water nozzles and using CFD to understand how fluid behaved through them before committing to metal. The CFD senses the geometry, decides how the flow will move and where it'll misbehave, and lets you fix it on screen instead of in a failed pour. I learned that 'make it, then test it' gets expensive fast — and simulation is how you stay solvent.",
+  tags:["Additive manufacturing","CFD","Investment casting","Electroplating"]},
+ {obj:"The Small World",title:"Polymer Lithography",org:"RIT · honors research",made:"BUILT WITH TRAY 05",
+  img:"assets/polymer.jpg",viz:{type:"step",zeta:0.6,cap:"Molecular sim · settle"},
+  hook:"Engineering at a scale you can only reach through math.",
+  story:"Some problems are too small to prototype your way through, and polymer lithography is one of them. I used LAMMPS to simulate the molecular behavior, because at that scale simulation isn't a convenience — it's the only window you've got. The model senses the molecular setup, decides how the system evolves under the forces at play, and predicts behavior you'd otherwise have no way to see. This is the project that fully converted me to simulation-first thinking.",
+  tags:["LAMMPS","Molecular dynamics","Simulation-first","Lithography"]}
+];
+
+/* ===== TRAYS ===== */
+const TRAYS=[
+ {n:"01",name:"Controls & Perception",sub:"WHAT I OPEN EVERY DAY",
+  lede:"This one lives on top because I open it every single day — it's how I get a machine to <b>sense the world and decide what to do</b> before something goes wrong.",
+  tools:["Controls engineering","Sensor fusion","Machine vision","Embedded C","CAN bus","Quaternions / 6-DOF"], outs:[0,1,2]},
+ {n:"02",name:"Modeling & Simulation",sub:"WRONG IN SOFTWARE FIRST",
+  lede:"I'd much rather be wrong in software than wrong in steel, so this is the tray where I <b>argue with the physics first</b>.",
+  tools:["MATLAB & Simulink","Structural FEA · Ansys","CFD","First-principles modeling"], outs:[3,4,5]},
+ {n:"03",name:"Code & Toolmaking",sub:"WHEN THE TOOL DOESN'T EXIST",
+  lede:"Sometimes the tool you need doesn't exist yet, so you write it — this is the tray where I <b>built my own slicer</b> instead of waiting for one.",
+  tools:["Python","Custom slicer + G-code","Automation / scripting","CAD"], outs:[6]},
+ {n:"04",name:"The Shop",sub:"WHERE MATH MAKES CHIPS",
+  lede:"This is where the math finally makes chips and dust; <b>half the machines in here I built myself</b>, including the router (don't tell my landlord).",
+  tools:["CNC machining","3D printing / additive","Fixturing & fabrication","Self-built PrintNC"], outs:[7,8]},
+ {n:"05",name:"Materials & First Principles",sub:"EARNED THE SLOWEST",
+  lede:"Bottom tray, heaviest tools, the ones I <b>earned the slowest</b> — turning raw stuff into finished metal, and understanding why matter does what it does in the first place.",
+  tools:["Investment casting","Electroplating","Materials science","LAMMPS molecular dynamics"], outs:[9,10]}
+];
+
+/* ===== build chest ===== */
+const chest=document.getElementById("chest");
+TRAYS.forEach((t,ti)=>{
+  const d=document.createElement("div"); d.className="drawer"; d.dataset.t=ti;
+  const tools=t.tools.map(x=>`<div class="tool"><span class="dot"></span>${x}</div>`).join("");
+  const outs=t.outs.map((pi,oi)=>{const p=P[pi];
+    const media=p.img?`<img src="${p.img}" alt="${p.title}" loading="lazy"/>`:`<canvas class="thumbviz" data-zeta="${p.viz&&p.viz.zeta||.1}"></canvas>`;
+    return `<div class="out${oi===0?' out--feat':''}" data-i="${pi}"><div class="out__media">${media}<span class="made mono">${p.org.split('·')[0].trim().toUpperCase()}</span></div>
+      <div class="out__b"><div class="out__label">${p.obj}</div><div class="out__title mono">${p.title}</div></div></div>`;}).join("");
+  d.innerHTML=`
+    <button class="drawer__front" aria-expanded="false">
+      <span class="drawer__num">${t.n}</span>
+      <span><span class="drawer__name">${t.name}</span><span class="drawer__sub mono">${t.sub}</span></span>
+      <span class="drawer__right"><span class="drawer__count mono"><b>${t.tools.length}</b> tools<br><b>${t.outs.length}</b> builds</span><span class="handle"></span></span>
+    </button>
+    <div class="drawer__body"><div class="drawer__inner">
+      <div><p class="drawer__lede">${t.lede}</p><div class="foam"><h4>TOOLS IN THIS TRAY</h4>${tools}</div></div>
+      <div class="outs">${outs}</div>
+    </div></div>`;
+  chest.appendChild(d);
+});
+function toggleDrawer(d){ const open=d.classList.toggle("open"); d.querySelector(".drawer__front").setAttribute("aria-expanded",open?"true":"false");
+  // draw any thumb viz now visible
+  if(open) d.querySelectorAll(".thumbviz").forEach(c=>{const r=c.getBoundingClientRect();if(r.width)drawStep(c,parseFloat(c.dataset.zeta),false);}); }
+chest.querySelectorAll(".drawer__front").forEach(f=>f.addEventListener("click",()=>toggleDrawer(f.parentElement)));
+chest.querySelectorAll(".out").forEach(o=>o.addEventListener("click",()=>openDetail(+o.dataset.i)));
+// open the top tray by default for immediate payoff
+setTimeout(()=>toggleDrawer(chest.querySelector(".drawer")),REDUCED?0:500);
+document.getElementById("openTop").addEventListener("click",()=>{
+  document.getElementById("box").scrollIntoView({behavior:REDUCED?"auto":"smooth"});
+  const first=chest.querySelector(".drawer"); if(!first.classList.contains("open"))toggleDrawer(first);
+});
+
+/* ===== DOUBLE PENDULUM (RK-ish, robust) ===== */
+function DoublePendulum(canvas){
+  const ctx=canvas.getContext("2d"); let W,H,DPR=Math.min(devicePixelRatio||1,2);
+  function size(){const r=canvas.getBoundingClientRect();W=r.width;H=r.height;canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);}
+  size();addEventListener("resize",size);
+  let a1=2.3,a2=2.7,w1=0,w2=0; const m1=1,m2=1,l1=1,l2=1,g=9.81; const trail=[];
+  function accel(a1,a2,w1,w2){const d=a1-a2,cd=Math.cos(d),sd=Math.sin(d),den=2*m1+m2-m2*Math.cos(2*a1-2*a2);
+    const n1=-g*(2*m1+m2)*Math.sin(a1)-m2*g*Math.sin(a1-2*a2)-2*sd*m2*(w2*w2*l2+w1*w1*l1*cd);
+    const n2=2*sd*(w1*w1*l1*(m1+m2)+g*(m1+m2)*Math.cos(a1)+w2*w2*l2*m2*cd);
+    return [n1/(l1*den),n2/(l2*den)];}
+  let raf=null,run=false;
+  function step(){const dt=0.006;for(let i=0;i<8;i++){const[a,b]=accel(a1,a2,w1,w2);w1+=a*dt;w2+=b*dt;w1*=0.99995;w2*=0.99995;a1+=w1*dt;a2+=w2*dt;}}
+  function draw(){ctx.clearRect(0,0,W,H);const ox=W*.5,oy=H*.32,L=Math.min(W,H)*.21;
+    const x1=ox+L*Math.sin(a1),y1=oy+L*Math.cos(a1),x2=x1+L*Math.sin(a2),y2=y1+L*Math.cos(a2);
+    trail.push([x2,y2]);if(trail.length>90)trail.shift();
+    for(let i=1;i<trail.length;i++){const t=i/trail.length;ctx.strokeStyle="rgba(226,83,29,"+(t*.55)+")";ctx.lineWidth=t*2.4+.3;ctx.beginPath();ctx.moveTo(trail[i-1][0],trail[i-1][1]);ctx.lineTo(trail[i][0],trail[i][1]);ctx.stroke();}
+    ctx.strokeStyle="rgba(236,227,212,.85)";ctx.lineWidth=2;ctx.lineCap="round";ctx.beginPath();ctx.moveTo(ox,oy);ctx.lineTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+    ctx.fillStyle="#88a0ab";ctx.beginPath();ctx.arc(ox,oy,4,0,7);ctx.fill();
+    ctx.fillStyle="#ece3d4";ctx.beginPath();ctx.arc(x1,y1,5,0,7);ctx.fill();
+    const gr=ctx.createRadialGradient(x2,y2,1,x2,y2,16);gr.addColorStop(0,"rgba(226,83,29,.8)");gr.addColorStop(1,"rgba(226,83,29,0)");
+    ctx.fillStyle=gr;ctx.beginPath();ctx.arc(x2,y2,16,0,7);ctx.fill();ctx.fillStyle="#e2531d";ctx.beginPath();ctx.arc(x2,y2,6,0,7);ctx.fill();}
+  function loop(){if(!run)return;step();draw();raf=requestAnimationFrame(loop);}
+  return {start(){if(run)return;run=true;if(REDUCED){for(let i=0;i<40;i++)step();draw();run=false;}else loop();},stop(){run=false;if(raf)cancelAnimationFrame(raf);}};
+}
+
+/* ===== STEP RESPONSE ===== */
+function drawStep(canvas,zeta,animate){
+  const ctx=canvas.getContext("2d");const d=Math.min(devicePixelRatio||1,2);const r=canvas.getBoundingClientRect();const W=r.width,H=r.height;
+  canvas.width=W*d;canvas.height=H*d;ctx.setTransform(d,0,0,d,0,0);zeta=Math.max(.02,Math.min(1.2,zeta));
+  const x0=10,x1=W-10,y0=H-14,y1=12,Tend=10;let wd,phi,c;
+  if(zeta<1){const wn=2;wd=wn*Math.sqrt(1-zeta*zeta);phi=Math.atan(zeta/Math.sqrt(1-zeta*zeta));c=t=>1-(1/Math.sqrt(1-zeta*zeta))*Math.exp(-zeta*wn*t)*Math.cos(wd*t-phi);}
+  else{const wn=2;c=t=>1-(1+wn*t)*Math.exp(-wn*t);}
+  const yMax=zeta<1?1+Math.exp(-zeta*1.2)*.85:1.05;const X=t=>x0+(x1-x0)*t/Tend,Y=v=>y0-(y0-y1)*(v/yMax);
+  function frame(prog){ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle="rgba(136,160,171,.16)";ctx.lineWidth=1;for(let g=0;g<=4;g++){const gy=y1+(y0-y1)*g/4;ctx.beginPath();ctx.moveTo(x0,gy);ctx.lineTo(x1,gy);ctx.stroke();}
+    ctx.strokeStyle="rgba(232,164,74,.5)";ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(x0,Y(1));ctx.lineTo(x1,Y(1));ctx.stroke();ctx.setLineDash([]);
+    ctx.strokeStyle="#e2531d";ctx.lineWidth=2.2;ctx.beginPath();const NT=Math.floor(170*prog);
+    for(let i=0;i<=NT;i++){const t=Tend*i/170;const yy=Y(c(t));i?ctx.lineTo(X(t),yy):ctx.moveTo(X(t),yy);}ctx.stroke();
+    if(prog<1){const t=Tend*prog;ctx.fillStyle="#ece3d4";ctx.beginPath();ctx.arc(X(t),Y(c(t)),3,0,7);ctx.fill();}}
+  if(REDUCED||!animate){frame(1);return;}
+  let s=null;(function go(ts){if(!s)s=ts;const p=Math.min(1,(ts-s)/1400);frame(p);if(p<1)requestAnimationFrame(go);})();
+}
+
+/* ===== DETAIL ===== */
+const detail=document.getElementById("detail");let cur=0,penInst=null;
+function openDetail(i){cur=i;const p=P[i];
+  document.getElementById("dFrom").textContent=p.made||"";
+  document.getElementById("dLabel").textContent=p.obj;
+  document.getElementById("dTitle").textContent=p.title;
+  document.getElementById("dOrg").textContent=p.org;
+  document.getElementById("dHook").textContent=p.hook;
+  document.getElementById("dStory").textContent=p.story;
+  document.getElementById("dCount").textContent=String(i+1).padStart(2,"0")+" / "+String(P.length).padStart(2,"0");
+  document.getElementById("dTags").innerHTML=p.tags.map(t=>`<span>${t}</span>`).join("");
+  const main=document.getElementById("dMain"),gal=document.getElementById("dGallery");
+  if(penInst){penInst.stop();penInst=null;}
+  if(p.img){main.style.display="block";main.src=p.img;main.alt=p.title;}else{main.style.display="none";}
+  gal.innerHTML="";if(p.gallery)p.gallery.forEach(src=>{const im=document.createElement("img");im.src=src;im.loading="lazy";im.addEventListener("click",()=>{if(p.img)main.src=src;});gal.appendChild(im);});
+  const vw=document.getElementById("dVizWrap"),vc=document.getElementById("dVcap"),dv=document.getElementById("dViz");
+  if(p.viz&&p.viz.type==="pendulum"){vw.style.display="block";vc.textContent=p.viz.cap;setTimeout(()=>{penInst=DoublePendulum(dv);penInst.start();},60);}
+  else if(p.viz&&p.viz.type==="step"){vw.style.display="block";vc.textContent=p.viz.cap;setTimeout(()=>drawStep(dv,p.viz.zeta,true),80);}
+  else vw.style.display="none";
+  detail.classList.add("on");detail.setAttribute("aria-hidden","false");document.body.style.overflow="hidden";detail.scrollTop=0;}
+function closeDetail(){detail.classList.remove("on");detail.setAttribute("aria-hidden","true");document.body.style.overflow="";if(penInst){penInst.stop();penInst=null;}}
+document.getElementById("dClose").addEventListener("click",closeDetail);
+detail.addEventListener("click",e=>{if(e.target===detail)closeDetail();});
+document.getElementById("dPrev").addEventListener("click",()=>openDetail((cur-1+P.length)%P.length));
+document.getElementById("dNext").addEventListener("click",()=>openDetail((cur+1)%P.length));
+addEventListener("keydown",e=>{if(!detail.classList.contains("on"))return;if(e.key==="Escape")closeDetail();if(e.key==="ArrowLeft")openDetail((cur-1+P.length)%P.length);if(e.key==="ArrowRight")openDetail((cur+1)%P.length);});
+
+/* ===== reveal ===== */
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target);}}),{threshold:.16});
+document.querySelectorAll(".rv").forEach(el=>io.observe(el));
+</script>
+</body>
+</html>

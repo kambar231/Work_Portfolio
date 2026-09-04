@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Interface Logic &amp; Access Control — Kambar Mangibayev</title>
+  <meta name="description" content="Re-architected the vehicle&#x27;s menu system around safety classes and operator access levels. The interface itself decides which controls are even reachable, given who is driving and what the vehicle is doing." />
+  <meta name="theme-color" content="#f4ede0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..900,0..100,0..1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="cursor" aria-hidden="true"></div>
+  <div class="cursor-dot" aria-hidden="true"></div>
+
+  <header class="nav">
+    <a href="../index.html" class="nav__brand">
+      <span class="nav__mono">KM</span>
+      <span class="nav__sep">/</span>
+      <span class="nav__name">Kambar Mangibayev</span>
+    </a>
+    <nav class="nav__links" aria-label="primary">
+      <a href="../index.html#work">Work</a>
+      <a href="../index.html#projects">Projects</a>
+      <a href="../index.html#reel">Reel</a>
+      <a href="../index.html#about">About</a>
+      <a href="../index.html#contact" class="nav__cta">Contact</a>
+    </nav>
+    <div class="nav__time" aria-hidden="true">
+      <span class="dot"></span><span id="clock">— —</span>
+    </div>
+  </header>
+
+  <main class="case-wrap">
+    <a href="../index.html#work" class="case__back mono" data-reveal>
+      ← Selected Work
+    </a>
+    <header class="case__head">
+      <span class="mono dim" data-reveal>005 &nbsp;·&nbsp; UX · Safety</span>
+      <h1 class="case__title" data-reveal>Interface Logic &amp; Access Control</h1>
+      <p class="case__tagline" data-reveal><em>Right action obvious, wrong action hard.</em></p>
+    </header>
+    <p class="case__lede" data-reveal>Re-architected the vehicle&#x27;s menu system around safety classes and operator access levels. The interface itself decides which controls are even reachable, given who is driving and what the vehicle is doing.</p>
+
+    <div class="case__body">
+      <div class="case__prose">
+      <section class="case__sec" data-reveal>
+        <h2 class="case__sec-h">Overview</h2>
+        <p>Industrial vehicle interfaces accumulate options over years. By the time a fleet manager, a technician, and an operator all need different things, the menu becomes a hazard surface in itself. The redesign brief: stop showing operators controls they shouldn't touch, and stop burying the controls technicians need.</p>
+        
+      </section>
+
+      <aside class="case__todos" data-reveal>
+        <h3 class="mono">Notes for Kambar</h3>
+        <p class="dim">Kept inline so they're easy to spot; remove these before sharing the link.</p>
+        <ul><li>Write Approach + Results sections in your own words</li><li>HMI screenshot or wireframe</li><li>Training-time savings figure</li></ul>
+      </aside>
+      </div>
+      <aside class="case__specs" data-reveal>
+        <h3 class="mono dim">Spec sheet</h3>
+        <div class="case__spec"><span class="dim">Year</span><span>TODO</span></div>
+        <div class="case__spec"><span class="dim">Role</span><span>Lead Engineer</span></div>
+        <div class="case__spec"><span class="dim">Method</span><span>Role-aware state machine</span></div>
+        <div class="case__spec"><span class="dim">Status</span><span>Shipped</span></div>
+      </aside>
+    </div>
+
+      <nav class="case__nav" data-reveal>
+        <a class="case__nav-prev" href="./steer-differentiation.html">
+          <span class="mono dim">← Previous</span>
+          <span class="case__nav-title">Steer Differentiation System</span>
+        </a>
+        <a class="case__nav-next" href="./structural-frame.html">
+          <span class="mono dim">Next →</span>
+          <span class="case__nav-title">Structural Frame Redesign</span>
+        </a>
+      </nav>
+    <footer class="foot">
+      <div class="foot__col"><span class="mono dim">© 2026 Kambar Mangibayev</span></div>
+      <div class="foot__col mono"><a href="../index.html" class="dim">Back to home</a></div>
+      <button class="foot__top mono" id="toTop" aria-label="Back to top">Back to top ↑</button>
+    </footer>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+  <script src="../assets/js/main.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Kambar Mangibayev — the desk (v2 / Soul)</title>
+  <meta name="description" content="An engineer at his desk, rendered with toon shading + PBR metals + soft post. Pick something up to see the work." />
+  <meta name="theme-color" content="#f4f1ea" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..900,0..100,0..1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/desk-v2.css" />
+</head>
+<body>
+
+  <!-- shared SVG noise filter for paper-grain texture, referenced by every cream card -->
+  <svg class="pov__grain-defs" aria-hidden="true" width="0" height="0" style="position:absolute">
+    <filter id="paperGrain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.04 0"/>
+    </filter>
+  </svg>
+
+  <div id="stage" aria-hidden="true"></div>
+
+  <header class="hud hud--top">
+    <span class="hud__brand">/ Kambar&nbsp;Mangibayev<sup>®</sup></span>
+    <span class="hud__caption" id="caption">Pick something up</span>
+    <a class="hud__skip" href="index.html">Skip → the index</a>
+  </header>
+
+  <button class="hud__back" id="back" hidden>← back to the desk</button>
+
+  <section class="pov pov--portfolio" id="povPortfolio" hidden>
+    <div class="pov__page">
+      <div class="pov__grain" aria-hidden="true"></div>
+      <div class="pov__head">
+        <span>Portfolio</span>
+        <span>01 / 15</span>
+      </div>
+      <h2 class="pov__title">Engineer at the seams &mdash; <em>vehicle systems, simulation, 3D printing &amp; CNC.</em></h2>
+      <p class="pov__lede">An index of built things, at every scale I&rsquo;ve had the chance to build at. Open the full index for project case studies.</p>
+      <a class="pov__cta" href="index.html">Open the index →</a>
+    </div>
+  </section>
+
+  <section class="pov pov--helmet" id="povHelmet" hidden>
+    <svg class="pov__hud-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><defs><radialGradient id="arc" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff" stop-opacity="1"/><stop offset="40%" stop-color="#c7e6ff" stop-opacity=".9"/><stop offset="100%" stop-color="#9cc6ff" stop-opacity="0"/></radialGradient></defs><path d="M 80 60 L 240 60 L 280 100 L 280 220" fill="none" stroke="#d6a72a" stroke-width="1.4" opacity=".75"/><path d="M 1360 60 L 1200 60 L 1160 100 L 1160 220" fill="none" stroke="#d6a72a" stroke-width="1.4" opacity=".75"/><path d="M 80 840 L 240 840 L 280 800 L 280 680" fill="none" stroke="#d6a72a" stroke-width="1.4" opacity=".75"/><path d="M 1360 840 L 1200 840 L 1160 800 L 1160 680" fill="none" stroke="#d6a72a" stroke-width="1.4" opacity=".75"/><g transform="translate(1080 250)" stroke="#d6a72a" stroke-width="1.2" fill="none" opacity=".8"><circle r="60"/><circle r="40"/><line x1="-72" y1="0" x2="-48" y2="0"/><line x1="48" y1="0" x2="72" y2="0"/><line x1="0" y1="-72" x2="0" y2="-48"/><line x1="0" y1="48" x2="0" y2="72"/><text x="68" y="-44" font-family="JetBrains Mono, monospace" font-size="10" fill="#d6a72a">STEREO LOCK</text><text x="68" y="-30" font-family="JetBrains Mono, monospace" font-size="10" fill="#d6a72a">ML PERCEPTION</text></g><g transform="translate(360 650)" stroke="#d6a72a" stroke-width="1.2" fill="none" opacity=".7"><circle r="44"/><circle r="30"/><circle r="16"/><line x1="-50" y1="0" x2="50" y2="0"/><line x1="0" y1="-50" x2="0" y2="50"/><text x="-20" y="-54" font-family="JetBrains Mono, monospace" font-size="10" fill="#d6a72a">DEPTH MAP</text></g><circle cx="720" cy="120" r="34" fill="url(#arc)"/><circle cx="720" cy="120" r="24" fill="none" stroke="#d6a72a" stroke-width="1.5" opacity=".9"/><circle cx="720" cy="120" r="12" fill="#fff" opacity=".85"/><g font-family="JetBrains Mono, monospace" font-size="11" fill="#d6a72a" opacity=".9"><text x="600" y="65">PWR 100%</text><text x="820" y="65">FOV 165</text></g><g stroke="#d6a72a" stroke-width="1" opacity=".55"><line x1="690" y1="450" x2="710" y2="450"/><line x1="730" y1="450" x2="750" y2="450"/><line x1="720" y1="420" x2="720" y2="440"/><line x1="720" y1="460" x2="720" y2="480"/><circle cx="720" cy="450" r="1.8" fill="#d6a72a"/></g><g font-family="JetBrains Mono, monospace" font-size="10" fill="#d6a72a" opacity=".85"><text x="96" y="92">STEREO BASELINE 120MM</text><text x="1224" y="92" text-anchor="end">FRAME 02 / 15</text><text x="96" y="822">LATENCY 14MS</text><text x="1224" y="822" text-anchor="end">BRAKE TORQUE Nm: ARMED</text></g></svg>
+
+    <div class="pov__hud">
+      <div class="pov__hud-head">
+        <span>SEnS+ / ML&nbsp;Perception</span>
+        <span>02 / 15</span>
+      </div>
+      <div class="pov__hud-corner pov__hud-corner--tl">STEREO BASELINE 120MM</div>
+      <div class="pov__hud-corner pov__hud-corner--tr">FRAME 02 / 15</div>
+      <div class="pov__hud-corner pov__hud-corner--bl">LATENCY 14MS &middot; CONFIDENCE 98.4%</div>
+      <div class="pov__hud-corner pov__hud-corner--br">BRAKE TORQUE Nm: ARMED</div>
+      <div class="pov__hud-center">
+        <p>Stereoscopic camera detection wired into regenerative braking. Perception sitting inside the safety stack &mdash; not a notification, an action.</p>
+        <a class="pov__hud-cta" href="work/sens-plus.html">Open the case study →</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="pov pov--letter" id="povLetter" hidden>
+    <div class="pov__paper">
+      <div class="pov__grain" aria-hidden="true"></div>
+      <div class="pov__head">
+        <span>A letter</span>
+        <span>03 / 15</span>
+      </div>
+      <span class="pov__monogram" aria-hidden="true">KM</span>
+      <p>To whom it may concern,</p>
+      <p>Kambar leads engineering work on vehicle systems &mdash; stability, hydraulics, perception, structural. He cares most about the moments where research has to become a product, and walks the line between safety and performance without falling off either side.</p>
+      <p>The job is to find the line and not fall off either side. He finds it.</p>
+      <p class="pov__signature">
+        <span class="pov__signature-mark">K. Mangibayev</span>
+        <span class="pov__signature-line">&mdash; Kambar, writing about himself in the third person</span>
+      </p>
+      <a class="pov__cta" href="index.html">See the work →</a>
+    </div>
+  </section>
+
+  <section class="pov pov--cad" id="povCad" hidden>
+    <div class="pov__cad">
+      <div class="pov__grain" aria-hidden="true"></div>
+      <div class="pov__head">
+        <span>Structural &mdash; FEA pass 04</span>
+        <span>04 / 15</span>
+      </div>
+      <h2 class="pov__title">Frame &mdash; <em>infinite-life under fatigue load.</em></h2>
+      <ul class="pov__spec">
+        <li><span>Mesh</span><span>1.2M tetra</span></li>
+        <li><span>Max stress</span><span>148 MPa</span></li>
+        <li><span>FOS (fatigue)</span><span>2.4</span></li>
+        <li><span>Status</span><span>Infinite life</span></li>
+      </ul>
+      <a class="pov__cta" href="work/structural-frame.html">Open the case study →</a>
+    </div>
+  </section>
+
+  <section class="pov pov--mug" id="povMug" hidden>
+    <div class="pov__mug">
+      <div class="pov__grain" aria-hidden="true"></div>
+      <p class="pov__mug-line">Coffee&rsquo;s warm.</p>
+      <p class="pov__mug-hint">click or <kbd>esc</kbd> &mdash; put it down</p>
+    </div>
+  </section>
+
+  <div class="curtain" id="curtain">
+    <div class="curtain__mark">
+      <svg viewBox="0 0 220 80" xmlns="http://www.w3.org/2000/svg">
+        <text x="0" y="62" fill="currentColor" font-family="Fraunces, serif" font-weight="500" font-size="72" letter-spacing="-3">KAMBAR</text>
+      </svg>
+    </div>
+    <div class="curtain__count" id="curtainCount">building the desk &middot; 00%</div>
+  </div>
+
+  <!--
+    THREE.js r148 (core) — global UMD build works under file:// without a server.
+    Postprocessing scripts pinned to r147 because examples/js/ was removed in r148.
+    The r147 examples/js scripts attach themselves to the r148 global THREE; this
+    cross-version pin is intentional and documented in STYLE_SOUL.md (§5).
+  -->
+  <script src="https://unpkg.com/three@0.148.0/build/three.min.js"></script>
+  <script src="https://unpkg.com/three@0.147.0/examples/js/shaders/CopyShader.js"></script>
+  <script src="https://unpkg.com/three@0.147.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+  <script src="https://unpkg.com/three@0.147.0/examples/js/postprocessing/EffectComposer.js"></script>
+  <script src="https://unpkg.com/three@0.147.0/examples/js/postprocessing/RenderPass.js"></script>
+  <script src="https://unpkg.com/three@0.147.0/examples/js/postprocessing/ShaderPass.js"></script>
+  <script src="https://unpkg.com/three@0.147.0/examples/js/postprocessing/MaskPass.js"></script>
+  <script src="https://unpkg.com/three@0.147.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+  <script src="https://unpkg.com/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="assets/js/desk-v2.js"></script>
+</body>
+</html>

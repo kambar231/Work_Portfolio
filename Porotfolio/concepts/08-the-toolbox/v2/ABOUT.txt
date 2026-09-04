@@ -1,0 +1,19 @@
+CONCEPT 08 — THE TOOLBOX  ·  v2  (interaction-first rework)
+Created 2026-06-22
+
+Feedback on v1: "looks AI, not interactive enough." v2 commits to:
+  LOOK  — "dark garage, you hold the light." A dim workshop (cool teal CineStill
+          shadows) where the CURSOR is a warm tungsten inspection lamp. You move
+          the light to reveal the chest, the tools, the parts in shadow. Warm
+          light + cool shadow + halation = Kambar's real photographic taste,
+          NOT the warm-dark-orange "AI premium" cliché.
+  DO IT  — two real interactions:
+          1) DRAG the drawers open (pointer drag with weight + snap, not a click
+             accordion).
+          2) PICK UP a tool and DROP it in the vise to see what was built with it
+             (drag-and-drop reveals that tray's projects).
+  Plus: live double-pendulum, step-response reveals, a "hit the lights" toggle
+  and full mobile/reduced-motion fallback (lights on, tap to open / tap to use).
+
+Self-contained index.html + ./assets (real, warm-graded). v1 left intact.
+Immutable snapshot — iterate by copying to ../v3/.

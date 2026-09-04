@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Kambar Mangibayev — Drawing Set KM-26 </title>
+<meta name="description" content="Engineering portfolio of Kambar Mangibayev — vehicle systems and controls, told in four chapters: Raymond Corporation, RIT, Research, and a side practice in CNC and 3D printing."/>
+<meta name="theme-color" content="#0b1f3a"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+/* ============================================================
+   KM-26 — REV E. Cover → four life chapters → index → contact.
+   Type: Archivo Black (titles) · Fraunces (reading/voice) ·
+   Plex Mono (data/labels). Color: navy / paper / ink / red.
+   Hero is a real computed second-order step response.
+   ============================================================ */
+:root{
+  --navy:#0b1f3a;
+  --navy-2:#0e2545;
+  --navy-line:#3d5a80;
+  --navy-bright:#bcd7f5;
+  --paper:#f4f1e9;
+  --ink:#15191e;
+  --ink-soft:#4a5260;
+  --rule:#aab2bc;
+  --red:#c2382e;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --serif:"Fraunces",Georgia,serif;
+  --disp:"Archivo Black",sans-serif;
+  --frame:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+@media (min-width:861px){html{scroll-snap-type:y proximity}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{background:var(--paper);color:var(--ink);font-family:var(--mono);font-size:13px;line-height:1.6;-webkit-font-smoothing:antialiased;cursor:crosshair}
+::selection{background:var(--red);color:#fff}
+a{color:inherit}
+
+.sheet--paper{background:
+  linear-gradient(rgba(141,153,166,.09) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(141,153,166,.09) 1px,transparent 1px),
+  var(--paper);background-size:96px 96px}
+
+/* ---------- sheet base ---------- */
+.sheet{position:relative;min-height:100svh;display:flex;flex-direction:column;justify-content:center;
+  padding:calc(var(--frame) + 46px) calc(var(--frame) + 50px) calc(var(--frame) + 78px);
+  scroll-snap-align:start;box-shadow:0 -16px 40px rgba(11,21,38,.16)}
+.sheet::before{content:"";position:absolute;inset:var(--frame);border:1.25px solid var(--ink);pointer-events:none}
+.sheet--dark{background:radial-gradient(120% 120% at 78% 8%,var(--navy-2),var(--navy) 60%);color:#eef3fa}
+.sheet--dark::before{border-color:var(--navy-line)}
+
+/* ---------- footer strip ---------- */
+.strip{position:absolute;left:var(--frame);right:var(--frame);bottom:var(--frame);
+  display:flex;align-items:center;border-top:1.25px solid var(--ink);
+  font-size:9.5px;letter-spacing:.14em;background:inherit;height:44px;white-space:nowrap}
+.sheet--dark .strip{border-color:var(--navy-line)}
+.strip>span{padding:0 16px;border-right:.75px solid var(--rule);display:flex;align-items:center;height:100%;overflow:hidden;text-overflow:ellipsis}
+.sheet--dark .strip>span{border-color:var(--navy-line)}
+.strip .s-name{font-family:var(--disp);font-size:11px;letter-spacing:.04em;flex:none}
+.strip .s-title{color:var(--ink-soft);flex:1;min-width:0}
+.sheet--dark .strip .s-title{color:var(--navy-bright)}
+.strip .s-mail{flex:none}.strip .s-mail a{text-decoration:none}.strip .s-mail a:hover{color:var(--red)}
+.strip .s-no{color:var(--red);font-weight:600;flex:none;border-right:none}
+
+/* ---------- HUD + crosshair + rail ---------- */
+.hud{position:fixed;z-index:60;font-size:9.5px;letter-spacing:.14em;display:flex;gap:10px;align-items:center;background:var(--paper);border:1px solid var(--ink);padding:6px 10px;color:var(--ink)}
+.hud--nav{right:18px;bottom:80px}
+.hud--coord{top:18px;right:18px;border-color:var(--rule);color:var(--ink-soft)}
+.hud button{font:inherit;background:none;border:1px solid currentColor;color:inherit;padding:2px 8px;cursor:pointer}
+.hud button:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+#shtNow{color:var(--red);font-weight:600}
+@media (hover:none){.hud--coord{display:none}}
+.xh{position:fixed;z-index:55;pointer-events:none;background:rgba(194,56,46,.20)}
+.xh--v{top:0;bottom:0;width:1px}.xh--h{left:0;right:0;height:1px}
+@media (hover:none){.xh{display:none}}
+.rail{position:fixed;left:8px;top:50%;transform:translateY(-50%);z-index:60;display:flex;flex-direction:column;gap:11px;align-items:flex-start}
+.rail b{display:flex;align-items:center;gap:8px;cursor:pointer;background:none;border:none;padding:0}
+.rail i{width:7px;height:7px;border:1px solid var(--ink-soft);border-radius:50%;transition:.25s;flex:none}
+.rail b.on i{background:var(--red);border-color:var(--red);transform:scale(1.3)}
+.rail u{font-style:normal;text-decoration:none;font-size:8px;letter-spacing:.12em;color:var(--ink-soft);opacity:0;transform:translateX(-4px);transition:.25s;white-space:nowrap}
+.rail b:hover u{opacity:1;transform:none}
+@media (max-width:980px){.rail{display:none}}
+
+/* ============================================================
+   COVER
+   ============================================================ */
+.cover{max-width:1240px;margin:0 auto;width:100%;display:grid;grid-template-columns:1.04fr .96fr;gap:clamp(24px,4vw,56px);align-items:center}
+.cover__l{min-width:0}
+.cover__kick{display:flex;gap:18px;font-size:10px;letter-spacing:.2em;color:var(--navy-bright);margin-bottom:26px;flex-wrap:wrap}
+.cover__name{font-family:var(--disp);text-transform:uppercase;color:#fff;font-size:clamp(40px,6.6vw,96px);line-height:.92;letter-spacing:-.005em}
+.cover__name span{display:block}.cover__name .dot{color:var(--red)}
+.cover__sub{font-family:var(--serif);font-style:italic;font-weight:340;font-size:clamp(15px,1.7vw,20px);color:var(--navy-bright);margin:24px 0 14px;max-width:30ch}
+.cover__sub b{color:#fff;font-style:normal;font-weight:560}
+.cover__place{font-size:10px;letter-spacing:.18em;color:var(--navy-line)}
+.cover__place b{color:var(--navy-bright);font-weight:500}
+.cover__cue{font-size:10px;letter-spacing:.2em;color:var(--navy-line);margin-top:30px;animation:bob 2.6s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+
+/* boot timing */
+.b{opacity:0;animation:fadeup .8s cubic-bezier(.2,.7,.2,1) forwards}
+@keyframes fadeup{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.b1{animation-delay:.1s}.b2{animation-delay:.35s}.b3{animation-delay:.55s}.b4{animation-delay:.8s}.b5{animation-delay:1s}.b6{animation-delay:3.1s}
+.stamp{position:absolute;right:6.5%;top:10%;transform:rotate(-8deg);border:3px solid var(--red);color:var(--red);padding:9px 20px;font-weight:600;letter-spacing:.28em;font-size:13px;text-align:center;pointer-events:none;opacity:0;animation:slam .45s cubic-bezier(.2,1.6,.3,1) 2.5s forwards}
+.stamp small{display:block;font-size:8px;letter-spacing:.2em;margin-top:3px;font-weight:500}
+@keyframes slam{0%{opacity:0;transform:rotate(-8deg) scale(2)}70%{opacity:1;transform:rotate(-8deg) scale(.96)}100%{opacity:.9;transform:rotate(-8deg) scale(1)}}
+@media (prefers-reduced-motion:reduce){.b,.stamp{animation:none;opacity:1}.stamp{opacity:.9}.cover__cue{animation:none}}
+
+/* ---- step-response plot ---- */
+.plot{width:100%;height:auto;opacity:0;animation:fadein .7s ease 1.15s forwards}
+@keyframes fadein{to{opacity:1}}
+.plot .axis{stroke:var(--navy-line);stroke-width:1}
+.plot .grid{stroke:rgba(61,90,128,.32);stroke-width:.6}
+.plot .set{stroke:var(--navy-bright);stroke-width:1;stroke-dasharray:5 4}
+.plot .curve{fill:none;stroke:var(--red);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.plot .step{fill:none;stroke:rgba(188,215,245,.55);stroke-width:1.4;stroke-dasharray:3 3}
+.plot text{font-family:var(--mono);fill:var(--navy-bright)}
+.plot .axlbl{font-size:9px;letter-spacing:.16em;fill:var(--navy-line)}
+.plot .anno{font-size:8.5px;letter-spacing:.1em;fill:var(--navy-bright)}
+.plot .word{font-size:10px;letter-spacing:.22em;font-weight:600;fill:#fff}
+.plot .dot{fill:var(--red)}
+.is-in .plot .curve{stroke-dasharray:1;stroke-dashoffset:1;animation:trace 2.4s cubic-bezier(.5,0,.2,1) 1.3s forwards}
+@keyframes trace{to{stroke-dashoffset:0}}
+.plot .reveal{opacity:0;animation:fadein .5s ease 3.4s forwards}
+@media (prefers-reduced-motion:reduce){.plot,.plot .reveal{opacity:1;animation:none}.plot .curve{stroke-dashoffset:0!important}}
+
+/* ============================================================
+   CHAPTER SHEETS
+   ============================================================ */
+.chap{max-width:1280px;margin:0 auto;width:100%;position:relative;display:grid;grid-template-columns:1fr 1.04fr;gap:clamp(30px,5vw,68px);align-items:center}
+.chap--flip .chmeta{order:2}
+.ghost{position:absolute;top:50%;transform:translateY(-50%);font-family:var(--disp);font-size:clamp(150px,24vw,330px);line-height:1;color:transparent;-webkit-text-stroke:1.4px rgba(74,82,96,.16);pointer-events:none;user-select:none;z-index:0}
+.chap .ghost{right:-8px}.chap--flip .ghost{left:-8px;right:auto}
+
+.chmeta{position:relative;z-index:1;max-width:520px}
+.chmeta .ckick{font-size:10px;letter-spacing:.24em;color:var(--red);font-weight:600;margin-bottom:14px}
+.chmeta .ckick em{font-style:normal;color:var(--ink-soft);font-weight:500}
+.chmeta h2{font-family:var(--disp);text-transform:uppercase;font-size:clamp(26px,3.4vw,44px);line-height:1.0;margin-bottom:10px}
+.chmeta .role{font-size:10.5px;letter-spacing:.12em;color:var(--ink-soft);margin-bottom:20px}
+.chmeta .note{font-family:var(--serif);font-weight:380;font-size:clamp(15.5px,1.5vw,18.5px);line-height:1.62;color:#252b33;border-left:2px solid var(--red);padding-left:16px;margin-bottom:26px}
+.clist{border-top:1.25px solid var(--ink)}
+.clist a{display:grid;grid-template-columns:62px 1fr auto;gap:14px;align-items:baseline;
+  padding:11px 4px;border-bottom:.5px solid rgba(170,178,188,.45);text-decoration:none;transition:background .15s,padding .15s}
+.clist a:hover{background:rgba(194,56,46,.06);padding-left:10px}
+.clist a:hover .arr{color:var(--red);transform:translateX(4px)}
+.clist .cn{font-size:9.5px;color:var(--red);font-weight:600;letter-spacing:.06em}
+.clist .ct{font-weight:500}
+.clist .cf{display:inline-block;margin-left:8px;font-size:9px;letter-spacing:.1em;color:var(--ink-soft)}
+.clist .cs{font-size:9.5px;color:var(--ink-soft);letter-spacing:.04em}
+.clist .arr{color:var(--rule);transition:transform .2s,color .2s}
+.clist .flag-row .ct{color:var(--ink)}
+.clist .flag-row::after{content:"FLAGSHIP";font-size:7.5px;letter-spacing:.12em;color:#fff;background:var(--red);padding:1px 5px;align-self:center}
+.clist .flag-row{grid-template-columns:62px 1fr auto auto}
+
+.fig{position:relative;z-index:1}
+.fig a{display:block;position:relative;border:1.25px solid var(--ink);background:#fff;text-decoration:none;box-shadow:13px 13px 0 rgba(21,25,30,.08);transition:transform .3s,box-shadow .3s}
+.fig a:hover{transform:translate(-3px,-3px);box-shadow:19px 19px 0 rgba(21,25,30,.1)}
+.fig img{display:block;width:100%;height:auto;max-height:58vh;object-fit:cover;filter:saturate(.94) contrast(1.03)}
+.fig a::after{content:"OPEN CASE FILE →";position:absolute;right:12px;top:12px;background:var(--red);color:#fff;font-size:9px;letter-spacing:.18em;font-weight:600;padding:5px 10px;opacity:0;transform:translateY(-4px);transition:.25s}
+.fig a:hover::after{opacity:1;transform:none}
+.fig figcaption{display:flex;justify-content:space-between;gap:12px;margin-top:9px;font-size:9.5px;letter-spacing:.13em;color:var(--ink-soft)}
+.fig figcaption b{color:var(--ink);font-weight:600}
+.fig .lede{font-family:var(--serif);font-weight:380;font-size:14.5px;line-height:1.55;color:#2c333c;margin-top:12px;max-width:46ch}
+
+/* reveal */
+.rv{opacity:0;transform:translateY(18px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+.is-in .rv{opacity:1;transform:none}
+.is-in .rv:nth-child(2){transition-delay:.07s}.is-in .rv:nth-child(3){transition-delay:.14s}
+.is-in .rv:nth-child(4){transition-delay:.21s}.is-in .rv:nth-child(5){transition-delay:.28s}
+@media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}}
+
+/* ============================================================
+   INDEX + ABOUT
+   ============================================================ */
+.idx{max-width:1240px;margin:0 auto;width:100%}
+.idx h2,.contact h2{font-family:var(--disp);text-transform:uppercase;font-size:clamp(24px,3.3vw,42px);margin-bottom:8px}
+.idx .lead{font-family:var(--serif);font-weight:380;font-size:16px;color:var(--ink-soft);margin-bottom:26px;max-width:620px}
+table{border-collapse:collapse;width:100%;font-size:11.5px}
+th{font-size:9px;letter-spacing:.18em;color:var(--ink-soft);font-weight:500;text-align:left;border-bottom:1.5px solid var(--ink);padding:8px 10px}
+td{border-bottom:.5px solid rgba(170,178,188,.4);padding:9px 10px;vertical-align:middle}
+.idx tbody tr{cursor:pointer;transition:background .15s}
+.idx tbody tr:hover{background:rgba(194,56,46,.06)}
+.idx tbody tr:hover .go{color:var(--red);transform:translateX(4px)}
+td.no{color:var(--red);font-weight:600;white-space:nowrap;width:78px}
+td.ttl{font-weight:500}
+td .sc{color:var(--ink-soft)}
+.go{display:inline-block;transition:transform .2s,color .2s;color:var(--rule)}
+.tagc{font-size:8.5px;letter-spacing:.1em;border:1px solid currentColor;padding:1px 6px;white-space:nowrap}
+.t-veh{color:var(--navy-line)}.t-aca{color:#8a5a14}.t-res{color:#1d7a4f}.t-per{color:var(--red)}
+.idx .sub{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:36px}
+.idx h3{font-size:10px;letter-spacing:.22em;color:var(--ink-soft);margin-bottom:10px;font-weight:600}
+.minit{font-size:11px}.minit td{padding:7px 8px}
+.minit td:first-child{color:var(--red);font-weight:600;width:64px;white-space:nowrap;vertical-align:top}
+@media (max-width:980px){.idx .sub{grid-template-columns:1fr;gap:28px}}
+
+/* ============================================================
+   CONTACT
+   ============================================================ */
+.contact{max-width:1100px;margin:0 auto;width:100%;position:relative}
+.contact .lead{font-family:var(--serif);font-weight:380;font-size:16px;color:var(--navy-bright);margin-bottom:26px;max-width:600px}
+.contact .mail{font-family:var(--disp);font-size:clamp(20px,3.9vw,50px);color:#fff;text-decoration:none;display:inline-block;line-height:1.15;word-break:break-all;border-bottom:3px solid var(--red);padding-bottom:6px}
+.contact .mail:hover{color:var(--navy-bright)}
+.sigtable{max-width:680px;margin:30px 0;font-size:11px}
+.sigtable th{border-color:var(--navy-line);color:var(--navy-bright)}
+.sigtable td{border-color:rgba(61,90,128,.5);padding:12px 10px;color:#dde7f3}
+.signame{font-family:var(--serif);font-style:italic;font-weight:480;font-size:19px;color:#fff;display:inline-block;transform:rotate(-2deg)}
+.pend{color:var(--navy-bright)}
+.contact .alt{font-size:11px;color:var(--navy-bright);margin-top:8px}
+.contact .alt a{color:#fff}.contact .alt a:hover{color:var(--red)}
+.contact .fine{font-size:9px;letter-spacing:.14em;color:var(--navy-line);margin-top:24px;text-transform:uppercase}
+.stamp--ok{right:9%;top:13%;animation-delay:.5s}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width:980px){
+  .cover{grid-template-columns:1fr;gap:30px}
+  .chap,.chap--flip{grid-template-columns:1fr;gap:26px}
+  .chap--flip .chmeta{order:0}
+  .ghost{display:none}.fig img{max-height:42vh}.chmeta{max-width:none}
+}
+@media (max-width:860px){
+  :root{--frame:10px}
+  .sheet{padding:calc(var(--frame) + 26px) calc(var(--frame) + 18px) calc(var(--frame) + 66px)}
+  .strip{height:40px;font-size:8.5px}.strip .s-title,.strip .s-mail{display:none}.strip .s-name{flex:1}
+  .hud--nav{bottom:64px;right:12px}
+  .stamp{font-size:11px;padding:7px 14px;right:5%;top:8%}
+  th:nth-child(3),td:nth-child(3){display:none}
+}
+/* ---- REV E.1 review fixes ---- */
+.clist .cs{font-size:10.5px!important;color:#39404b!important;letter-spacing:.03em}
+.plot .axlbl{font-size:10.5px}.plot .anno{font-size:10px}.plot .word{font-size:12px}
+.sheet:has(.idx){justify-content:flex-start;padding-top:calc(var(--frame) + 46px)}
+@media (max-width:600px){
+  .clist a{grid-template-columns:1fr;gap:3px;padding:12px 4px}
+  .clist .arr{display:none}
+  .clist .flag-row{grid-template-columns:1fr}
+  .clist .flag-row::after{justify-self:start;margin-top:5px}
+  .hud--nav{bottom:14px;right:10px}
+}
+@media print{
+  .hud,.xh,.rail,.cover__cue{display:none!important}
+  .sheet{min-height:auto;height:96vh;page-break-after:always}
+  .rv,.b,.plot,.plot .reveal{opacity:1!important;transform:none!important;animation:none!important}
+  .plot .curve{stroke-dashoffset:0!important}
+  .sheet--dark{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+
+<div class="xh xh--v" id="xhv"></div>
+<div class="xh xh--h" id="xhh"></div>
+<div class="hud hud--coord" aria-hidden="true"><span id="coords">X 0000.0&ensp;Y 0000.0</span><span style="color:var(--rule)">mm</span></div>
+<div class="hud hud--nav">
+  <button id="prevB" aria-label="Previous sheet">▲</button>
+  <span>SHT <span id="shtNow">01</span>/<span id="shtTot">07</span></span>
+  <button id="nextB" aria-label="Next sheet">▼</button>
+</div>
+<nav class="rail" id="rail" aria-label="Sheets"></nav>
+
+<main id="set"></main>
+
+<script>
+/* ================================================================
+   DATA — four chapters of one career
+   ================================================================ */
+const EMAIL="kambarmangibayev@gmail.com";
+const TODAY=new Date().toISOString().slice(0,10);
+
+const CHAPTERS=[
+ {ch:"01",key:"veh",title:"The Raymond Corporation",role:"MECHANICAL SYSTEMS ENGINEER · CONTROLS — 2024 → PRESENT",
+  note:"This is the work that ships. I design and validate the electromechanical and control systems on industrial vehicles — pedestrian detection, automated braking, stability. When one of these decides to stop a loaded truck in time, a real person walks away unhurt. That’s the part no hobby can give me.",
+  flag:{t:"Performance Stability System",dwg:"VEH-001",img:"assets/img/motor-study.jpg",href:"../work/performance-stability.html",
+    cap:"DRIVE UNIT STUDY",lede:"A control system that supports operators in unstable conditions — preventing load spillage without taking the vehicle out from under them when it’s safe to push."},
+  list:[
+   ["VEH-001","Performance Stability System","Sensor fusion · stability envelope","../work/performance-stability.html",1],
+   ["VEH-002","Pedestrian Detection & Automated Braking","ML vision · regenerative braking","../work/sens-plus.html",0],
+   ["VEH-003","Hydraulic Weight Sensing","Pressure transducers · DSP","../work/hydraulic-weight-sensing.html",0],
+   ["VEH-004","Steer Differentiation System","Sensors · geometry refinement","../work/steer-differentiation.html",0],
+   ["VEH-005","Interface Logic & Access Control","Safety architecture · operator UX","../work/interface-logic.html",0],
+   ["VEH-006","Structural Frame Redesign","FEA · field strain validation","../work/structural-frame.html",0]
+  ]},
+ {ch:"02",key:"aca",title:"Rochester Institute of Technology",role:"BS + MENG MECHANICAL ENGINEERING · CONTROLS CONCENTRATION",
+  note:"Both my degrees are from RIT. It’s where “controls” stopped being a course and became the lens I put on every machine I meet — where I learned to ask, before anything else, how does this thing sense, decide, and respond? These four projects are where I first tested that question against real physics.",
+  flag:{t:"Flight Dynamics Simulation",dwg:"ACA-003",img:"assets/img/flight-dynamics.png",href:"../projects/flight-dynamics.html",
+    cap:"RESPONSE TRACES — 9 AIRCRAFT",lede:"Aircraft response modeled in Simulink — the same class of analysis run on the experimental X-62 VISTA. Quaternion model over Euler, every time."},
+  list:[
+   ["ACA-003","Flight Dynamics Simulation","Simulink · MATLAB · quaternion model","../projects/flight-dynamics.html",1],
+   ["ACA-004","Double Pendulum Experiment","Chaotic dynamics · model vs. rig","../projects/double-pendulum.html",0],
+   ["ACA-005","Vacuum Cannon Experiment","Fluids · ballistics · 1.52 m barrel","../projects/vacuum-cannon.html",0],
+   ["ACA-006","Saturn V Stage Coupling — FEA","Structural · launch-load contact","../projects/saturn-v-fea.html",0]
+  ]},
+ {ch:"03",key:"res",title:"Research",role:"AMPRINT CENTER · POLYMER-BASED LITHOGRAPHY — RIT",
+  note:"Before industry I was a student researcher — additive manufacturing and investment casting at RIT’s AMPrint Center, and an honors summer in polymer lithography during COVID. Research taught me to trust a good simulation before I trust my hands, and — just as important — to know exactly when not to.",
+  flag:{t:"Investment Casting",dwg:"RES-001",img:"assets/img/casting-1.jpg",href:"../projects/investment-casting.html",
+    cap:"CERAMIC MOLD, POST-POUR",lede:"Pour molten aluminium into a 3D-printed ceramic mold, get a metal water nozzle. I owned the workflow from CAD through electroplating — and every step between has a way to ruin the part."},
+  list:[
+   ["RES-001","Investment Casting","AMPrint · AM · CFD · casting","../projects/investment-casting.html",1],
+   ["RES-002","Polymer Lithography Simulation","Molecular dynamics · LAMMPS cluster","../projects/polymer-lithography.html",0]
+  ]},
+ {ch:"04",key:"per",title:"Hobbies & Projects",role:"A SIDE PRACTICE IN CNC, 3D PRINTING & SOFTWARE",
+  note:"As a broke college student, every 3D print felt like printing with diamonds — each one had to count. The first thing I built that actually mattered wasn’t graded: a MagSafe stand for my wife. Engineering isn’t how I pay rent here — it’s the hobby I can’t clock out of.",
+  flag:{t:"PrintNC — CNC Router Build",dwg:"PER-001",img:"assets/img/cnc-build.jpg",href:"../projects/printnc-build.html",
+    cap:"FRAME ASSEMBLY, 3RD-FLOOR APARTMENT",lede:"An industrial-grade CNC router built on the third floor of an apartment — steel frame for rigidity, 3D-printed parts for precision alignment. Do not tell my landlord."},
+  list:[
+   ["PER-001","PrintNC — CNC Router Build","Self-built · steel + printed","../projects/printnc-build.html",1],
+   ["PER-002","3D Slicer & G-code Generator","Python · toolpaths from scratch","../projects/slicer.html",0],
+   ["PER-003","3D Printing & Fabrication","AM · iterate fast, learn by building","../projects/printing.html",0]
+  ]}
+];
+const CLSLABEL={veh:"RAYMOND",aca:"RIT",res:"RESEARCH",per:"PERSONAL"};
+const TOTAL=CHAPTERS.length+3; // cover + 4 chapters + index + contact
+
+/* ================================================================
+   SCAFFOLD
+   ================================================================ */
+function strip(n,title){
+  return `<div class="strip">
+    <span class="s-name">KAMBAR MANGIBAYEV</span>
+    <span class="s-title">${title}</span>
+    <span class="s-mail"><a href="mailto:${EMAIL}">${EMAIL}</a></span>
+    <span class="s-no">SHT ${String(n).padStart(2,"0")} / ${String(TOTAL).padStart(2,"0")}</span>
+  </div>`;
+}
+const sheet=(n,id,title,cls,inner)=>`<section class="sheet ${cls}" id="${id}" data-n="${n}" data-title="${title}">${inner}${strip(n,title)}</section>`;
+
+/* ---- step response (real second-order math) ---- */
+function buildPlot(){
+  const W=860,H=300,L=64,R=28,T=26,B=54;
+  const x0=L,x1=W-R,y0=H-B,y1=T;
+  const Tend=11,zeta=0.23,wn=2.05,wd=wn*Math.sqrt(1-zeta*zeta),phi=Math.atan(zeta/Math.sqrt(1-zeta*zeta));
+  const yMax=1.55; // headroom above the overshoot
+  const X=t=>x0+(x1-x0)*(t/Tend);
+  const Y=c=>y0-(y0-y1)*(c/yMax);
+  const c=t=>1-(1/Math.sqrt(1-zeta*zeta))*Math.exp(-zeta*wn*t)*Math.cos(wd*t-phi);
+  // response curve
+  let d="";let peak={c:0,t:0};
+  for(let i=0;i<=300;i++){const t=Tend*i/300;const cc=c(t);if(cc>peak.c){peak={c:cc,t};}d+=(i?"L":"M")+X(t).toFixed(1)+" "+Y(cc).toFixed(1)+" ";}
+  // step input (the disturbance): 0 until t=0.0, then 1
+  const stepD=`M${X(0)} ${Y(0)} L${X(0)} ${Y(1)} L${X(Tend)} ${Y(1)}`;
+  // grid
+  let grid="";
+  for(let g=0;g<=5;g++){const gy=y1+(y0-y1)*g/5;grid+=`<line class="grid" x1="${x0}" y1="${gy.toFixed(1)}" x2="${x1}" y2="${gy.toFixed(1)}"/>`;}
+  for(let g=0;g<=10;g+=2){const gx=x0+(x1-x0)*g/10;grid+=`<line class="grid" x1="${gx.toFixed(1)}" y1="${y1}" x2="${gx.toFixed(1)}" y2="${y0}"/>`;}
+  const peakX=X(peak.t),peakY=Y(peak.c),setY=Y(1);
+  return `<svg class="plot" viewBox="0 0 ${W} ${H}" role="img" aria-label="Second-order control system step response settling onto its target">
+    ${grid}
+    <line class="axis" x1="${x0}" y1="${y1}" x2="${x0}" y2="${y0}"/>
+    <line class="axis" x1="${x0}" y1="${y0}" x2="${x1}" y2="${y0}"/>
+    <text class="axlbl" x="${x0-10}" y="${y1+4}" text-anchor="end">RESP</text>
+    <text class="axlbl" x="${x1}" y="${y0+22}" text-anchor="end">TIME →</text>
+    <line class="set" x1="${x0}" y1="${setY}" x2="${x1}" y2="${setY}"/>
+    <text class="anno" x="${x1-2}" y="${setY-7}" text-anchor="end">TARGET — SETPOINT</text>
+    <path class="step" d="${stepD}"/>
+    <path class="curve" d="${d}" pathLength="1"/>
+    <g class="reveal">
+      <circle class="dot" cx="${peakX.toFixed(1)}" cy="${peakY.toFixed(1)}" r="3.2"/>
+      <text class="anno" x="${(peakX+8).toFixed(1)}" y="${(peakY-2).toFixed(1)}">OVERSHOOT</text>
+      <circle class="dot" cx="${X(Tend-0.2).toFixed(1)}" cy="${setY.toFixed(1)}" r="3.2"/>
+      <text class="anno" x="${X(Tend-0.2).toFixed(1)}" y="${setY-9}" text-anchor="end">SETTLED</text>
+      <text class="word" x="${X(0.6).toFixed(1)}" y="${y1+14}">SENSE</text>
+      <text class="word" x="${peakX.toFixed(1)}" y="${y1+14}" text-anchor="middle">DECIDE</text>
+      <text class="word" x="${X(Tend-0.4).toFixed(1)}" y="${y1+14}" text-anchor="end">RESPOND</text>
+    </g>
+  </svg>`;
+}
+
+/* ---- cover ---- */
+const coverHTML=`
+  <div class="stamp">RELEASED<small>FOR REVIEW · ${TODAY}</small></div>
+  <div class="cover">
+    <div class="cover__l">
+      <div class="cover__kick b b1"><span>DRAWING SET KM-26 · REV E</span><span>${TOTAL} SHEETS · 4 CHAPTERS</span></div>
+      <h1 class="cover__name"><span class="b b2">Kambar</span><span class="b b3">Mangibayev<em class="dot">.</em></span></h1>
+      <p class="cover__sub b b4">Mechanical systems engineer — vehicle controls. I build systems that <b>sense</b>, <b>decide</b>, and <b>respond</b> in the real world.</p>
+      <div class="cover__place b b5">BORN IN <b>SEMEY, KAZAKHSTAN</b> · BUILDING THINGS IN <b>ROCHESTER, NY</b></div>
+      <div class="cover__cue b b6">▼ FOUR CHAPTERS — RAYMOND · RIT · RESEARCH · PROJECTS</div>
+    </div>
+    <div class="cover__r">${buildPlot()}</div>
+  </div>`;
+
+/* ---- chapter ---- */
+function chapHTML(c,i){
+  const rows=c.list.map(r=>`
+    <a href="${r[3]}" class="${r[4]?"flag-row":""}">
+      <span class="cn">${r[0]}</span>
+      <span class="ct">${r[1]}</span>
+      <span class="cs">${r[2]}</span>
+      ${r[4]?"":'<span class="arr">→</span>'}
+    </a>`).join("");
+  return `<div class="chap ${i%2?"chap--flip":""}">
+    <div class="ghost">${c.ch}</div>
+    <div class="chmeta">
+      <div class="ckick rv">CHAPTER ${c.ch} <em>/ FOUR · ${CLSLABEL[c.key]}</em></div>
+      <h2 class="rv">${c.title}</h2>
+      <div class="role rv">${c.role}</div>
+      <p class="note rv">${c.note}</p>
+      <div class="clist rv">${rows}</div>
+    </div>
+    <figure class="fig rv">
+      <a href="${c.flag.href}" aria-label="Open case file: ${c.flag.t}">
+        <img src="${c.flag.img}" alt="${c.flag.t}" loading="lazy"/>
+      </a>
+      <figcaption><span><b>FIG. ${c.ch}</b> — ${c.flag.cap}</span><span class="dimtxt">W = — mm</span></figcaption>
+      <p class="lede">${c.flag.lede}</p>
+    </figure>
+  </div>`;
+}
+
+/* ---- index + about ---- */
+const allRows=CHAPTERS.flatMap(c=>c.list.map(r=>[r[0],r[1],r[2],c.key,r[3]]));
+const idxRows=allRows.map(r=>`
+  <tr data-href="${r[4]}">
+    <td class="no">${r[0]}</td>
+    <td class="ttl">${r[1]}</td>
+    <td class="sc">${r[2]}</td>
+    <td><span class="tagc t-${r[3]}">${CLSLABEL[r[3]]}</span></td>
+    <td><span class="go">→</span></td>
+  </tr>`).join("");
+const idxHTML=`<div class="idx">
+  <h2 class="rv">Full drawing index</h2>
+  <p class="lead rv">Fifteen drawings across four chapters. Every row opens a full case study — figures, methods, and what actually happened.</p>
+  <div class="rv" style="overflow-x:auto">
+  <table>
+    <thead><tr><th>DWG NO.</th><th>TITLE</th><th>SCOPE</th><th>CHAPTER</th><th></th></tr></thead>
+    <tbody>${idxRows}</tbody>
+  </table>
+  </div>
+  <div class="sub">
+    <div class="rv">
+      <h3>HOW I GOT HERE</h3>
+      <table class="minit"><tbody>
+        <tr><td>1998 →</td><td>Born in Semey, Kazakhstan — a city known as the birthplace of the country’s greatest poets.</td></tr>
+        <tr><td>2016</td><td>Came to the United States for high school. Called it home ever since.</td></tr>
+        <tr><td>RIT</td><td>BS + MEng, Mechanical Engineering — controls concentration. Research at the AMPrint Center.</td></tr>
+        <tr><td>2024 →</td><td>Mechanical Systems Engineer, The Raymond Corporation.</td></tr>
+        <tr><td>OFF HRS</td><td>Reading, 3D printing, sports, coding, machine learning, finances. Curiosity, mostly.</td></tr>
+      </tbody></table>
+    </div>

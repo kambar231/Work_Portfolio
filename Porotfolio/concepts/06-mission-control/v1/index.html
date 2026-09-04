@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kambar Mangibayev — Mission Control</title>
+<meta name="description" content="Kambar Mangibayev — Mechanical Systems Engineer, Controls. Mission control console of engineering missions: sensing, deciding, responding in the real world." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --base:#06080b;
+    --base2:#0a0d11;
+    --panel:#0e131a;
+    --panel2:#11181f;
+    --line:rgba(120,150,170,0.12);
+    --line2:rgba(120,150,170,0.22);
+    --text:#d7e2ea;
+    --dim:#7e8e9a;
+    --dim2:#566370;
+    --acc:#5ee6a8;          /* committed accent: scope-green */
+    --acc-dim:rgba(94,230,168,0.16);
+    --acc-glow:rgba(94,230,168,0.35);
+    --amber:#ffb454;        /* caution / status emphasis only */
+    --amber-dim:rgba(255,180,84,0.14);
+    --red:#ff6b6b;
+    --mono:'JetBrains Mono',ui-monospace,monospace;
+    --head:'Space Grotesk',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--base);
+    color:var(--text);
+    font-family:var(--mono);
+    font-size:15px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  /* subtle global grid + vignette */
+  body::before{
+    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-image:
+      linear-gradient(var(--line) 1px,transparent 1px),
+      linear-gradient(90deg,var(--line) 1px,transparent 1px);
+    background-size:48px 48px;
+    -webkit-mask-image:radial-gradient(ellipse 120% 90% at 50% 0%,#000 35%,transparent 100%);
+    mask-image:radial-gradient(ellipse 120% 90% at 50% 0%,#000 35%,transparent 100%);
+    opacity:.5;
+  }
+  body::after{
+    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:radial-gradient(ellipse 90% 70% at 50% 25%,transparent 40%,rgba(0,0,0,.55) 100%);
+  }
+  .wrap{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:0 24px}
+
+  a{color:inherit;text-decoration:none}
+  ::selection{background:var(--acc);color:#04140d}
+
+  /* ---------- shared micro typography ---------- */
+  .micro{font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);font-weight:500}
+  .micro-acc{color:var(--acc)}
+  .micro-amber{color:var(--amber)}
+  .rule{height:1px;background:var(--line);width:100%}
+  .led{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--dim2);position:relative;flex:none}
+  .led.go{background:var(--acc);box-shadow:0 0 8px var(--acc-glow)}
+  .led.caution{background:var(--amber);box-shadow:0 0 8px rgba(255,180,84,.4)}
+  .led.pulse{animation:ledpulse 2.4s ease-in-out infinite}
+  @keyframes ledpulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+  /* ---------- top status bar ---------- */
+  .topbar{
+    position:fixed;top:0;left:0;right:0;z-index:50;
+    background:rgba(6,8,11,.82);backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar-in{
+    max-width:1280px;margin:0 auto;padding:9px 24px;
+    display:flex;align-items:center;gap:18px;justify-content:space-between;
+  }
+  .tb-left{display:flex;align-items:center;gap:14px;min-width:0}
+  .tb-id{display:flex;align-items:center;gap:10px;font-weight:600;letter-spacing:.04em;color:var(--text);white-space:nowrap}
+  .tb-id .cs{color:var(--acc);font-weight:700}
+  .tb-nav{display:flex;gap:4px}
+  .tb-nav a{
+    padding:6px 11px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);
+    border:1px solid transparent;border-radius:4px;transition:.18s;font-weight:500;
+  }
+  .tb-nav a:hover{color:var(--acc);border-color:var(--line2);background:var(--acc-dim)}
+  .tb-right{display:flex;align-items:center;gap:16px;white-space:nowrap}
+  .tb-met{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text)}
+  .tb-met .lbl{color:var(--dim);font-size:10px;letter-spacing:.16em}
+  .tb-met .val{color:var(--acc);font-weight:600;font-variant-numeric:tabular-nums}
+  .tb-status{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.1em;color:var(--acc)}
+
+  /* ---------- panel primitive ---------- */
+  .panel{
+    background:linear-gradient(180deg,var(--panel),var(--base2));
+    border:1px solid var(--line);border-radius:8px;position:relative;overflow:hidden;
+  }
+  .panel-h{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:11px 16px;border-bottom:1px solid var(--line);
+  }
+  .panel-h .t{display:flex;align-items:center;gap:9px}
+  .corner{position:absolute;width:8px;height:8px;border-color:var(--line2);pointer-events:none}
+  .corner.tl{top:6px;left:6px;border-top:1px solid;border-left:1px solid}
+  .corner.tr{top:6px;right:6px;border-top:1px solid;border-right:1px solid}
+  .corner.bl{bottom:6px;left:6px;border-bottom:1px solid;border-left:1px solid}
+  .corner.br{bottom:6px;right:6px;border-bottom:1px solid;border-right:1px solid}
+
+  /* ============ SECTION: MAIN CONSOLE ============ */
+  #console{padding-top:120px;padding-bottom:80px}
+  .hero-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:8px}
+  .hero-id .eyebrow{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .hero-id h1{
+    font-family:var(--head);font-weight:700;line-height:1.02;letter-spacing:-.02em;
+    font-size:clamp(38px,6.5vw,80px);color:#fff;
+  }
+  .hero-id h1 .gl{color:var(--acc);text-shadow:0 0 28px var(--acc-glow)}
+  .hero-id .title{margin-top:10px;font-size:clamp(13px,2vw,16px);letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+  .hero-id .loc{margin-top:4px;font-size:12px;letter-spacing:.1em;color:var(--dim2)}
+
+  .bigstatus{
+    text-align:right;flex:none;border:1px solid var(--line);border-radius:8px;
+    padding:16px 20px;background:linear-gradient(180deg,var(--panel),var(--base2));min-width:240px;
+  }
+  .bigstatus .lbl{font-size:10px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase}
+  .bigstatus .big{
+    font-family:var(--head);font-weight:700;font-size:clamp(20px,3vw,30px);
+    margin-top:8px;line-height:1.05;color:var(--amber);letter-spacing:.01em;transition:color .4s;
+  }
+  .bigstatus.go .big{color:var(--acc);text-shadow:0 0 22px var(--acc-glow)}
+  .bigstatus .sub{margin-top:8px;display:flex;align-items:center;gap:8px;justify-content:flex-end;font-size:11px;color:var(--dim);letter-spacing:.06em}
+
+  .thesis{
+    margin:26px 0 30px;border:1px solid var(--line);border-left:2px solid var(--acc);
+    border-radius:6px;padding:16px 20px;background:var(--base2);display:flex;gap:16px;align-items:center;
+  }
+  .thesis .tag{font-size:10px;letter-spacing:.2em;color:var(--acc);text-transform:uppercase;white-space:nowrap}
+  .thesis .txt{font-family:var(--head);font-size:clamp(16px,2.4vw,22px);font-weight:500;color:var(--text);letter-spacing:.005em}
+  .thesis .cursor{display:inline-block;width:9px;height:1em;background:var(--acc);margin-left:3px;transform:translateY(2px);animation:blink 1.05s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+
+  /* console grid */
+  .cgrid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+  .span4{grid-column:span 4}.span3{grid-column:span 3}.span6{grid-column:span 6}.span8{grid-column:span 8}.span5{grid-column:span 5}.span7{grid-column:span 7}
+
+  .gauge-wrap{padding:14px 16px 16px}
+  .gauge-wrap canvas{width:100%;display:block}
+  .readout-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-top:2px}
+  .readout-row .k{font-size:10px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
+  .readout-row .v{font-size:13px;color:var(--acc);font-weight:600;font-variant-numeric:tabular-nums}
+  .readout-row .v.amber{color:var(--amber)}
+
+  /* sense/decide/respond loop panel */
+  .loop-stages{display:flex;align-items:stretch;gap:0;padding:6px 16px 16px}
+  .loop-stage{flex:1;text-align:center;padding:12px 8px;border-radius:6px;transition:.4s;position:relative}
+  .loop-stage .ico{width:34px;height:34px;margin:0 auto 9px;border:1px solid var(--line2);border-radius:50%;display:flex;align-items:center;justify-content:center;transition:.4s}
+  .loop-stage .ico svg{width:17px;height:17px;stroke:var(--dim);fill:none;stroke-width:1.6;transition:.4s}
+  .loop-stage .nm{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);font-weight:600}
+  .loop-stage .ds{font-size:10px;color:var(--dim2);margin-top:4px;letter-spacing:.04em}
+  .loop-stage.active{background:var(--acc-dim)}
+  .loop-stage.active .ico{border-color:var(--acc);box-shadow:0 0 14px var(--acc-glow)}
+  .loop-stage.active .ico svg{stroke:var(--acc)}
+  .loop-stage.active .nm{color:var(--acc)}
+  .loop-arrow{display:flex;align-items:center;color:var(--dim2);font-size:14px;padding:0 2px}
+
+  /* stat strip */
+  .statgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:16px}
+  .stat{border:1px solid var(--line);border-radius:6px;padding:13px 14px;background:var(--base2)}
+  .stat .n{font-family:var(--head);font-size:clamp(20px,2.6vw,28px);font-weight:700;color:var(--text);line-height:1;font-variant-numeric:tabular-nums}
+  .stat .n .u{font-size:12px;color:var(--acc);font-weight:500;margin-left:3px;font-family:var(--mono)}
+  .stat .l{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-top:8px}
+
+  /* ============ SECTION HEADERS ============ */
+  .sec-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin:0 0 22px;flex-wrap:wrap}
+  .sec-head h2{font-family:var(--head);font-size:clamp(22px,3.2vw,34px);font-weight:700;letter-spacing:-.01em;color:#fff;display:flex;align-items:center;gap:12px}
+  .sec-head h2 .idx{font-size:13px;color:var(--acc);font-family:var(--mono);font-weight:600;letter-spacing:.1em}
+  .sec-head .desc{font-size:12px;color:var(--dim);max-width:340px;text-align:right;letter-spacing:.02em}
+
+  /* ============ MISSIONS BOARD ============ */
+  #missions{padding:70px 0}
+  .board{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .mcard{
+    background:linear-gradient(180deg,var(--panel),var(--base2));
+    border:1px solid var(--line);border-radius:8px;padding:0;cursor:pointer;
+    transition:.22s;position:relative;overflow:hidden;display:flex;flex-direction:column;
+    text-align:left;color:inherit;font:inherit;
+  }
+  .mcard:hover,.mcard:focus-visible{border-color:var(--acc);transform:translateY(-3px);box-shadow:0 14px 40px -18px var(--acc-glow)}
+  .mcard:focus-visible{outline:none}
+  .mcard:hover .mc-go,.mcard:focus-visible .mc-go{color:var(--acc)}
+  .mc-top{display:flex;align-items:center;justify-content:space-between;padding:12px 15px;border-bottom:1px solid var(--line);gap:10px}
+  .mc-code{font-size:11px;letter-spacing:.14em;color:var(--dim);font-weight:600}
+  .mc-status{display:flex;align-items:center;gap:7px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:600}
+  .mc-body{padding:15px}
+  .mc-name{font-family:var(--head);font-size:19px;font-weight:600;color:#fff;line-height:1.1;letter-spacing:-.01em}
+  .mc-org{font-size:11px;color:var(--dim);margin-top:5px;letter-spacing:.04em}
+  .mc-strip{margin-top:14px;height:46px;width:100%;display:block;border:1px solid var(--line);border-radius:4px;background:var(--base);}
+  .mc-meta{display:flex;align-items:center;justify-content:space-between;margin-top:13px}
+  .mc-tags{display:flex;gap:6px;flex-wrap:wrap}
+  .mc-tag{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);border:1px solid var(--line2);border-radius:3px;padding:3px 7px}
+  .mc-tag.year{color:var(--acc);border-color:var(--acc-dim)}
+  .mc-go{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim2);transition:.2s;display:flex;align-items:center;gap:6px}
+
+  /* ============ MISSION DETAIL OVERLAY ============ */
+  .overlay{
+    position:fixed;inset:0;z-index:100;background:rgba(4,6,9,.7);backdrop-filter:blur(8px);
+    display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:28px 16px;
+  }
+  .overlay.open{display:flex}
+  .detail{
+    width:100%;max-width:1080px;background:linear-gradient(180deg,var(--panel2),var(--base2));
+    border:1px solid var(--line2);border-radius:10px;position:relative;overflow:hidden;
+    box-shadow:0 40px 120px -30px rgba(0,0,0,.8);
+    animation:dpop .3s cubic-bezier(.2,.7,.3,1);
+  }
+  @keyframes dpop{from{opacity:0;transform:translateY(18px) scale(.99)}to{opacity:1;transform:none}}
+  .d-bar{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 18px;border-bottom:1px solid var(--line);background:var(--base2);position:sticky;top:0;z-index:3}
+  .d-bar .l{display:flex;align-items:center;gap:12px;min-width:0}
+  .d-bar .code{font-size:11px;letter-spacing:.16em;color:var(--acc);font-weight:600}
+  .d-bar .nm{font-family:var(--head);font-weight:600;font-size:16px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .d-close{
+    border:1px solid var(--line2);background:var(--panel);color:var(--dim);
+    width:32px;height:32px;border-radius:5px;cursor:pointer;font-family:var(--mono);font-size:15px;
+    transition:.18s;flex:none;display:flex;align-items:center;justify-content:center;
+  }
+  .d-close:hover{color:var(--acc);border-color:var(--acc);background:var(--acc-dim)}
+
+  .d-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:0}
+  .d-left{padding:24px 26px;border-right:1px solid var(--line)}
+  .d-right{padding:24px 22px;background:var(--base2)}
+  .d-hl{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+  .d-block{margin-bottom:22px}
+  .d-block .h{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--acc);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  .d-block .h::before{content:"";width:14px;height:1px;background:var(--acc)}
+  .d-block p{font-size:13.5px;color:var(--text);line-height:1.65;letter-spacing:.005em}
+  .d-block.role p{color:var(--text)}
+  .d-loop{display:flex;flex-direction:column;gap:8px}
+  .d-loop .step{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:6px;padding:10px 13px;background:var(--panel)}
+  .d-loop .step .s{font-size:10px;letter-spacing:.14em;color:var(--acc);text-transform:uppercase;font-weight:600;min-width:62px;padding-top:1px}
+  .d-loop .step .x{font-size:12.5px;color:var(--text);line-height:1.5}
+  .d-stack{display:flex;flex-wrap:wrap;gap:7px}
+  .d-stack span{font-size:10.5px;letter-spacing:.06em;color:var(--dim);border:1px solid var(--line2);border-radius:4px;padding:5px 9px;background:var(--panel)}
+  .d-result{border:1px solid var(--line2);border-left:2px solid var(--acc);border-radius:6px;padding:13px 15px;background:var(--panel)}
+  .d-result .h{color:var(--acc)}
+  .d-result p{font-size:13px;color:var(--text)}
+
+  .d-plot-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .d-plot-head .nm{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--acc);font-weight:600}
+  .d-plot-head .rd{font-size:11px;color:var(--dim);font-variant-numeric:tabular-nums}
+  .d-canvas{width:100%;display:block;border:1px solid var(--line);border-radius:6px;background:var(--base)}
+  .d-telem{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .d-telem .cell{border:1px solid var(--line);border-radius:5px;padding:9px 11px;background:var(--panel)}
+  .d-telem .cell .k{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+  .d-telem .cell .v{font-size:14px;color:var(--acc);font-weight:600;margin-top:4px;font-variant-numeric:tabular-nums}
+  .d-telem .cell .v.amber{color:var(--amber)}
+
+  /* T-minus reveal */
+  .tminus{
+    position:absolute;inset:0;z-index:6;background:radial-gradient(ellipse at 50% 45%,#0c1116,#04060a 80%);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;
+  }
+  .tminus .lbl{font-size:11px;letter-spacing:.4em;color:var(--amber);text-transform:uppercase}
+  .tminus .cnt{font-family:var(--head);font-size:clamp(64px,14vw,140px);font-weight:700;color:#fff;line-height:1;font-variant-numeric:tabular-nums;text-shadow:0 0 40px var(--acc-glow)}
+  .tminus .cnt.golive{color:var(--acc);font-size:clamp(40px,9vw,90px);letter-spacing:.04em}
+  .tminus .seq{font-size:11px;letter-spacing:.18em;color:var(--dim);text-transform:uppercase;min-height:16px}
+  .tminus .bararea{width:min(60%,360px)}
+  .tminus .bar{height:4px;background:var(--line);border-radius:3px;overflow:hidden}
+  .tminus .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--amber),var(--acc));transition:width .15s linear}
+
+  /* ============ COMMS PANEL ============ */
+  #comms{padding:70px 0 100px}
+  .comms-panel{background:linear-gradient(180deg,var(--panel),var(--base2));border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .comms-bar{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .comms-bar .left{display:flex;align-items:center;gap:11px}
+  .comms-bar .chan{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--acc);font-weight:600}
+  .comms-bar .meta{font-size:10.5px;letter-spacing:.1em;color:var(--dim);font-variant-numeric:tabular-nums}
+  .comms-body{display:grid;grid-template-columns:1.1fr .9fr;gap:0}
+  .comms-l{padding:30px 30px}
+  .comms-l h3{font-family:var(--head);font-size:clamp(22px,3vw,32px);font-weight:700;color:#fff;line-height:1.1}
+  .comms-l p{color:var(--dim);font-size:13.5px;margin-top:12px;line-height:1.6;max-width:430px}
+  .comms-links{margin-top:24px;display:flex;flex-direction:column;gap:10px}
+  .clink{display:flex;align-items:center;gap:14px;border:1px solid var(--line2);border-radius:7px;padding:13px 16px;background:var(--base2);transition:.2s}
+  .clink:hover{border-color:var(--acc);background:var(--acc-dim);transform:translateX(3px)}
+  .clink .ic{width:30px;height:30px;border:1px solid var(--line2);border-radius:6px;display:flex;align-items:center;justify-content:center;flex:none}
+  .clink:hover .ic{border-color:var(--acc)}
+  .clink .ic svg{width:15px;height:15px;stroke:var(--acc);fill:none;stroke-width:1.6}
+  .clink .tx{min-width:0}
+  .clink .k{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+  .clink .v{font-size:14px;color:var(--text);font-weight:500;margin-top:2px;word-break:break-all}
+  .comms-r{padding:24px;background:var(--base2);border-left:1px solid var(--line);display:flex;flex-direction:column}
+  .comms-r .winhead{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:12px}
+  .term{flex:1;font-size:11.5px;line-height:1.85;color:var(--dim);font-variant-numeric:tabular-nums}
+  .term .ts{color:var(--dim2)}
+  .term .ok{color:var(--acc)}
+  .term .am{color:var(--amber)}
+  .term .ln{display:block;opacity:0;animation:fadein .4s forwards}
+
+  @keyframes fadein{to{opacity:1}}
+
+  footer{border-top:1px solid var(--line);padding:22px 0;margin-top:0}
+  .foot{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:10.5px;letter-spacing:.1em;color:var(--dim2);text-transform:uppercase}
+  .foot .acc{color:var(--acc)}
+
+  /* ---------- responsive ---------- */
+  @media(max-width:980px){
+    .tb-nav{display:none}
+    .d-grid{grid-template-columns:1fr}
+    .d-left{border-right:none;border-bottom:1px solid var(--line)}
+    .comms-body{grid-template-columns:1fr}
+    .comms-r{border-left:none;border-top:1px solid var(--line)}
+    .board{grid-template-columns:repeat(2,1fr)}
+    .span4,.span3,.span6,.span8,.span5,.span7{grid-column:span 6}
+  }
+  @media(max-width:680px){
+    .wrap{padding:0 16px}
+    .topbar-in{padding:9px 16px}
+    .tb-met .lbl{display:none}
+    #console{padding-top:104px}
+    .hero-head{flex-direction:column;align-items:stretch}
+    .bigstatus{text-align:left;min-width:0}
+    .bigstatus .sub{justify-content:flex-start}
+    .thesis{flex-direction:column;align-items:flex-start;gap:8px}
+    .statgrid{grid-template-columns:repeat(2,1fr)}
+    .board{grid-template-columns:1fr}
+    .cgrid .span4,.cgrid .span3,.cgrid .span6,.cgrid .span8,.cgrid .span5,.cgrid .span7{grid-column:span 12}
+    .loop-stages{flex-direction:column;gap:8px}
+    .loop-arrow{transform:rotate(90deg);padding:2px 0}
+    .d-telem{grid-template-columns:1fr}
+    .sec-head .desc{text-align:left}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important;scroll-behavior:auto !important}
+    .thesis .cursor{display:none}
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== TOP STATUS BAR ===================== -->
+<div class="topbar">
+  <div class="topbar-in">
+    <div class="tb-left">
+      <div class="tb-id"><span class="led go pulse"></span> KM <span class="cs">// MISSION CONTROL</span></div>
+      <nav class="tb-nav">
+        <a href="#console">Console</a>
+        <a href="#missions">Missions</a>
+        <a href="#comms">Comms</a>
+      </nav>
+    </div>
+    <div class="tb-right">
+      <div class="tb-met"><span class="lbl">MET</span><span class="val" id="metClock">T+00:00:00:00</span></div>
+      <div class="tb-status"><span class="led go pulse"></span><span id="tbStatus">SYS NOMINAL</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MAIN CONSOLE ===================== -->
+<section id="console" class="wrap">
+  <div class="hero-head">
+    <div class="hero-id">
+      <div class="eyebrow"><span class="led go pulse"></span><span class="micro">System Identity · ID-KM-2026</span></div>
+      <h1>KAMBAR<br><span class="gl">MANGIBAYEV</span></h1>
+      <div class="title">Mechanical Systems Engineer · Controls</div>
+      <div class="loc">Rochester, NY · Born Semey, Kazakhstan</div>
+    </div>
+    <div class="bigstatus" id="bigStatus">
+      <div class="lbl">Master Status</div>
+      <div class="big" id="bigStatusText">POWERING UP</div>
+      <div class="sub"><span class="led caution pulse" id="bigLed"></span><span id="bigSub">RUNNING SELF-TEST…</span></div>
+    </div>
+  </div>
+
+  <div class="thesis">
+    <span class="tag">SYS · STATUS LINE</span>
+    <span class="txt"><span id="thesisText"></span><span class="cursor" id="thesisCursor"></span></span>
+  </div>
+
+  <div class="cgrid">
+    <!-- Sense/Decide/Respond loop -->
+    <div class="panel span8">
+      <div class="panel-h">
+        <div class="t"><span class="led go pulse"></span><span class="micro">Control Loop · Heartbeat</span></div>
+        <span class="micro micro-acc" id="loopHz">100 Hz</span>
+      </div>
+      <div class="loop-stages">
+        <div class="loop-stage" data-stage="0">
+          <div class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M2 12h3M19 12h3M12 2v3M12 19v3"/></svg></div>
+          <div class="nm">Sense</div><div class="ds">acquire signal</div>
+        </div>
+        <div class="loop-arrow">&#8594;</div>
+        <div class="loop-stage" data-stage="1">
+          <div class="ico"><svg viewBox="0 0 24 24"><path d="M12 3v6M12 9l-5 5M12 9l5 5M7 14v4M17 14v4"/></svg></div>
+          <div class="nm">Decide</div><div class="ds">estimate · plan</div>
+        </div>
+        <div class="loop-arrow">&#8594;</div>
+        <div class="loop-stage" data-stage="2">
+          <div class="ico"><svg viewBox="0 0 24 24"><path d="M5 12h11M16 12l-4-4M16 12l-4 4M19 5v14"/></svg></div>
+          <div class="nm">Respond</div><div class="ds">actuate · command</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- loop rate gauge -->
+    <div class="panel span4">
+      <div class="panel-h">
+        <div class="t"><span class="led go"></span><span class="micro">Loop Latency</span></div>
+        <span class="micro" id="latState">NOMINAL</span>
+      </div>
+      <div class="gauge-wrap">
+        <canvas id="gLatency" height="120"></canvas>
+        <div class="readout-row"><span class="k">cycle</span><span class="v" id="latVal">0.0 ms</span></div>
+      </div>
+    </div>
+
+    <!-- attitude / scope -->
+    <div class="panel span4">
+      <div class="panel-h">
+        <div class="t"><span class="led go"></span><span class="micro">Attitude · Roll</span></div>
+        <span class="micro micro-acc">SCOPE</span>
+      </div>
+      <div class="gauge-wrap">
+        <canvas id="gAttitude" height="150"></canvas>
+        <div class="readout-row"><span class="k">roll</span><span class="v" id="rollVal">+0.0&deg;</span></div>
+      </div>
+    </div>
+
+    <!-- telemetry sparkline -->
+    <div class="panel span8">
+      <div class="panel-h">
+        <div class="t"><span class="led go pulse"></span><span class="micro">Telemetry Downlink · Multi-Channel</span></div>
+        <span class="micro" id="dlState">STREAMING</span>
+      </div>
+      <div class="gauge-wrap">
+        <canvas id="gTelem" height="150"></canvas>
+        <div class="readout-row">
+          <span class="k">ch.01 sensor &nbsp;<span class="v" id="ch1">—</span></span>
+          <span class="k">ch.02 estimate &nbsp;<span class="v" id="ch2">—</span></span>
+          <span class="k">ch.03 command &nbsp;<span class="v amber" id="ch3">—</span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- system facts -->
+    <div class="panel span12">
+      <div class="panel-h">
+        <div class="t"><span class="led go"></span><span class="micro">Mission Log · Career Telemetry</span></div>
+        <span class="micro">SUMMARY</span>
+      </div>
+      <div class="statgrid">
+        <div class="stat"><div class="n">9<span class="u">MISSIONS</span></div><div class="l">Engineering Programs Logged</div></div>
+        <div class="stat"><div class="n">BS<span class="u">+ MEng</span></div><div class="l">Mechanical Eng · RIT · Controls</div></div>
+        <div class="stat"><div class="n">1<span class="u">DEPLOYED</span></div><div class="l">Live In Production · Raymond</div></div>
+        <div class="stat"><div class="n">2016<span class="u">→</span></div><div class="l">Trajectory · KZ → US</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== MISSIONS BOARD ===================== -->
+<section id="missions" class="wrap">
+  <div class="sec-head">
+    <h2><span class="idx">02 //</span> Missions Board</h2>
+    <div class="desc">Nine engineering missions, each a closed sense-decide-respond loop. Select a mission to open its full readout.</div>
+  </div>
+  <div class="board" id="board"></div>
+</section>
+
+<!-- ===================== COMMS PANEL ===================== -->
+<section id="comms" class="wrap">
+  <div class="sec-head">
+    <h2><span class="idx">03 //</span> Comms Panel</h2>
+    <div class="desc">Open downlink. Hail mission control directly.</div>
+  </div>
+  <div class="comms-panel">
+    <div class="comms-bar">
+      <div class="left"><span class="led go pulse"></span><span class="chan">Channel Open</span></div>
+      <div class="meta">FREQ 585.309 · SIGNAL <span class="micro-acc">STRONG</span> · <span id="commsMet">T+00:00:00</span></div>
+    </div>
+    <div class="comms-body">
+      <div class="comms-l">
+        <h3>Hail the engineer.</h3>
+        <p>Currently building pedestrian-detection and braking-controls systems at The Raymond Corporation. Open to conversations about controls, mechanical systems, and machines that sense, decide, and respond. Curiosity-driven — my number-one hobby is engineering.</p>
+        <div class="comms-links">
+          <a class="clink" href="mailto:kambarmangibayev@gmail.com">
+            <span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></span>
+            <span class="tx"><div class="k">Email · Primary Channel</div><div class="v">kambarmangibayev@gmail.com</div></span>
+          </a>
+          <a class="clink" href="tel:+15853099467">
+            <span class="ic"><svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-3 2a12 12 0 0 0 5 5l2-3 5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg></span>
+            <span class="tx"><div class="k">Voice · Direct Line</div><div class="v">+1 585-309-9467</div></span>
+          </a>
+          <a class="clink" href="mailto:kambarmangibayev@gmail.com?subject=Resume%20Request%20%E2%80%94%20Kambar%20Mangibayev">
+            <span class="ic"><svg viewBox="0 0 24 24"><path d="M14 3v5h5M14 3l5 5v11a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M9 13h6M9 16h6"/></svg></span>
+            <span class="tx"><div class="k">Document · Mission Dossier</div><div class="v">Request resume / CV</div></span>
+          </a>
+        </div>
+      </div>
+      <div class="comms-r">
+        <div class="winhead">// uplink log</div>
+        <div class="term" id="term"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <div>Kambar Mangibayev · <span class="acc">Mechanical Systems Engineer — Controls</span></div>
+    <div>Concept 06 · Mission Control / Telemetry · <span class="acc">CHANNEL OPEN</span></div>
+  </div>
+</footer>
+
+<!-- ===================== MISSION DETAIL OVERLAY ===================== -->
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="dName">
+  <div class="detail" id="detail">
+    <!-- T-minus reveal injected here for featured mission -->
+    <div class="d-bar">
+      <div class="l">
+        <span class="led go pulse"></span>
+        <span class="code" id="dCode">MSN-00</span>
+        <span class="nm" id="dName">Mission</span>
+      </div>
+      <button class="d-close" id="dClose" aria-label="Close mission readout">&#215;</button>
+    </div>
+    <div class="d-grid">
+      <div class="d-left">
+        <div class="d-hl" id="dHl"></div>
+        <div class="d-block"><div class="h">Problem</div><p id="dProblem"></p></div>
+        <div class="d-block role"><div class="h">My Role</div><p id="dRole"></p></div>
+        <div class="d-block"><div class="h">The Control Loop</div><div class="d-loop" id="dLoop"></div></div>
+        <div class="d-block d-result"><div class="h">Result</div><p id="dResult"></p></div>
+        <div class="d-block"><div class="h">Stack</div><div class="d-stack" id="dStack"></div></div>
+      </div>
+      <div class="d-right">
+        <div class="d-plot-head">
+          <span class="nm" id="dPlotName">Live Readout</span>
+          <span class="rd" id="dPlotRd">—</span>
+        </div>
+        <canvas id="dCanvas" class="d-canvas" height="240"></canvas>
+        <div class="d-telem" id="dTelem"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+(function(){
+  const RM = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const TAU = Math.PI*2;
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+  const pad=(n,w)=>String(n).padStart(w,'0');
+
+  /* ---------- accent colors from CSS ---------- */
+  const C={
+    acc:'#5ee6a8', accDim:'rgba(94,230,168,0.18)', accFaint:'rgba(94,230,168,0.07)',
+    amber:'#ffb454', red:'#ff6b6b', text:'#d7e2ea', dim:'#7e8e9a', dim2:'#566370',
+    line:'rgba(120,150,170,0.16)', panel:'#0a0d11', base:'#06080b'
+  };
+
+  /* ====================================================== MET CLOCK ====================================================== */
+  const start=Date.now();
+  const metEl=document.getElementById('metClock');
+  const commsMetEl=document.getElementById('commsMet');
+  function fmtMET(){
+    const s=Math.floor((Date.now()-start)/1000);
+    const d=Math.floor(s/86400), h=Math.floor(s%86400/3600), m=Math.floor(s%3600/60), ss=s%60;
+    return {full:'T+'+pad(d,2)+':'+pad(h,2)+':'+pad(m,2)+':'+pad(ss,2), short:'T+'+pad(h,2)+':'+pad(m,2)+':'+pad(ss,2)};
+  }
+  function tickMET(){const f=fmtMET();metEl.textContent=f.full;if(commsMetEl)commsMetEl.textContent=f.short;}
+  tickMET(); setInterval(tickMET,1000);
+
+  /* ====================================================== POWER-UP + THESIS ====================================================== */
+  const thesisFull="I build systems that sense, decide, and respond in the real world.";
+  const thesisEl=document.getElementById('thesisText');
+  const cursorEl=document.getElementById('thesisCursor');
+  const bigStatus=document.getElementById('bigStatus');
+  const bigText=document.getElementById('bigStatusText');
+  const bigLed=document.getElementById('bigLed');
+  const bigSub=document.getElementById('bigSub');
+  const tbStatus=document.getElementById('tbStatus');
+
+  function goLiveStatus(){
+    bigStatus.classList.add('go');
+    bigText.textContent='GO FOR EXPLORATION';
+    bigLed.className='led go pulse';
+    bigSub.textContent='ALL SYSTEMS NOMINAL';
+    tbStatus.textContent='GO · NOMINAL';
+  }
+
+  if(RM){
+    thesisEl.textContent=thesisFull;
+    cursorEl.style.display='none';
+    goLiveStatus();
+  }else{
+    // type thesis
+    let ti=0;
+    (function typeIt(){
+      if(ti<=thesisFull.length){
+        thesisEl.textContent=thesisFull.slice(0,ti);
+        ti++;
+        setTimeout(typeIt, 22+Math.random()*30);
+      }
+    })();
+    // power-up sequence on master status
+    const seq=[
+      [400,'BUS VOLTAGE OK'],
+      [900,'SENSORS ONLINE'],
+      [1500,'ESTIMATOR LOCKED'],
+      [2100,'ACTUATORS ARMED'],
+    ];
+    seq.forEach(([t,msg])=>setTimeout(()=>{bigSub.textContent=msg;},t));
+    setTimeout(goLiveStatus, 2700);
+  }
+
+  /* ====================================================== HiDPI CANVAS ====================================================== */
+  function setupCanvas(cv, cssH){
+    const dpr=Math.min(window.devicePixelRatio||1,2);
+    const w=cv.clientWidth||cv.parentElement.clientWidth;
+    const h=cssH;
+    cv.width=Math.round(w*dpr);
+    cv.height=Math.round(h*dpr);
+    cv.style.height=h+'px';
+    const ctx=cv.getContext('2d');
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    return {ctx,w,h};
+  }
+
+  /* ====================================================== SHARED SIM STATE ====================================================== */
+  // single sense/decide/respond cycle drives the hero panels
+  const sim={
+    phase:0,          // 0..3 across the loop
+    t:0,
+    latency:0.9,
+    roll:0,
+    rollTarget:0,
+    telem:[[],[],[]], // 3 channels
+    maxPts:90
+  };
+  for(let c=0;c<3;c++) for(let i=0;i<sim.maxPts;i++) sim.telem[c].push(0.5);
+
+  const loopStages=[...document.querySelectorAll('.loop-stage')];
+  const latVal=document.getElementById('latVal');
+  const latState=document.getElementById('latState');
+  const rollVal=document.getElementById('rollVal');
+  const ch1=document.getElementById('ch1'),ch2=document.getElementById('ch2'),ch3=document.getElementById('ch3');
+  const loopHz=document.getElementById('loopHz');
+
+  // hero canvases
+  const cvLat=document.getElementById('gLatency');
+  const cvAtt=document.getElementById('gAttitude');
+  const cvTel=document.getElementById('gTelem');
+  let LAT,ATT,TEL;
+  function sizeHero(){
+    LAT=setupCanvas(cvLat,120);
+    ATT=setupCanvas(cvAtt,150);
+    TEL=setupCanvas(cvTel,150);
+  }
+  sizeHero();
+
+  /* ---- draw: latency arc gauge ---- */
+  function drawLatency(){
+    const {ctx,w,h}=LAT; ctx.clearRect(0,0,w,h);
+    const cx=w/2, cy=h*0.92, r=Math.min(w*0.42,h*0.78);
+    const a0=Math.PI*1.0, a1=Math.PI*2.0;
+    // ticks
+    ctx.lineWidth=1;
+    for(let i=0;i<=10;i++){
+      const a=lerp(a0,a1,i/10);
+      const inner=r-(i%5===0?11:6);
+      ctx.strokeStyle=i%5===0?C.dim:C.dim2;
+      ctx.beginPath();
+      ctx.moveTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r);
+      ctx.lineTo(cx+Math.cos(a)*inner,cy+Math.sin(a)*inner);
+      ctx.stroke();
+    }
+    // track
+    ctx.lineWidth=4; ctx.lineCap='round';
+    ctx.strokeStyle=C.line;
+    ctx.beginPath(); ctx.arc(cx,cy,r-2,a0,a1); ctx.stroke();
+    // value (latency 0.4..3.0 ms mapped)
+    const frac=clamp((sim.latency-0.4)/(3.0-0.4),0,1);
+    const av=lerp(a0,a1,frac);
+    ctx.strokeStyle = sim.latency>2.2 ? C.amber : C.acc;
+    ctx.shadowColor=ctx.strokeStyle; ctx.shadowBlur=10;
+    ctx.beginPath(); ctx.arc(cx,cy,r-2,a0,av); ctx.stroke();
+    ctx.shadowBlur=0;
+    // needle hub
+    ctx.fillStyle=ctx.strokeStyle;
+    ctx.beginPath(); ctx.arc(cx+Math.cos(av)*(r-2),cy+Math.sin(av)*(r-2),3,0,TAU); ctx.fill();
+  }
+
+  /* ---- draw: attitude / roll scope ---- */
+  function drawAttitude(){
+    const {ctx,w,h}=ATT; ctx.clearRect(0,0,w,h);
+    const cx=w/2, cy=h/2, R=Math.min(w,h)/2-8;
+    // outer ring
+    ctx.save();
+    ctx.beginPath(); ctx.arc(cx,cy,R,0,TAU); ctx.clip();
+    // horizon (rolled)
+    const ang=sim.roll*Math.PI/180;
+    ctx.translate(cx,cy); ctx.rotate(ang);
+    ctx.fillStyle='rgba(94,230,168,0.05)';
+    ctx.fillRect(-R*1.6,-R*1.6,R*3.2,R*1.6); // sky
+    ctx.fillStyle='rgba(94,230,168,0.10)';
+    ctx.fillRect(-R*1.6,0,R*3.2,R*1.6); // ground
+    ctx.strokeStyle=C.acc; ctx.lineWidth=1.4;
+    ctx.beginPath(); ctx.moveTo(-R*1.6,0); ctx.lineTo(R*1.6,0); ctx.stroke();
+    // pitch ladder
+    ctx.strokeStyle='rgba(120,150,170,0.4)'; ctx.lineWidth=1;
+    for(let p=-30;p<=30;p+=10){ if(p===0)continue; const y=p*1.2; ctx.beginPath(); ctx.moveTo(-14,y); ctx.lineTo(14,y); ctx.stroke();}
+    ctx.restore();
+    // ring + ticks
+    ctx.strokeStyle=C.line; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.arc(cx,cy,R,0,TAU); ctx.stroke();
+    ctx.strokeStyle=C.dim;
+    for(let i=0;i<12;i++){const a=i/12*TAU; const o=i%3===0?8:4; ctx.lineWidth=i%3===0?1.4:1;
+      ctx.beginPath(); ctx.moveTo(cx+Math.cos(a)*R,cy+Math.sin(a)*R); ctx.lineTo(cx+Math.cos(a)*(R-o),cy+Math.sin(a)*(R-o)); ctx.stroke();}
+    // fixed aircraft reticle
+    ctx.strokeStyle=C.amber; ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(cx-16,cy); ctx.lineTo(cx-5,cy); ctx.moveTo(cx+5,cy); ctx.lineTo(cx+16,cy);
+    ctx.moveTo(cx,cy-3); ctx.lineTo(cx,cy+3);
+    ctx.stroke();
+    // roll pointer
+    ctx.fillStyle=C.acc;
+    ctx.beginPath(); ctx.moveTo(cx,cy-R); ctx.lineTo(cx-4,cy-R+7); ctx.lineTo(cx+4,cy-R+7); ctx.closePath(); ctx.fill();
+  }
+
+  /* ---- draw: multi-channel telemetry sparklines ---- */
+  function drawTelem(){
+    const {ctx,w,h}=TEL; ctx.clearRect(0,0,w,h);
+    const pad=8;
+    // grid
+    ctx.strokeStyle=C.accFaint; ctx.lineWidth=1;
+    for(let i=0;i<=4;i++){const y=pad+(h-2*pad)*i/4; ctx.beginPath(); ctx.moveTo(pad,y); ctx.lineTo(w-pad,y); ctx.stroke();}
+    const cols=[C.acc, 'rgba(94,230,168,0.55)', C.amber];
+    const widths=[1.8,1.3,1.3];
+    for(let c=0;c<3;c++){
+      const arr=sim.telem[c];
+      ctx.strokeStyle=cols[c]; ctx.lineWidth=widths[c]; ctx.beginPath();
+      for(let i=0;i<arr.length;i++){
+        const x=pad+(w-2*pad)*i/(arr.length-1);
+        const y=pad+(h-2*pad)*(1-arr[i]);
+        i?ctx.lineTo(x,y):ctx.moveTo(x,y);
+      }
+      ctx.stroke();
+      // leading dot
+      if(c===0){
+        const x=w-pad, y=pad+(h-2*pad)*(1-arr[arr.length-1]);
+        ctx.fillStyle=C.acc; ctx.shadowColor=C.acc; ctx.shadowBlur=8;
+        ctx.beginPath(); ctx.arc(x,y,2.5,0,TAU); ctx.fill(); ctx.shadowBlur=0;
+      }
+    }
+  }
+
+  /* ---- hero sim step ---- */
+  function stepHero(dt){
+    sim.t+=dt;
+    // advance loop phase (one full sense->decide->respond cycle ~3.6s)
+    const cyc=3.6;
+    sim.phase=(sim.t%cyc)/cyc*3; // 0..3
+    const active=Math.min(2,Math.floor(sim.phase));
+    loopStages.forEach((s,i)=>s.classList.toggle('active', i===active));
+
+    // latency wanders 0.7..2.5, with occasional caution spike
+    const base=1.0+0.5*Math.sin(sim.t*0.6)+0.3*Math.sin(sim.t*1.7);
+    const spike=(Math.sin(sim.t*0.21)>0.96)?1.4:0;
+    sim.latency=clamp(base+spike+0.15*Math.sin(sim.t*5),0.6,2.8);
+    latVal.textContent=sim.latency.toFixed(2)+' ms';
+    const caut=sim.latency>2.2;
+    latState.textContent=caut?'CAUTION':'NOMINAL';
+    latState.classList.toggle('micro-amber',caut);
+    latState.classList.toggle('micro-acc',!caut);
+
+    // roll: gentle commanded oscillation w/ settling
+    if(Math.sin(sim.t*0.3)>0.99) sim.rollTarget=(Math.random()-0.5)*44;
+    sim.roll=lerp(sim.roll,sim.rollTarget,1-Math.pow(0.001,dt));
+    sim.roll+=0.6*Math.sin(sim.t*2.1);
+    rollVal.textContent=(sim.roll>=0?'+':'')+sim.roll.toFixed(1)+'°';
+
+    // telemetry channels: sensor (noisy), estimate (smoothed), command (responding)
+    const sensor=0.5+0.28*Math.sin(sim.t*1.3)+0.10*Math.sin(sim.t*4.1)+(Math.random()-0.5)*0.07;
+    for(let c=0;c<3;c++){
+      const arr=sim.telem[c]; arr.shift();
+      if(c===0) arr.push(clamp(sensor,0.05,0.95));
+      else if(c===1) arr.push(clamp(lerp(arr[arr.length-1],sensor,0.18),0.05,0.95)); // estimate
+      else arr.push(clamp(lerp(arr[arr.length-1], 1-sensor*0.6+0.2, 0.12),0.05,0.95)); // command
+    }
+    ch1.textContent=(sim.telem[0][sim.maxPts-1]*100).toFixed(0);
+    ch2.textContent=(sim.telem[1][sim.maxPts-1]*100).toFixed(0);
+    ch3.textContent=(sim.telem[2][sim.maxPts-1]*100).toFixed(0);
+    loopHz.textContent=(95+Math.round(8*Math.sin(sim.t*0.9)))+' Hz';
+  }
+
+  function renderHero(){drawLatency();drawAttitude();drawTelem();}
+
+  /* ====================================================== MISSIONS DATA ====================================================== */
+  const MISSIONS=[
+    {
+      code:'MSN-01', name:'RAYMOND / DEPLOY', org:'The Raymond Corporation', year:'2024–present',
+      status:'DEPLOYED', statusColor:'go', domain:'SAFETY · CONTROLS', featured:true,
+      problem:'Industrial forklifts share floor space with people. The mission: detect pedestrians and brake automatically before contact, while keeping vehicle performance and stability uncompromised across regenerative and friction braking.',
+      role:'Engineer on pedestrian detection, automated braking, and performance/stability. I work across the sensing, perception, and embedded control stack — fusing sensors, running machine vision, and writing the embedded C that commands the brakes over CAN.',
+      loop:[
+        ['SENSE','Sensor fusion + machine vision detect and localize pedestrians in the vehicle path.'],
+        ['DECIDE','Risk assessment estimates time-to-contact and selects a braking strategy that preserves stability.'],
+        ['RESPOND','Embedded C commands regenerative + friction braking over CAN to stop safely.']
+      ],
+      result:'Deployed pedestrian detection and automated braking on production industrial vehicles — the system runs live in the real world. STATUS: DEPLOYED.',
+      stack:['Sensor Fusion','Machine Vision','Embedded C','CAN Bus','Regenerative Braking','Controls'],
+      plot:'STEP_RESPONSE', plotName:'Brake Step Response',
+      telem:[['ttc','1.8 s','amber'],['decel','0.62 g',''],['detect','98.1 %',''],['bus','CAN 500k','']]
+    },
+    {
+      code:'MSN-02', name:'FLIGHT DYNAMICS', org:'Rochester Institute of Technology', year:'2023',
+      status:'VALIDATED', statusColor:'go', domain:'AEROSPACE · MODELING',
+      problem:'Model and simulate the attitude dynamics of a fleet of aircraft accurately enough to trust for control design — across nine distinct airframes.',
+      role:'Built the dynamics and attitude models in MATLAB and Simulink, implementing both Euler-angle and quaternion representations to compare fidelity and avoid gimbal-lock singularities.',
+      loop:[
+        ['SENSE','State + rate inputs feed the simulated attitude estimator.'],
+        ['DECIDE','Euler and quaternion models propagate orientation through the dynamics.'],
+        ['RESPOND','Simulated control inputs drive the airframe; responses validated against expected behavior.']
+      ],
+      result:'Validated attitude models for 9 aircraft using both Euler and quaternion formulations. STATUS: VALIDATED.',
+      stack:['MATLAB','Simulink','Euler Angles','Quaternions','Flight Dynamics'],
+      plot:'ATTITUDE', plotName:'Attitude · Quaternion Track',
+      telem:[['airframes','9',''],['method','quat + euler',''],['domain','attitude',''],['env','simulink','']]
+    },
+    {
+      code:'MSN-03', name:'DOUBLE PENDULUM', org:'Rochester Institute of Technology', year:'2022',
+      status:'VALIDATED', statusColor:'go', domain:'DYNAMICS · CHAOS',
+      problem:'Capture the chaotic dynamics of a double pendulum in a model that holds up against a real physical rig — sensitive dependence on initial conditions makes this unforgiving.',
+      role:'Derived and simulated the nonlinear equations of motion, then validated the simulation against a built physical pendulum to confirm the model reproduced real chaotic behavior.',
+      loop:[
+        ['SENSE','Initial conditions and physical parameters measured from the rig.'],
+        ['DECIDE','Nonlinear EOM integrated forward to predict the trajectory.'],
+        ['RESPOND','Predicted motion compared to the physical pendulum and refined.']
+      ],
+      result:'Model validated against the physical rig, reproducing chaotic motion. STATUS: VALIDATED.',
+      stack:['Nonlinear Dynamics','Numerical Integration','MATLAB','Model Validation'],
+      plot:'PENDULUM', plotName:'Phase · Chaotic Trace',
+      telem:[['DOF','2',''],['regime','chaotic','amber'],['validation','vs rig',''],['integrator','RK4','']]
+    },
+    {
+      code:'MSN-04', name:'VACUUM CANNON', org:'Rochester Institute of Technology', year:'2022',
+      status:'TESTED', statusColor:'go', domain:'FLUIDS · DYNAMICS',
+      problem:'Predict the exit velocity of a projectile fired by atmospheric pressure down an evacuated barrel — and back the prediction with a working build.',
+      role:'Modeled the pressure-driven acceleration through a 1.52 m barrel to predict exit velocity, then tested against the physical cannon.',
+      loop:[
+        ['SENSE','Barrel geometry (1.52 m) and pressure differential characterized.'],
+        ['DECIDE','Pressure-acceleration model integrates to predict exit velocity.'],
+        ['RESPOND','Cannon fired; measured velocity compared to the simulation.']
+      ],
+      result:'Exit-velocity simulation built and tested for a 1.52 m barrel. STATUS: TESTED.',
+      stack:['Fluid Dynamics','Pressure Modeling','Simulation','Test'],
+      plot:'VELOCITY', plotName:'Exit Velocity Profile',
+      telem:[['barrel','1.52 m',''],['driver','atmospheric',''],['output','exit vel',''],['phase','tested','']]
+    },
+    {
+      code:'MSN-05', name:'SATURN V F-1 NOZZLE FEA', org:'RIT · Ansys', year:'2023',
+      status:'ANALYZED', statusColor:'go', domain:'STRUCTURES · FEA',
+      problem:'Verify that the F-1 engine nozzle structure survives the loads of a 7.5 million pound thrust event — with no failure.',
+      role:'Set up and ran the structural finite-element analysis in Ansys, applying the thrust loading and evaluating stress to confirm the structure does not fail.',
+      loop:[
+        ['SENSE','Geometry meshed; 7.5M lb thrust loads and boundary conditions defined.'],
+        ['DECIDE','FEA solver computes the stress and deformation field.'],
+        ['RESPOND','Stress checked against limits to verify no failure.']
+      ],
+      result:'Structural FEA confirmed no failure under 7.5M lb thrust. STATUS: ANALYZED.',
+      stack:['Ansys','FEA','Structural Analysis','Mesh'],
+      plot:'STRESS', plotName:'Von Mises · Stress Map',
+      telem:[['thrust','7.5M lb',''],['result','no failure',''],['solver','ansys',''],['type','structural','']]
+    },
+    {
+      code:'MSN-06', name:'PRINTNC CNC', org:'Personal', year:'2023',
+      status:'OPERATIONAL', statusColor:'go', domain:'MACHINES · BUILD',
+      problem:'Have a capable CNC router without buying one — design and build a rigid, accurate machine from scratch.',
+      role:'Designed and built a hybrid CNC router combining a welded/bolted steel frame with custom 3D-printed components, tuned for rigidity and accuracy.',
+      loop:[
+        ['SENSE','Cutting loads and rigidity requirements characterized.'],
+        ['DECIDE','Hybrid steel + printed structure designed to meet stiffness targets.'],
+        ['RESPOND','Machine built, squared, and brought into operation.']
+      ],
+      result:'Self-built hybrid steel + 3D-printed CNC router, operational. STATUS: OPERATIONAL.',
+      stack:['Mechanical Design','Steel Fabrication','3D Printing','CNC','GRBL'],
+      plot:'TOOLPATH', plotName:'Toolpath · XY Trace',
+      telem:[['axes','3',''],['frame','steel + print',''],['build','self-built',''],['state','operational','']]
+    },
+    {
+      code:'MSN-07', name:'PYTHON SLICER & G-CODE', org:'Personal', year:'2024',
+      status:'OPERATIONAL', statusColor:'go', domain:'SOFTWARE · ADDITIVE',
+      problem:'Control the full path from a 3D model to machine instructions — and research how to reduce support material.',
+      role:'Wrote a custom STL-to-G-code pipeline in Python and used it as a platform to research support-reduction strategies for 3D printing.',
+      loop:[
+        ['SENSE','STL geometry parsed and sliced into layers.'],
+        ['DECIDE','Toolpaths and support strategy planned per layer.'],
+        ['RESPOND','G-code emitted for the printer; results fed back into research.']
+      ],
+      result:'Custom STL-to-G-code pipeline built; support-reduction research underway. STATUS: OPERATIONAL.',
+      stack:['Python','STL Processing','G-code','Slicing Algorithms'],
+      plot:'SLICE', plotName:'Layer Slice · Infill',
+      telem:[['input','STL',''],['output','G-code',''],['focus','support reduce',''],['lang','python','']]
+    },
+    {
+      code:'MSN-08', name:'3D PRINTING', org:'Personal', year:'Ongoing',
+      status:'ONGOING', statusColor:'caution', domain:'FABRICATION · ITERATE',
+      problem:'Turn ideas into physical objects fast — iterate on real parts instead of just sketches.',
+      role:'Run a continuous design-print-test loop, iterating quickly on functional parts. One favorite build: a MagSafe phone stand for my wife.',
+      loop:[
+        ['SENSE','A need or idea surfaces; constraints noted.'],
+        ['DECIDE','Part designed and toleranced for the printer.'],
+        ['RESPOND','Printed, fit-tested, and revised — fast.']
+      ],
+      result:'Fast design-print-test iteration; built a MagSafe stand for my wife. STATUS: ONGOING.',
+      stack:['CAD','FDM','Iteration','Design for Manufacturing'],
+      plot:'INFILL', plotName:'Print · Layer Progress',
+      telem:[['mode','iterate',''],['cadence','fast','amber'],['win','magsafe stand',''],['state','ongoing','amber']]
+    },
+    {
+      code:'MSN-09', name:'RESEARCH / AMPRINT', org:'Rochester Institute of Technology', year:'2021',
+      status:'ARCHIVED', statusColor:'dim', domain:'RESEARCH · ADDITIVE',
+      problem:'Push additive manufacturing methods — from investment casting and CFD to polymer lithography at the molecular scale.',
+      role:'Contributed to research at AMPrint spanning investment casting, additive manufacturing, and CFD, plus polymer lithography work using LAMMPS molecular dynamics.',
+      loop:[
+        ['SENSE','Material and process behavior characterized experimentally and in simulation.'],
+        ['DECIDE','Models (CFD, LAMMPS MD) used to interpret and predict behavior.'],
+        ['RESPOND','Findings fed back into process and method development.']
+      ],
+      result:'Research across investment casting, additive, CFD, and polymer lithography (LAMMPS). STATUS: ARCHIVED.',
+      stack:['CFD','LAMMPS','Molecular Dynamics','Investment Casting','Additive Mfg'],
+      plot:'MD', plotName:'MD · Lattice Field',
+      telem:[['lab','AMPrint',''],['tool','LAMMPS',''],['scope','casting · CFD',''],['state','archived','']]
+    }
+  ];
+
+  /* status -> color label */
+  function statusClass(c){return c==='go'?'go':c==='caution'?'caution':'';}
+  function statusTextColor(c){return c==='go'?C.acc:c==='caution'?C.amber:C.dim;}
+
+  /* ====================================================== BUILD BOARD ====================================================== */
+  const board=document.getElementById('board');
+  const stripCanvases=[]; // {cv, seed}
+  MISSIONS.forEach((m,idx)=>{
+    const card=document.createElement('button');
+    card.className='mcard';
+    card.setAttribute('aria-label','Open mission '+m.name);
+    card.innerHTML=
+      '<div class="mc-top">'+
+        '<span class="mc-code">'+m.code+'</span>'+
+        '<span class="mc-status" style="color:'+statusTextColor(m.statusColor)+'"><span class="led '+statusClass(m.statusColor)+(m.statusColor==='caution'?' pulse':'')+'"></span>'+m.status+'</span>'+
+      '</div>'+
+      '<div class="mc-body">'+
+        '<div class="mc-name">'+m.name+'</div>'+
+        '<div class="mc-org">'+m.org+'</div>'+
+        '<canvas class="mc-strip" height="46"></canvas>'+
+        '<div class="mc-meta">'+
+          '<div class="mc-tags"><span class="mc-tag">'+m.domain+'</span><span class="mc-tag year">'+m.year+'</span></div>'+
+          '<div class="mc-go">OPEN &#8594;</div>'+
+        '</div>'+
+      '</div>';
+    card.addEventListener('click',()=>openMission(idx));
+    board.appendChild(card);
+    const cv=card.querySelector('.mc-strip');
+    stripCanvases.push({cv,seed:idx*7.13,m,setup:null});
+  });
+
+  // size strips after layout
+  function sizeStrips(){
+    stripCanvases.forEach(o=>{o.setup=setupCanvas(o.cv,46);});
+  }
+  sizeStrips();
+
+  function drawStrip(o,time){
+    if(!o.setup)return;
+    const {ctx,w,h}=o.setup; ctx.clearRect(0,0,w,h);
+    const pad=4, col= o.m.statusColor==='caution'?C.amber : o.m.statusColor==='dim'?C.dim : C.acc;
+    // baseline grid
+    ctx.strokeStyle=C.accFaint; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(pad,h/2); ctx.lineTo(w-pad,h/2); ctx.stroke();
+    ctx.strokeStyle=col; ctx.lineWidth=1.5; ctx.beginPath();
+    const N=48;
+    for(let i=0;i<=N;i++){
+      const x=pad+(w-2*pad)*i/N;
+      const ph=o.seed + i*0.4;
+      const v=0.5
+        +0.28*Math.sin(ph + time*0.0016)
+        +0.12*Math.sin(ph*2.3 + time*0.0031)
+        +0.06*Math.sin(ph*5.1 + time*0.006);
+      const y=pad+(h-2*pad)*(1-clamp(v,0.05,0.95));
+      i?ctx.lineTo(x,y):ctx.moveTo(x,y);
+    }
+    ctx.stroke();
+  }
+
+  /* ====================================================== MISSION DETAIL ====================================================== */
+  const overlay=document.getElementById('overlay');
+  const detail=document.getElementById('detail');
+  const dClose=document.getElementById('dClose');
+  let lastFocus=null;
+  let activeMission=null;
+  let dPlot=null; // {setup, kind, t}
+
+  function openMission(idx){
+    const m=MISSIONS[idx];
+    activeMission=m;
+    lastFocus=document.activeElement;
+    document.getElementById('dCode').textContent=m.code;
+    document.getElementById('dName').textContent=m.name;
+    document.getElementById('dProblem').textContent=m.problem;
+    document.getElementById('dRole').textContent=m.role;
+    document.getElementById('dResult').textContent=m.result;
+
+    const hl=document.getElementById('dHl');
+    hl.innerHTML=
+      '<span class="mc-status" style="color:'+statusTextColor(m.statusColor)+';font-size:11px;letter-spacing:.12em"><span class="led '+statusClass(m.statusColor)+'"></span>'+m.status+'</span>'+
+      '<span class="mc-tag">'+m.domain+'</span>'+
+      '<span class="mc-tag year">'+m.year+'</span>'+
+      '<span class="mc-tag">'+m.org+'</span>';
+
+    const loop=document.getElementById('dLoop'); loop.innerHTML='';
+    m.loop.forEach(([s,x])=>{
+      const el=document.createElement('div'); el.className='step';
+      el.innerHTML='<span class="s">'+s+'</span><span class="x">'+x+'</span>';
+      loop.appendChild(el);
+    });
+
+    const stack=document.getElementById('dStack'); stack.innerHTML='';
+    m.stack.forEach(s=>{const el=document.createElement('span'); el.textContent=s; stack.appendChild(el);});
+
+    const telem=document.getElementById('dTelem'); telem.innerHTML='';
+    m.telem.forEach(([k,v,cl])=>{
+      const el=document.createElement('div'); el.className='cell';
+      el.innerHTML='<div class="k">'+k+'</div><div class="v'+(cl?' '+cl:'')+'">'+v+'</div>';
+      telem.appendChild(el);
+    });
+
+    document.getElementById('dPlotName').textContent=m.plotName;
+
+    overlay.classList.add('open');
+    document.body.style.overflow='hidden';
+
+    // size + start plot
+    requestAnimationFrame(()=>{
+      const cv=document.getElementById('dCanvas');
+      dPlot={setup:setupCanvas(cv,240), kind:m.plot, t:0};
+      if(RM) drawDetailPlot(dPlot,0,true);
+    });
+
+    // featured T-minus reveal
+    removeTminus();
+    if(m.featured) runTminus();
+
+    dClose.focus();
+  }
+
+  function closeMission(){
+    overlay.classList.remove('open');
+    document.body.style.overflow='';
+    activeMission=null; dPlot=null;
+    removeTminus();
+    if(lastFocus&&lastFocus.focus)lastFocus.focus();
+  }
+  dClose.addEventListener('click',closeMission);
+  overlay.addEventListener('click',e=>{if(e.target===overlay)closeMission();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&overlay.classList.contains('open'))closeMission();});
+
+  /* ---- T-minus reveal (featured Raymond DEPLOY) ---- */
+  let tminusEl=null, tminusTimers=[];
+  function removeTminus(){ if(tminusEl){tminusEl.remove();tminusEl=null;} tminusTimers.forEach(clearTimeout); tminusTimers=[]; }
+  function runTminus(){
+    tminusEl=document.createElement('div');
+    tminusEl.className='tminus';
+    tminusEl.innerHTML=
+      '<div class="lbl">DEPLOY SEQUENCE · MSN-01</div>'+
+      '<div class="cnt" id="tCnt">3</div>'+
+      '<div class="bararea"><div class="bar"><i id="tBar"></i></div></div>'+
+      '<div class="seq" id="tSeq">ARMING SYSTEMS</div>';
+    detail.appendChild(tminusEl);
+    const cntEl=tminusEl.querySelector('#tCnt');
+    const seqEl=tminusEl.querySelector('#tSeq');
+    const barEl=tminusEl.querySelector('#tBar');
+
+    if(RM){ removeTminus(); return; } // skip to content instantly
+
+    const steps=[
+      [0,   '3','SENSING ONLINE',33],
+      [620, '2','DECISION LOCKED',66],
+      [1240,'1','RESPONSE ARMED',100],
+    ];
+    steps.forEach(([t,n,s,p])=>{
+      tminusTimers.push(setTimeout(()=>{cntEl.textContent=n;seqEl.textContent=s;barEl.style.width=p+'%';},t));
+    });
+    tminusTimers.push(setTimeout(()=>{
+      cntEl.textContent='GO LIVE'; cntEl.classList.add('golive'); seqEl.textContent='SYSTEM DEPLOYED · LIVE IN PRODUCTION';
+    },1860));
+    tminusTimers.push(setTimeout(()=>{
+      if(tminusEl){tminusEl.style.transition='opacity .5s';tminusEl.style.opacity='0';}
+    },2500));
+    tminusTimers.push(setTimeout(removeTminus,3050));
+  }
+
+  /* ---- detail plot renderer (per-mission kind) ---- */
+  function drawDetailPlot(p,time,staticMode){
+    if(!p||!p.setup)return;
+    const {ctx,w,h}=p.setup; ctx.clearRect(0,0,w,h);
+    const t = staticMode ? 6.0 : p.t;
+    const rd=document.getElementById('dPlotRd');
+    const padX=14,padY=14;
+    // base grid for plot-style
+    function grid(){
+      ctx.strokeStyle=C.accFaint; ctx.lineWidth=1;
+      for(let i=0;i<=5;i++){const y=padY+(h-2*padY)*i/5; ctx.beginPath();ctx.moveTo(padX,y);ctx.lineTo(w-padX,y);ctx.stroke();}
+      for(let i=0;i<=6;i++){const x=padX+(w-2*padX)*i/6; ctx.beginPath();ctx.moveTo(x,padY);ctx.lineTo(x,h-padY);ctx.stroke();}
+    }
+
+    switch(p.kind){
+      case 'STEP_RESPONSE':{
+        grid();
+        // target line
+        const yT=padY+(h-2*padY)*0.18;
+        ctx.strokeStyle=C.amber; ctx.setLineDash([4,4]); ctx.lineWidth=1;
+        ctx.beginPath();ctx.moveTo(padX,yT);ctx.lineTo(w-padX,yT);ctx.stroke();ctx.setLineDash([]);
+        // 2nd order step response with light damping, sweeping reveal
+        const sweep = staticMode?1:clamp((t%5)/3.2,0,1);
+        ctx.strokeStyle=C.acc; ctx.lineWidth=2; ctx.beginPath();
+        const wn=7, zeta=0.32, N=160;
+        let last=0;
+        for(let i=0;i<=N*sweep;i++){
+          const tt=i/N*1.0; // sec
+          const wd=wn*Math.sqrt(1-zeta*zeta);
+          const y= tt<=0?0: 1 - Math.exp(-zeta*wn*tt)*(Math.cos(wd*tt)+(zeta*wn/wd)*Math.sin(wd*tt));
+          last=y;
+          const x=padX+(w-2*padX)*tt;
+          const py=padY+(h-2*padY)*(1-(y*0.62+0.18));
+          i?ctx.lineTo(x,py):ctx.moveTo(x,py);
+        }
+        ctx.stroke();
+        if(rd)rd.textContent='overshoot '+(Math.round(35*Math.exp(-zeta*Math.PI/Math.sqrt(1-zeta*zeta))))+'% · settling 0.9s';
+        break;
+      }
+      case 'ATTITUDE':{
+        // mini attitude ball + quaternion track
+        const cx=w/2,cy=h/2,R=Math.min(w,h)/2-16;
+        const ang=Math.sin(t*0.7)*22*Math.PI/180;
+        ctx.save();ctx.beginPath();ctx.arc(cx,cy,R,0,TAU);ctx.clip();
+        ctx.translate(cx,cy);ctx.rotate(ang);
+        ctx.fillStyle='rgba(94,230,168,0.06)';ctx.fillRect(-R*1.6,-R*1.6,R*3.2,R*1.6);
+        ctx.fillStyle='rgba(94,230,168,0.12)';ctx.fillRect(-R*1.6,0,R*3.2,R*1.6);
+        ctx.strokeStyle=C.acc;ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(-R*1.6,0);ctx.lineTo(R*1.6,0);ctx.stroke();
+        ctx.strokeStyle='rgba(120,150,170,0.4)';ctx.lineWidth=1;
+        for(let pp=-30;pp<=30;pp+=15){if(pp===0)continue;const y=pp*1.6;ctx.beginPath();ctx.moveTo(-22,y);ctx.lineTo(22,y);ctx.stroke();}
+        ctx.restore();
+        ctx.strokeStyle=C.line;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(cx,cy,R,0,TAU);ctx.stroke();
+        ctx.strokeStyle=C.amber;ctx.lineWidth=2;ctx.beginPath();
+        ctx.moveTo(cx-20,cy);ctx.lineTo(cx-6,cy);ctx.moveTo(cx+6,cy);ctx.lineTo(cx+20,cy);ctx.stroke();
+        if(rd)rd.textContent='roll '+(Math.sin(t*0.7)*22).toFixed(1)+'° · 9 airframes';
+        break;
+      }
+      case 'PENDULUM':{
+        // double pendulum trace (chaotic)
+        const ox=w/2, oy=h*0.30, L=Math.min(w,h)*0.22;
+        const a1=Math.sin(t*1.1)*1.3 + Math.sin(t*0.43)*1.6;
+        const a2=Math.sin(t*1.7+1)*1.8 + Math.cos(t*0.6)*1.4;
+        const x1=ox+Math.sin(a1)*L, y1=oy+Math.cos(a1)*L;
+        const x2=x1+Math.sin(a2)*L, y2=y1+Math.cos(a2)*L;
+        // fading trace
+        if(!p.trace)p.trace=[];
+        p.trace.push([x2,y2]); if(p.trace.length>120)p.trace.shift();
+        ctx.lineWidth=1.4;
+        for(let i=1;i<p.trace.length;i++){
+          ctx.strokeStyle='rgba(94,230,168,'+(i/p.trace.length*0.6).toFixed(3)+')';
+          ctx.beginPath();ctx.moveTo(p.trace[i-1][0],p.trace[i-1][1]);ctx.lineTo(p.trace[i][0],p.trace[i][1]);ctx.stroke();
+        }
+        ctx.strokeStyle=C.dim;ctx.lineWidth=1.6;
+        ctx.beginPath();ctx.moveTo(ox,oy);ctx.lineTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+        ctx.fillStyle=C.amber;ctx.beginPath();ctx.arc(x1,y1,4,0,TAU);ctx.fill();
+        ctx.fillStyle=C.acc;ctx.beginPath();ctx.arc(x2,y2,5,0,TAU);ctx.fill();
+        ctx.fillStyle=C.dim2;ctx.beginPath();ctx.arc(ox,oy,3,0,TAU);ctx.fill();
+        if(rd)rd.textContent='chaotic · sensitive to IC';
+        break;
+      }
+      case 'VELOCITY':{
+        grid();
+        // velocity ramp along barrel
+        ctx.strokeStyle=C.acc;ctx.lineWidth=2;ctx.beginPath();
+        const sweep=staticMode?1:clamp((t%5)/3,0,1);
+        const N=140;
+        for(let i=0;i<=N*sweep;i++){
+          const x=i/N; // fraction of barrel
+          const v=Math.sqrt(clamp(x,0,1)); // accel then ease
+          const px=padX+(w-2*padX)*x;
+          const py=padY+(h-2*padY)*(1-(v*0.78+0.1));
+          i?ctx.lineTo(px,py):ctx.moveTo(px,py);
+        }
+        ctx.stroke();
+        // barrel ticks
+        ctx.fillStyle=C.dim;ctx.font='9px JetBrains Mono';
+        ctx.fillText('0 m', padX, h-3);
+        ctx.fillText('1.52 m', w-padX-34, h-3);
+        if(rd)rd.textContent='barrel 1.52 m · exit velocity';
+        break;
+      }
+      case 'STRESS':{
+        // von mises style stress heat field on a nozzle band
+        const cols=w, rows=Math.floor(h);
+        const cell=10;
+        for(let yy=padY;yy<h-padY;yy+=cell){
+          for(let xx=padX;xx<w-padX;xx+=cell){
+            const nx=(xx-padX)/(w-2*padX), ny=(yy-padY)/(h-2*padY);
+            // stress concentration near throat (mid) + pulse
+            const d=Math.hypot(nx-0.5,(ny-0.5)*1.4);
+            let s=clamp(1-d*1.8,0,1);
+            s*= 0.7+0.3*Math.sin(t*1.2 - d*6);
+            s=clamp(s,0,1);
+            // green -> amber gradient (no failure, but show load)
+            const r=Math.round(lerp(94,255,s)), g=Math.round(lerp(230,180,s)), b=Math.round(lerp(168,84,s));
+            ctx.fillStyle='rgba('+r+','+g+','+b+','+(0.18+s*0.7).toFixed(3)+')';
+            ctx.fillRect(xx,yy,cell-1,cell-1);
+          }
+        }
+        ctx.strokeStyle=C.line;ctx.lineWidth=1;ctx.strokeRect(padX,padY,w-2*padX,h-2*padY);
+        if(rd)rd.textContent='7.5M lb · max stress < limit';
+        break;
+      }
+      case 'TOOLPATH':{
+        grid();
+        // XY toolpath spiral-ish pocket
+        ctx.strokeStyle=C.acc;ctx.lineWidth=1.6;ctx.beginPath();
+        const cx=w/2,cy=h/2;
+        const turns=staticMode?5:(2+3*((t%6)/6));
+        const N=Math.floor(turns*60);
+        for(let i=0;i<=N;i++){
+          const fr=i/(turns*60);
+          const ang=fr*turns*TAU;
+          const rr=(Math.min(w,h)/2-20)*(1-fr);
+          const x=cx+Math.cos(ang)*rr, y=cy+Math.sin(ang)*rr*0.8;
+          i?ctx.lineTo(x,y):ctx.moveTo(x,y);
+        }
+        ctx.stroke();
+        if(rd)rd.textContent='3-axis · rigidity tuned';
+        break;
+      }
+      case 'SLICE':
+      case 'INFILL':{
+        grid();
+        // layered slice w/ infill cross-hatch building up
+        const layers=12;
+        const built=staticMode?layers:Math.floor((t%6)/6*layers)+1;
+        for(let l=0;l<built;l++){
+          const y0=h-padY-(l+1)*((h-2*padY)/layers);
+          const y1=h-padY-l*((h-2*padY)/layers);
+          ctx.fillStyle='rgba(94,230,168,0.08)';
+          ctx.fillRect(padX,y0,w-2*padX,y1-y0-1);
+          // infill hatch
+          ctx.strokeStyle='rgba(94,230,168,0.4)';ctx.lineWidth=1;
+          const dir=l%2===0?1:-1;
+          for(let x=padX;x<w-padX;x+=14){
+            ctx.beginPath();ctx.moveTo(x,y0);ctx.lineTo(x+dir*(y1-y0),y1);ctx.stroke();
+          }
+        }
+        ctx.strokeStyle=C.acc;ctx.lineWidth=1.4;ctx.strokeRect(padX,padY,w-2*padX,h-2*padY);
+        if(rd)rd.textContent='layer '+(staticMode?layers:built)+' / '+layers;
+        break;
+      }
+      case 'MD':{
+        // molecular dynamics lattice w/ jitter
+        const cols=10, rows=6;
+        const sx=(w-2*padX)/(cols-1), sy=(h-2*padY)/(rows-1);
+        // bonds
+        ctx.strokeStyle='rgba(94,230,168,0.18)';ctx.lineWidth=1;
+        const pts=[];
+        for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+          const jx=Math.sin(t*1.3+r*1.1+c*0.7)*4;
+          const jy=Math.cos(t*1.1+c*1.3+r*0.5)*4;
+          pts.push([padX+c*sx+jx, padY+r*sy+jy]);
+        }
+        for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+          const i=r*cols+c;
+          if(c<cols-1){ctx.beginPath();ctx.moveTo(pts[i][0],pts[i][1]);ctx.lineTo(pts[i+1][0],pts[i+1][1]);ctx.stroke();}
+          if(r<rows-1){ctx.beginPath();ctx.moveTo(pts[i][0],pts[i][1]);ctx.lineTo(pts[i+cols][0],pts[i+cols][1]);ctx.stroke();}
+        }
+        pts.forEach(pt=>{ctx.fillStyle=C.acc;ctx.beginPath();ctx.arc(pt[0],pt[1],2.4,0,TAU);ctx.fill();});
+        if(rd)rd.textContent='LAMMPS · lattice MD';
+        break;
+      }
+      default:{ grid(); if(rd)rd.textContent='—'; }
+    }
+  }
+
+  /* ====================================================== COMMS TERMINAL ====================================================== */
+  const term=document.getElementById('term');
+  const termLines=[
+    ['[INIT]','establishing uplink…','ts'],
+    ['[OK]','handshake complete','ok'],
+    ['[NODE]','operator = Kambar Mangibayev','ts'],
+    ['[NODE]','role = Mechanical Systems Engineer · Controls','ts'],
+    ['[NODE]','origin = Semey, KZ  →  Rochester, NY','ts'],
+    ['[OK]','9 missions indexed · 1 deployed','ok'],
+    ['[RX]','curiosity-driven · hobby = engineering','ok'],
+    ['[STAT]','CHANNEL OPEN — awaiting transmission','am'],
+  ];
+  function renderTerm(){
+    term.innerHTML='';
+    termLines.forEach((l,i)=>{
+      const span=document.createElement('span');
+      span.className='ln';
+      span.innerHTML='<span class="ts">'+fmtMET().short+'</span> <span class="'+l[2]+'">'+l[0]+'</span> '+l[1];
+      if(!RM){span.style.animationDelay=(0.25*i)+'s';}
+      else{span.style.opacity='1';}
+      term.appendChild(span);
+    });
+  }
+  renderTerm();
+
+  /* ====================================================== MASTER ANIMATION LOOP ====================================================== */
+  const FRAME=1000/30; // throttle telemetry ~30fps
+  let visible=true;
+  document.addEventListener('visibilitychange',()=>{visible=!document.hidden;});
+
+  // intersection: only animate hero when on screen
+  let heroOn=true;
+  if('IntersectionObserver' in window){
+    const io=new IntersectionObserver(es=>{es.forEach(e=>{heroOn=e.isIntersecting;});},{threshold:0});
+    io.observe(document.getElementById('console'));
+  }
+
+  function frame(now){
+    requestAnimationFrame(frame);
+    if(RM) return; // static; no loop
+    if(!visible){ frame._last=now; return; }
+    // throttle telemetry to ~30fps
+    if(now - frame._last < FRAME){ return; }
+    const stepDt=Math.min((now - frame._last)/1000, 0.06);
+    frame._last=now;
+
+    // hero
+    if(heroOn){
+      stepHero(stepDt);
+      renderHero();
+    }
+    // strips (board) — only if section near viewport (cheap: always, they're light)
+    for(const o of stripCanvases){drawStrip(o,now);}
+    // detail plot
+    if(dPlot){
+      dPlot.t+=stepDt;
+      drawDetailPlot(dPlot,now,false);
+    }
+  }
+  frame._last=performance.now();
+
+  if(RM){
+    // static render once
+    renderHero();
+    stripCanvases.forEach(o=>drawStrip(o,1200));
+  }else{
+    requestAnimationFrame(frame);
+  }
+
+  /* ====================================================== RESIZE ====================================================== */
+  let rzT=null;
+  window.addEventListener('resize',()=>{
+    clearTimeout(rzT);
+    rzT=setTimeout(()=>{
+      sizeHero(); sizeStrips();
+      if(dPlot){const cv=document.getElementById('dCanvas'); const old=dPlot; dPlot={setup:setupCanvas(cv,240),kind:old.kind,t:old.t,trace:old.trace};}
+      if(RM){renderHero();stripCanvases.forEach(o=>drawStrip(o,1200));}
+    },180);
+  });
+
+})();
+</script>
+</body>
+</html>

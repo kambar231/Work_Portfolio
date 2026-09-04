@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>3D Slicer &amp; G-code Generator — Kambar Mangibayev</title>
+  <meta name="description" content="I wrote my own slicer because the off-the-shelf ones don&#x27;t let you slice the way I want to slice. The interesting question — what happens when the layer planes aren&#x27;t horizontal — lives below their abstractions, so I built a smaller pipeline that exposes everything." />
+  <meta name="theme-color" content="#f4ede0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..900,0..100,0..1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="cursor" aria-hidden="true"></div>
+  <div class="cursor-dot" aria-hidden="true"></div>
+
+  <header class="nav">
+    <a href="../index.html" class="nav__brand">
+      <span class="nav__mono">KM</span>
+      <span class="nav__sep">/</span>
+      <span class="nav__name">Kambar Mangibayev</span>
+    </a>
+    <nav class="nav__links" aria-label="primary">
+      <a href="../index.html#work">Work</a>
+      <a href="../index.html#projects">Projects</a>
+      <a href="../index.html#reel">Reel</a>
+      <a href="../index.html#about">About</a>
+      <a href="../index.html#contact" class="nav__cta">Contact</a>
+    </nav>
+    <div class="nav__time" aria-hidden="true">
+      <span class="dot"></span><span id="clock">— —</span>
+    </div>
+  </header>
+
+  <main class="case-wrap">
+    <a href="../index.html#projects" class="case__back mono" data-reveal>
+      ← Personal &amp; Academic
+    </a>
+    <header class="case__head">
+      <span class="mono dim" data-reveal>P·01 &nbsp;·&nbsp; Python · 3D Printing</span>
+      <h1 class="case__title" data-reveal>3D Slicer &amp; G-code Generator</h1>
+      <p class="case__tagline" data-reveal><em>An STL-to-G-code pipeline written from first principles.</em></p>
+    </header>
+    <p class="case__lede" data-reveal>I wrote my own slicer because the off-the-shelf ones don&#x27;t let you slice the way I want to slice. The interesting question — what happens when the layer planes aren&#x27;t horizontal — lives below their abstractions, so I built a smaller pipeline that exposes everything.</p>
+
+    <figure class="case__hero" data-reveal>
+      <img src="../assets/img/slicer-stl-viewer.jpg" alt="3D Slicer &amp; G-code Generator" loading="eager" />
+      <figcaption class="case__media-cap mono dim">The viewer, with a torch-bearing forearm and the letter R sitting on the build plate.</figcaption>
+    </figure>
+    <figure class="case__video" data-reveal>
+      <video class="case__video-el" muted loop playsinline preload="metadata"
+             poster="../assets/img/slicer-stl-viewer.jpg"
+             data-src="../assets/video/slicer.mp4"></video>
+      <figcaption class="mono dim">In motion — looped automatically</figcaption>
+    </figure>
+    <div class="case__body">
+      <div class="case__prose">
+      <section class="case__sec" data-reveal>
+        <h2 class="case__sec-h">What you&#x27;re looking at</h2>
+        <p>Load an STL, see it sitting on the build plate in the viewer above. Set a layer height and a resolution. Hit slice, hit G-code. Each stage emits its own intermediate state and shows it back to you — you can stop at "layer outlines," inspect what the slicer actually thinks the part looks like at z = 4.2 mm, and then keep going.</p>
+        
+        <figure class="case__sec-fig">
+          <img src="../assets/img/slicer-stl-detail.jpg" alt="Closer in. Layer height 0.2 mm, resolution 2. The wireframe is the build-plate grid; the green hull is the model that&#x27;s about to be sliced." loading="lazy" />
+          <figcaption class="case__media-cap mono dim">Closer in. Layer height 0.2 mm, resolution 2. The wireframe is the build-plate grid; the green hull is the model that&#x27;s about to be sliced.</figcaption>
+        </figure>
+      </section>
+      <section class="case__sec" data-reveal>
+        <h2 class="case__sec-h">Why I wrote my own</h2>
+        <p>Off-the-shelf slicers (Cura, PrusaSlicer, the rest) are excellent at what they do. They're also opinionated about slicing axes — typically Z-up, planar layers. Researching support reduction via tilted or curved slicing planes means going below those abstractions, and at that point, writing a small slicer is easier than monkey-patching a big one.</p>
+        
+        <figure class="case__sec-fig">
+          <img src="../assets/img/slicer-layer-plot.jpg" alt="The slicer at work, a few layers in: current outline in black, next layer in grey, walls and cell-wall intersection points overlaid. This is what the slicer actually thinks before it writes the G-code." loading="lazy" />
+          <figcaption class="case__media-cap mono dim">The slicer at work, a few layers in: current outline in black, next layer in grey, walls and cell-wall intersection points overlaid. This is what the slicer actually thinks before it writes the G-code.</figcaption>
+        </figure>
+      </section>
+
+      <aside class="case__todos" data-reveal>
+        <h3 class="mono">Notes for Kambar</h3>
+        <p class="dim">Kept inline so they're easy to spot; remove these before sharing the link.</p>
+        <ul><li>Link to GitHub if public</li><li>Photo of a part actually printed via this pipeline</li><li>Show a non-planar slicing experiment</li></ul>
+      </aside>
+      </div>
+      <aside class="case__specs" data-reveal>
+        <h3 class="mono dim">Spec sheet</h3>
+        <div class="case__spec"><span class="dim">Year</span><span>2025–2026</span></div>
+        <div class="case__spec"><span class="dim">Stack</span><span>Python · PyQt · Matplotlib</span></div>
+        <div class="case__spec"><span class="dim">Status</span><span>Working prototype</span></div>
+        <div class="case__spec"><span class="dim">Repo</span><span>TODO</span></div>
+      </aside>
+    </div>
+
+      <nav class="case__nav" data-reveal>
+        <a class="case__nav-prev" href="./vacuum-cannon.html">
+          <span class="mono dim">← Previous</span>
+          <span class="case__nav-title">Vacuum Cannon Experiment</span>
+        </a>
+        <a class="case__nav-next" href="./investment-casting.html">
+          <span class="mono dim">Next →</span>
+          <span class="case__nav-title">Additive Manufacturing &amp; Investment Casting</span>
+        </a>
+      </nav>
+    <footer class="foot">
+      <div class="foot__col"><span class="mono dim">© 2026 Kambar Mangibayev</span></div>
+      <div class="foot__col mono"><a href="../index.html" class="dim">Back to home</a></div>
+      <button class="foot__top mono" id="toTop" aria-label="Back to top">Back to top ↑</button>
+    </footer>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+  <script src="../assets/js/main.js" defer></script>
+</body>
+</html>

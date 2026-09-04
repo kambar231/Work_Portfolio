@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Vacuum Cannon Experiment — Kambar Mangibayev</title>
+  <meta name="description" content="Pump the air out of a 1.52 m pipe sealed at both ends with tape. Puncture the back. Air rushes in, the ping-pong ball at the front gets shot out, and a ballistic block on the other side records the displacement. From that, we recover the exit velocity. From there, we go back to the simulation and ask: did we model the right things?" />
+  <meta name="theme-color" content="#f4ede0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..900,0..100,0..1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="cursor" aria-hidden="true"></div>
+  <div class="cursor-dot" aria-hidden="true"></div>
+
+  <header class="nav">
+    <a href="../index.html" class="nav__brand">
+      <span class="nav__mono">KM</span>
+      <span class="nav__sep">/</span>
+      <span class="nav__name">Kambar Mangibayev</span>
+    </a>
+    <nav class="nav__links" aria-label="primary">
+      <a href="../index.html#work">Work</a>
+      <a href="../index.html#projects">Projects</a>
+      <a href="../index.html#reel">Reel</a>
+      <a href="../index.html#about">About</a>
+      <a href="../index.html#contact" class="nav__cta">Contact</a>
+    </nav>
+    <div class="nav__time" aria-hidden="true">
+      <span class="dot"></span><span id="clock">— —</span>
+    </div>
+  </header>
+
+  <main class="case-wrap">
+    <a href="../index.html#projects" class="case__back mono" data-reveal>
+      ← Personal &amp; Academic
+    </a>
+    <header class="case__head">
+      <span class="mono dim" data-reveal>P·08 &nbsp;·&nbsp; Fluid Dynamics · Validation</span>
+      <h1 class="case__title" data-reveal>Vacuum Cannon Experiment</h1>
+      <p class="case__tagline" data-reveal><em>Ping-pong-ball exit velocity — simulated, then measured.</em></p>
+    </header>
+    <p class="case__lede" data-reveal>Pump the air out of a 1.52 m pipe sealed at both ends with tape. Puncture the back. Air rushes in, the ping-pong ball at the front gets shot out, and a ballistic block on the other side records the displacement. From that, we recover the exit velocity. From there, we go back to the simulation and ask: did we model the right things?</p>
+
+    <figure class="case__hero" data-reveal>
+      <img src="../assets/img/cannon-1.jpg" alt="Vacuum Cannon Experiment" loading="eager" />
+      <figcaption class="case__media-cap mono dim">The setup, drawn flat. 1.52 m of PVC, a vacuum pump, a ballistic block on the receiving end. Pressure inside between 1 and 10 kPa.</figcaption>
+    </figure>
+    <div class="case__body">
+      <div class="case__prose">
+      <section class="case__sec" data-reveal>
+        <h2 class="case__sec-h">What&#x27;s happening inside the tube</h2>
+        <p>The pipe isn't a perfect vacuum — there's some residual air. When the back tape ruptures, atmospheric air rushes in and pushes the ball forward. The residual air ahead of the ball gets compressed; that compressed air ruptures the front tape before the ball reaches it. Then the ball flies out, travels about 0.5 m, and hits the catching mechanism that records displacement.</p>
+        
+        <figure class="case__sec-fig">
+          <img src="../assets/img/cannon-2.jpg" alt="Forces on the ball: atmospheric inlet pressure pushing up, residual-air pressure pushing back. Subtract one from the other, divide by the ball mass, integrate twice." loading="lazy" />
+          <figcaption class="case__media-cap mono dim">Forces on the ball: atmospheric inlet pressure pushing up, residual-air pressure pushing back. Subtract one from the other, divide by the ball mass, integrate twice.</figcaption>
+        </figure>
+      </section>
+      <section class="case__sec" data-reveal>
+        <h2 class="case__sec-h">How we calculate</h2>
+        <p>Eulerian method, constant acceleration over each small time step:<br><br>a_ball = (F_up − F_down) / m_ball<br>v_ball(n+1) = v_ball(n) + a_ball(n)·Δt<br>x_ball(n+1) = x_ball(n) + v_ball(n)·Δt<br><br>For variance, we treat velocity as a function of each measurement and find the change each one induces (high and low). Total change is the root-sum-of-squares. (More detail withheld — this project may be reused as a teaching lab.)</p>
+        
+        <figure class="case__sec-fig">
+          <img src="../assets/img/cannon-3.jpg" alt="Predicted vs. measured exit velocity at 2 kPa and 8 kPa. The model under- or over-shoots in places; that&#x27;s the signal." loading="lazy" />
+          <figcaption class="case__media-cap mono dim">Predicted vs. measured exit velocity at 2 kPa and 8 kPa. The model under- or over-shoots in places; that&#x27;s the signal.</figcaption>
+        </figure>
+      </section>
+      <section class="case__sec" data-reveal>
+        <h2 class="case__sec-h">Why the model is wrong</h2>
+        <p>We used Vena Contracta and an entrance coefficient to handle the inlet pressure drop. Real flow into and inside the tube is more complex than that. The exit velocity is also reduced by an imperfect tape rupture. We assumed the ball only moves in x, that gravity, normal force and friction can be ignored, and that no air passes around the ball — there's clearance between the ball and the pipe wall, so air does squeeze through, builds pressure downstream, and slows the ball.</p>
+        
+      </section>
+      <section class="case__sec" data-reveal>
+        <h2 class="case__sec-h">How to make the model less wrong</h2>
+        <p>Investigate the actual fluid dynamics of the air inside the tube and recover a real upstream pressure curve. Model the y- and z-direction motion of the ball inside the tube. Account for friction explicitly — that's where the largest discrepancies live, and it's the cheapest fix. Experimentally: a cleaner tape-rupture mechanism, and lower-friction bearings on the ballistic block. Overall the lab was successful — the main goal was learning the process of correlating experimental and theoretical models, and that's exactly what we got.</p>
+        
+      </section>
+
+      <aside class="case__todos" data-reveal>
+        <h3 class="mono">Notes for Kambar</h3>
+        <p class="dim">Kept inline so they're easy to spot; remove these before sharing the link.</p>
+        <ul><li>High-speed-video still or short clip</li><li>Confidence-interval bars on the results plot</li></ul>
+      </aside>
+      </div>
+      <aside class="case__specs" data-reveal>
+        <h3 class="mono dim">Spec sheet</h3>
+        <div class="case__spec"><span class="dim">Year</span><span>RIT coursework</span></div>
+        <div class="case__spec"><span class="dim">Pipe</span><span>1.52 m PVC</span></div>
+        <div class="case__spec"><span class="dim">Pressures</span><span>2 kPa and 8 kPa</span></div>
+        <div class="case__spec"><span class="dim">Runs</span><span>10</span></div>
+      </aside>
+    </div>
+
+      <nav class="case__nav" data-reveal>
+        <a class="case__nav-prev" href="./double-pendulum.html">
+          <span class="mono dim">← Previous</span>
+          <span class="case__nav-title">Double Pendulum Experiment</span>
+        </a>
+        <a class="case__nav-next" href="./slicer.html">
+          <span class="mono dim">Next →</span>
+          <span class="case__nav-title">3D Slicer &amp; G-code Generator</span>
+        </a>
+      </nav>
+    <footer class="foot">
+      <div class="foot__col"><span class="mono dim">© 2026 Kambar Mangibayev</span></div>
+      <div class="foot__col mono"><a href="../index.html" class="dim">Back to home</a></div>
+      <button class="foot__top mono" id="toTop" aria-label="Back to top">Back to top ↑</button>
+    </footer>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+  <script src="../assets/js/main.js" defer></script>
+</body>
+</html>

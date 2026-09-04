@@ -1,0 +1,14 @@
+# Raw media and editor scratch, too large for GitHub (2.5 GB of phone video etc.)
+Porotfolio/Phone/
+Porotfolio/Adobe After Effects Auto-Save/
+Porotfolio/*.aep_AME/
+Porotfolio/files/*.HEIC
+Porotfolio/files/IMG_*.png
+Porotfolio/Slicer/*.mp4
+*.MOV
+*.mov
+*.aep
+
+# OS / editor
+Thumbs.db
+.DS_Store

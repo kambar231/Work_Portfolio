@@ -1,0 +1,68 @@
+CONCEPT 06 — "MISSION CONTROL / TELEMETRY"
+===========================================
+
+A NASA-style mission-control console for the portfolio of Kambar Mangibayev,
+Mechanical Systems Engineer (Controls). Each project is a "mission" with live
+gauges and status. The thesis — "I build systems that sense, decide, and
+respond in the real world" — is the console's heartbeat: the sense -> decide ->
+respond loop runs as the central animated cycle.
+
+DESIGN DECISIONS
+----------------
+- Single self-contained index.html. No build step. Opens by double-click.
+- Accent committed: SCOPE-GREEN (#5ee6a8). Amber (#ffb454) reserved strictly
+  for caution / status emphasis (T-minus, CAUTION states). One accent, used
+  with discipline.
+- Palette: base #06080b / #0a0d11, panels #0e131a, text #d7e2ea, subtle grid
+  lines. Restrained, instrument-grade. No theme-park kitsch.
+- Typography: "Space Grotesk" for big headings (system identity), "JetBrains
+  Mono" for every readout, label, gauge ticker and micro-label.
+- Telemetry micro-labels, thin rules, generous spacing throughout.
+
+SECTIONS
+--------
+1. MAIN CONSOLE (hero): power-up sequence, streaming telemetry that settles,
+   big status flips to "GO FOR EXPLORATION" (green). Name/title as system
+   identity. Thesis as system status line. Live gauges + sparklines via canvas,
+   driven by a single sense/decide/respond cycle. Mission Elapsed Time (MET)
+   clock counting up live.
+2. MISSIONS BOARD: every project as a mission card with STATUS, DOMAIN tag,
+   YEAR and a mini canvas telemetry strip. Click opens the mission detail.
+3. MISSION DETAIL: full-screen overlay readout. Standard layout
+   (Problem -> My role -> The control loop -> Result -> Stack) plus a relevant
+   live canvas gauge/plot (step-response, attitude readout, chaotic trace,
+   stress map, etc. — chosen per mission). The featured Raymond DEPLOY mission
+   gets a brief T-minus / "GO LIVE" reveal.
+4. COMMS PANEL (contact): styled as an open channel — email / phone / resume,
+   header reads "CHANNEL OPEN".
+
+TELEMETRY / ANIMATION
+---------------------
+- All gauges, sparklines, attitude indicators and plots are drawn on <canvas>
+  (no images, no external chart libs). GSAP intentionally NOT used — vanilla
+  requestAnimationFrame keeps it light and dependency-free.
+- One shared rAF loop, throttled to ~30fps for telemetry, drives every visible
+  canvas. Off-screen / closed canvases are skipped.
+- The gauges carry REAL project facts where meaningful (9 aircraft, 1.52 m
+  barrel, 7.5M lb thrust, etc.) — no fabricated performance metrics.
+- prefers-reduced-motion: the entire animation loop is frozen. Every canvas is
+  rendered once as a static, fully legible readout; the power-up sequence is
+  skipped; all content is immediately available. T-minus reveal collapses to an
+  instant "GO LIVE".
+
+ACCESSIBILITY / RESPONSIVE
+--------------------------
+- Fully responsive. On mobile the console grid reflows to stacked panels and
+  the missions board collapses to a single column.
+- Keyboard: mission cards are focusable and open on Enter/Space; the detail
+  overlay closes on Escape and returns focus.
+- No localStorage / sessionStorage used anywhere.
+
+CONTENT
+-------
+All copy is real, drawn from the supplied brief. No lorem, no invented metrics.
+
+FILES
+-----
+- index.html  (the entire site)
+- ABOUT.txt   (this file)

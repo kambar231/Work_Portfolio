@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Polymer Lithography Simulation — Kambar Mangibayev</title>
+  <meta name="description" content="A polymer is a macromolecule in which many groups of atoms — monomers — are bonded into a long chain. The molecules adopt a structure that&#x27;s similar to a bowl of spaghetti: interconnected, disordered chains looping through each other. Thanks to advances in chemistry, we can control atomic bonding within each molecule precisely." />
+  <meta name="theme-color" content="#f4ede0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..900,0..100,0..1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="cursor" aria-hidden="true"></div>
+  <div class="cursor-dot" aria-hidden="true"></div>
+
+  <header class="nav">
+    <a href="../index.html" class="nav__brand">
+      <span class="nav__mono">KM</span>
+      <span class="nav__sep">/</span>
+      <span class="nav__name">Kambar Mangibayev</span>
+    </a>
+    <nav class="nav__links" aria-label="primary">
+      <a href="../index.html#work">Work</a>
+      <a href="../index.html#projects">Projects</a>
+      <a href="../index.html#reel">Reel</a>
+      <a href="../index.html#about">About</a>
+      <a href="../index.html#contact" class="nav__cta">Contact</a>
+    </nav>
+    <div class="nav__time" aria-hidden="true">
+      <span class="dot"></span><span id="clock">— —</span>
+    </div>
+  </header>
+
+  <main class="case-wrap">
+    <a href="../index.html#projects" class="case__back mono" data-reveal>
+      ← Personal &amp; Academic
+    </a>
+    <header class="case__head">
+      <span class="mono dim" data-reveal>P·05 &nbsp;·&nbsp; Molecular Dynamics · Research</span>
+      <h1 class="case__title" data-reveal>Polymer Lithography Simulation</h1>
+      <p class="case__tagline" data-reveal><em>Block copolymers, phase separation, and the bridge between simulation and experiment.</em></p>
+    </header>
+    <p class="case__lede" data-reveal>A polymer is a macromolecule in which many groups of atoms — monomers — are bonded into a long chain. The molecules adopt a structure that&#x27;s similar to a bowl of spaghetti: interconnected, disordered chains looping through each other. Thanks to advances in chemistry, we can control atomic bonding within each molecule precisely.</p>
+
+    <figure class="case__hero" data-reveal>
+      <img src="../assets/img/polymer-2.jpg" alt="Polymer Lithography Simulation" loading="eager" />
+      <figcaption class="case__media-cap mono dim">What a polymer is, and the shapes a block copolymer can make. Spheres, lamellae, cylinders, stripes — each one is a different lithography pattern waiting to happen.</figcaption>
+    </figure>
+    <div class="case__body">
+      <div class="case__prose">
+      <section class="case__sec" data-reveal>
+        <h2 class="case__sec-h">Why this matters for lithography</h2>
+        <p>We can tailor these materials to perform lithography. The principle is simple: much like water and oil form distinct regions in a container, water-like and oil-like macromolecules can be joined together to form a block copolymer (water-like in blue, oil-like in red). Place many of these molecules together and they first adopt a spaghetti-like structure, but because the red and blue types repel, they transform until the molecules align and create a pattern. Zoom out and you see layers of red and blue forming a stripe pattern. Depending on the ratio of red-to-blue and the chemistry of the molecules, you can form a wide variety of extremely thin shapes — circular holes, spheres, stripes, lamellae. Those shapes are then used in lithography.</p>
+        
+      </section>
+      <section class="case__sec" data-reveal>
+        <h2 class="case__sec-h">Why simulate instead of experiment</h2>
+        <p>The shape and behaviour of polymers depends on many conditions — temperature, chemistry (repulsion strength), atom sizes — and each parameter affects the structure in a chaotic way, so we don't know in advance what structure a given molecule will form. We don't have a starting point for experiments, and it'd be too wasteful to run a bunch of them with no clear goal. Instead, we run thousands of simulations to get a general sense of polymer structure under different conditions. Simulations take less time to conduct and analyse, so we get a general understanding much faster — and the results tell us where to start the experiments and which ones to actually run. It's also much cheaper than the lab. With no starting point, it took us at least 50 simulations to narrow the scope down to specific conditions where we could observe phase-separation behaviour. Even 50 experiments is too expensive and inefficient. (Side note: COVID-19 also kept us out of the labs, but it wasn't the deciding factor.)</p>
+        
+        <figure class="case__sec-fig">
+          <img src="../assets/img/polymer-1.jpg" alt="The setup. Disordered chains on the left; once you turn on repulsion between the two block types, they start to phase-separate into stripes." loading="lazy" />
+          <figcaption class="case__media-cap mono dim">The setup. Disordered chains on the left; once you turn on repulsion between the two block types, they start to phase-separate into stripes.</figcaption>
+        </figure>
+      </section>
+      <section class="case__sec" data-reveal>
+        <h2 class="case__sec-h">Modelling — Molecular Dynamics, in 100 lines of code</h2>
+        <p>All particles obey Newton's laws of motion. For hard spheres, they collide elastically, conserving momentum and kinetic energy. Extend that to hundreds or millions of particles, and you can simulate atoms — modified with small forces based on the chemistry, using the so-called Weeks–Chandler–Andersen (WCA) potential. WCA depends on the size and distance between particles: steep repulsion within a critical distance, flat potential beyond it (no attraction). The whole thing fits in about 100 lines of code. The energetic parameter ε quantifies how repulsive the particles are, and depends on the chemistry of the atoms. MATLAB is too slow for these simulations, so we used LAMMPS — and submitted to the RIT cluster, which finishes a dozen simulations in hours instead of ages.</p>
+        
+        <figure class="case__sec-fig">
+          <img src="../assets/img/polymer-3.jpg" alt="Inside one simulation cell. Phase separation is the cleanly striped end-state — disorder is failure." loading="lazy" />
+          <figcaption class="case__media-cap mono dim">Inside one simulation cell. Phase separation is the cleanly striped end-state — disorder is failure.</figcaption>
+        </figure>
+      </section>
+      <section class="case__sec" data-reveal>
+        <h2 class="case__sec-h">Findings</h2>
+        <p>Holding the model constant and varying temperature: at T = 2.0 the structure is fairly ordered with clear signs of phase separation (max volume fraction ≈ 0.8). At T = 5.0, no phase separation is observed and atoms spread randomly. So as temperature increases, χ decreases.<br><br>Holding everything constant and varying ε at T = 2.0: at ε = 2.0, no phase separation, atoms randomly spread (max volume fraction ≈ 0.55, low χ). At ε = 3.5, clear phase separation. So as ε increases, atoms phase-separate more — χ increases with ε.<br><br>Plot α and β against ε across runs and fit lines: blue (α) → y = 0.3792x − 0.8038; orange (β) ≈ 2. Plug it back in: χ is inversely proportional to temperature and directly proportional to interaction strength.</p>
+        
+      </section>
+      <section class="case__sec" data-reveal>
+        <h2 class="case__sec-h">What we did with that</h2>
+        <p>Our coefficients aren't exact, but the goal was a general sense — enough to proceed to experiments and get factual, physical data that benefits microfabrication. We built a bridge between the experimental and simulation worlds: identify the differences, improve the simulations to be more realistic, and vice-versa. Overall, we hit the goal: find the correlation between effective repulsion and variable initial conditions to improve the general understanding of polymers and their behaviour.</p>
+        
+      </section>
+      <section class="case__sec" data-reveal>
+        <h2 class="case__sec-h">Acknowledgements</h2>
+        <p>Dr. Poornima Padmanabhan — for guiding and teaching me throughout the research. RIT Honors Program — for the opportunity. Research Computing — for the computational resources.</p>
+        
+      </section>
+
+      <aside class="case__todos" data-reveal>
+        <h3 class="mono">Notes for Kambar</h3>
+        <p class="dim">Kept inline so they're easy to spot; remove these before sharing the link.</p>
+        <ul><li>Add WCA potential graph</li><li>Side-by-side phase-separation visualisations (T=2 vs T=5; ε=2 vs ε=3.5)</li><li>Letter of recommendation if you want it linked</li></ul>
+      </aside>
+      </div>
+      <aside class="case__specs" data-reveal>
+        <h3 class="mono dim">Spec sheet</h3>
+        <div class="case__spec"><span class="dim">Year</span><span>RIT undergrad</span></div>
+        <div class="case__spec"><span class="dim">Lab</span><span>Dr. Padmanabhan</span></div>
+        <div class="case__spec"><span class="dim">Stack</span><span>LAMMPS · RIT cluster</span></div>
+        <div class="case__spec"><span class="dim">Outcome</span><span>Honors research</span></div>
+      </aside>
+    </div>
+
+      <nav class="case__nav" data-reveal>
+        <a class="case__nav-prev" href="./printing.html">
+          <span class="mono dim">← Previous</span>
+          <span class="case__nav-title">3D Printing &amp; Fabrication</span>
+        </a>
+        <a class="case__nav-next" href="./flight-dynamics.html">
+          <span class="mono dim">Next →</span>
+          <span class="case__nav-title">Flight Dynamics Simulation</span>
+        </a>
+      </nav>
+    <footer class="foot">
+      <div class="foot__col"><span class="mono dim">© 2026 Kambar Mangibayev</span></div>
+      <div class="foot__col mono"><a href="../index.html" class="dim">Back to home</a></div>
+      <button class="foot__top mono" id="toTop" aria-label="Back to top">Back to top ↑</button>
+    </footer>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+  <script src="../assets/js/main.js" defer></script>
+</body>
+</html>

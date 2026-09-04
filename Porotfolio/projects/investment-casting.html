@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Additive Manufacturing &amp; Investment Casting — Kambar Mangibayev</title>
+  <meta name="description" content="Pour molten aluminium into a 3D-printed ceramic mold, get a metal water nozzle. Easy in a sentence — every step in between has a way to ruin the part." />
+  <meta name="theme-color" content="#f4ede0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..900,0..100,0..1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="cursor" aria-hidden="true"></div>
+  <div class="cursor-dot" aria-hidden="true"></div>
+
+  <header class="nav">
+    <a href="../index.html" class="nav__brand">
+      <span class="nav__mono">KM</span>
+      <span class="nav__sep">/</span>
+      <span class="nav__name">Kambar Mangibayev</span>
+    </a>
+    <nav class="nav__links" aria-label="primary">
+      <a href="../index.html#work">Work</a>
+      <a href="../index.html#projects">Projects</a>
+      <a href="../index.html#reel">Reel</a>
+      <a href="../index.html#about">About</a>
+      <a href="../index.html#contact" class="nav__cta">Contact</a>
+    </nav>
+    <div class="nav__time" aria-hidden="true">
+      <span class="dot"></span><span id="clock">— —</span>
+    </div>
+  </header>
+
+  <main class="case-wrap">
+    <a href="../index.html#projects" class="case__back mono" data-reveal>
+      ← Personal &amp; Academic
+    </a>
+    <header class="case__head">
+      <span class="mono dim" data-reveal>P·02 &nbsp;·&nbsp; AM · CFD · Casting</span>
+      <h1 class="case__title" data-reveal>Additive Manufacturing &amp; Investment Casting</h1>
+      <p class="case__tagline" data-reveal><em>Printing the mold, casting the metal — at the AMPrintCenter, RIT.</em></p>
+    </header>
+    <p class="case__lede" data-reveal>Pour molten aluminium into a 3D-printed ceramic mold, get a metal water nozzle. Easy in a sentence — every step in between has a way to ruin the part.</p>
+
+    <figure class="case__hero" data-reveal>
+      <img src="../assets/img/casting-1.jpg" alt="Additive Manufacturing &amp; Investment Casting" loading="eager" />
+      <figcaption class="case__media-cap mono dim">The water nozzle, in CAD. From this, everything else.</figcaption>
+    </figure>
+    <div class="case__body">
+      <div class="case__prose">
+      <section class="case__sec" data-reveal>
+        <h2 class="case__sec-h">Step 1 — start with a part</h2>
+        <p>I picked a water nozzle off the internet. Practical project to learn the full chain end-to-end.</p>
+        
+      </section>
+      <section class="case__sec" data-reveal>
+        <h2 class="case__sec-h">Step 2 — design the negative</h2>
+        <p>In Fusion 360 I built the negative mold around the part — pour holes at the top, drainage holes at the bottom, locating face on whatever side would print easiest. The most problematic geometry was a 90° overhang section, so I rotated the whole mold by 2°. The test prints of those problematic sections came out fine.</p>
+        
+        <figure class="case__sec-fig">
+          <img src="../assets/img/casting-2.jpg" alt="Cross-section of the mold (purple hatch). The two cylindrical cores are the inside of the nozzle; everything purple becomes ceramic. The 2° tilt is what keeps the overhang printable." loading="lazy" />
+          <figcaption class="case__media-cap mono dim">Cross-section of the mold (purple hatch). The two cylindrical cores are the inside of the nozzle; everything purple becomes ceramic. The 2° tilt is what keeps the overhang printable.</figcaption>
+        </figure>
+      </section>
+      <section class="case__sec" data-reveal>
+        <h2 class="case__sec-h">Step 3 — the lattice shell</h2>
+        <p>If you print the mold solid, it warps when it gets fired. If you print it hollow with a bad lattice, it shrinks unevenly and the geometry walks off. The fix is a lattice that's structurally even but still printable. I generated the cell pattern in nTopology — Truncated Octahedron, because it's not too crowded and most of its struts go vertical.</p>
+        
+        <figure class="case__sec-fig">
+          <img src="../assets/img/casting-3.jpg" alt="The lattice shell. Most of the struts run with gravity, which is what you want when the printer is depositing them." loading="lazy" />
+          <figcaption class="case__media-cap mono dim">The lattice shell. Most of the struts run with gravity, which is what you want when the printer is depositing them.</figcaption>
+        </figure>
+      </section>
+      <section class="case__sec" data-reveal>
+        <h2 class="case__sec-h">Step 4 — supports, then printing</h2>
+        <p>Generated supports for the shell, then printed the whole thing on a ceramic 3D printer. Print itself is still in progress.</p>
+        
+        <figure class="case__sec-fig">
+          <img src="../assets/img/casting-4.jpg" alt="Support generation — only what&#x27;s needed to keep the bottom faces from collapsing." loading="lazy" />
+          <figcaption class="case__media-cap mono dim">Support generation — only what&#x27;s needed to keep the bottom faces from collapsing.</figcaption>
+        </figure>
+      </section>
+      <section class="case__sec" data-reveal>
+        <h2 class="case__sec-h">Side quest — CFD: will the metal even fill it?</h2>
+        <p>Before we cast, the question is whether liquid aluminium will actually run all the way down through this geometry without freezing or trapping air. So we ran a transient CFD simulation. Two phase materials: air and liquid aluminium. Mold ~5 cm OD. Inlet velocity 0.1 m/s. Surface tension 1.09 N/m. Temperature 1273 K — that's the melting point of aluminium, just hotter. Even though the geometry isn't perfectly symmetric, we cut the model in half and assumed symmetry — fine for an approximate answer, and an order of magnitude cheaper to run.</p>
+        
+        <figure class="case__sec-fig">
+          <img src="../assets/img/casting-5.jpg" alt="CFD setup. Half-model, mesh refined where the metal turns sharp corners and where the air has to escape." loading="lazy" />
+          <figcaption class="case__media-cap mono dim">CFD setup. Half-model, mesh refined where the metal turns sharp corners and where the air has to escape.</figcaption>
+        </figure>
+      </section>
+
+      <aside class="case__todos" data-reveal>
+        <h3 class="mono">Notes for Kambar</h3>
+        <p class="dim">Kept inline so they're easy to spot; remove these before sharing the link.</p>
+        <ul><li>Add fired-mold photo when print finishes</li><li>Add the cast aluminium part at the end</li><li>Optional: CFD frame showing the metal front advancing</li></ul>
+      </aside>
+      </div>
+      <aside class="case__specs" data-reveal>
+        <h3 class="mono dim">Spec sheet</h3>
+        <div class="case__spec"><span class="dim">Year</span><span>RIT undergrad</span></div>
+        <div class="case__spec"><span class="dim">Lab</span><span>AMPrintCenter @ RIT</span></div>
+        <div class="case__spec"><span class="dim">Tools</span><span>Fusion · nTop · CFD</span></div>
+        <div class="case__spec"><span class="dim">Subject</span><span>Water nozzle</span></div>
+      </aside>
+    </div>
+
+      <nav class="case__nav" data-reveal>
+        <a class="case__nav-prev" href="./slicer.html">
+          <span class="mono dim">← Previous</span>
+          <span class="case__nav-title">3D Slicer &amp; G-code Generator</span>
+        </a>
+        <a class="case__nav-next" href="./printnc-build.html">
+          <span class="mono dim">Next →</span>
+          <span class="case__nav-title">PrintNC Build (CNC)</span>
+        </a>
+      </nav>
+    <footer class="foot">
+      <div class="foot__col"><span class="mono dim">© 2026 Kambar Mangibayev</span></div>
+      <div class="foot__col mono"><a href="../index.html" class="dim">Back to home</a></div>
+      <button class="foot__top mono" id="toTop" aria-label="Back to top">Back to top ↑</button>
+    </footer>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+  <script src="../assets/js/main.js" defer></script>
+</body>
+</html>

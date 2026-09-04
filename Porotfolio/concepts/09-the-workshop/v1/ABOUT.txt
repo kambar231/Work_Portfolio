@@ -1,0 +1,16 @@
+CONCEPT 09 — THE WORKSHOP  ·  v1   (a blend of 07 + 08)
+Created 2026-06-22
+
+"Something between v8 and v7." Takes Concept 08 (The Toolbox) structure and real
+interactions — DRAG drawers open, PICK UP a tool and DROP it in the vise to reveal
+the projects built with it — and re-skins it into Concept 07 (The Workbench)'s WARM
+world instead of 08's cool teal:
+  - Palette: warm ink #15110c, ember #e2531d, brass #e8a44a, bone #ece3d4, with
+    steel-blue #88a0ab as the cool secondary pop (07's accent).
+  - Soft static warm lamp glow + vignette + grain (no cursor flashlight).
+  - Live double-pendulum "soul," step-response detail overlays.
+  - King toolbox metaphor + real project photos retained.
+Type: Archivo + Fraunces + IBM Plex Mono. Self-contained index.html + ./assets.
+
+Built FROM 08/v3 (interactions kept). 07 and 08 left untouched.
+Immutable snapshot — iterate by copying to ../v2/.

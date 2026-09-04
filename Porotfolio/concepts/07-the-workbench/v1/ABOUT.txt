@@ -1,0 +1,17 @@
+CONCEPT 07 — THE WORKBENCH  ·  v1
+Created 2026-06-17
+
+Combines Concept 03 (The Bench) + Concept 01 (The Control Loop).
+A warm, filmic, lamp-lit workshop. Every object on the bench is a real project
+(real photos pulled from the portfolio folder, warm-graded to one filmic world).
+The living "soul" is a real double-pendulum (RK4 physics) + step-response reveals
+in each project — the Control-Loop DNA. Sense / Decide / Respond is the quiet
+narration, not an AI diagram.
+
+Palette is Kambar's own (from his Gemini light-painting prompts):
+  ink #16130e · ember #e2531d · steel #88a0ab · lamp brass #e8a44a · bone #ece3d4
+Type: Fraunces (voice/display) + IBM Plex Mono (instrument labels).
+Copy: human, specific, in his voice (see copy.md) — no "scroll to explore".
+
+Self-contained single index.html + ./assets (curated, graded real images).
+Open index.html by double-click. Immutable snapshot — iterate by copying to ../v2/.

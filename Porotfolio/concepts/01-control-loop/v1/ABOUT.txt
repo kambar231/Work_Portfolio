@@ -1,0 +1,11 @@
+CONCEPT 01 — THE CONTROL LOOP  ·  v1
+Created 2026-06-17
+
+The whole site behaves like a live feedback control system. The hero is a real
+ball-on-beam controller: your cursor is the setpoint, a PID controller tilts the
+beam to track you, overshooting and settling like a true second-order system.
+SENSE -> DECIDE -> RESPOND is literal. The About sliders (gain / damping) change
+the feel of the live loop. Case studies reveal as animated step responses.
+
+Self-contained single HTML file. Open index.html by double-click. No build step.
+Immutable snapshot — to iterate, copy this folder to ../v2/ and edit the copy.

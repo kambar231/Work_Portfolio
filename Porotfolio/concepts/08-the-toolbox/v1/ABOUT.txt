@@ -1,0 +1,20 @@
+CONCEPT 08 — THE TOOLBOX  ·  v1
+Created 2026-06-17
+
+A new revision (does NOT replace 07 The Workbench). Adds the Stephen King
+"On Writing" toolbox metaphor: you build a multi-tier toolbox over a lifetime,
+keep your most-used tools on top, and carry it so you're never empty-handed when
+the work appears. Here the site IS an engineer's tool chest — five drawers, top =
+what Kambar reaches for daily, bottom = the foundational tools earned slowly.
+Each drawer pulls open to reveal its TOOLS (skills) and the PROJECTS that came
+out of them (real photos). Live double-pendulum + step-response carry the
+control-loop soul from concept 01.
+
+Built against a deep-research anti-AI rubric (avoid: default fonts, neon gradients,
+glassmorphism, blobs, even card grids, "scroll to explore"; emulate: editorial
+type, asymmetry, restraint, real photography, one accent, weighted motion, an
+authored point of view). Type: Archivo (industrial display) + Fraunces (voice) +
+IBM Plex Mono (tool labels). Palette: Kambar's own ink/ember/steel/brass.
+
+Self-contained index.html + ./assets (real, warm-graded). King text is paraphrased
+(copyright-safe). Immutable snapshot — iterate by copying to ../v2/.

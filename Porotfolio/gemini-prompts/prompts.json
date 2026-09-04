@@ -1,0 +1,117 @@
+[
+  {
+    "id": "origin-hero",
+    "type": "image",
+    "slot": "Hero / Origin background — full-bleed behind the name. Keep right 2/3 dark for text.",
+    "model": "gemini-3-pro-image-preview",
+    "size": "2K",
+    "aspect_ratio": "16:9",
+    "generated_at": "2026-06-03T12:00:00",
+    "filename": "origin-hero_workshop_blue_hour_warm_ink_0.webp",
+    "prompt": "origin-hero :: real available-light wide interior photograph, the quiet before the work begins. a dim engineering workshop in the blue hour before dawn, shot wide and low. in the warm-ink darkness the silhouettes of a workbench, a machinist's vise, hand tools on a pegboard and the edge of a CNC machine recede into shadow. a SINGLE warm-orange task lamp in the LEFT third is the only light source and the only warm element, throwing a soft pool of burnt-orange (#e2531d) glow across machined surfaces and falling off quickly into deep espresso shadow toward the right. everything else is rendered in warm ink — espresso-black (#16130e) and umber (#1b1711) shadow, with faint bone-white (#ece4d6) rim highlights catching one steel edge. shot on Phase One IQ4 medium format, 35mm lens, f/2.8, ISO 200, 2 second brace-stabilized exposure, very subtle chromatic aberration at the edges, real photograph not CGI, natural sensor grain. IMPORTANT: leave the entire right two-thirds of the frame as calm negative space and shadow so large display text can sit over it; keep the exposure low-key and moody, no bright background, no window blowing out. editorial industrial still-life photography in the spirit of Todd Hido and early-morning factory reportage, calm, patient, anticipatory mood, no people, no text, no logos, no UI elements, no sparkles, no glowing dust, no lens flare."
+  },
+  {
+    "id": "build-cut",
+    "type": "image",
+    "slot": "Build section — feature still or card image for the CNC project.",
+    "model": "gemini-3-pro-image-preview",
+    "size": "2K",
+    "aspect_ratio": "16:10",
+    "generated_at": "2026-06-03T12:00:00",
+    "filename": "build-cut_endmill_aluminum_chips_macro_0.webp",
+    "prompt": "build-cut :: real high-speed macro photograph, the moment of cutting. extreme close-up of a carbide end mill biting into a block of brushed aluminum on a CNC router bed, three-quarter angle. a tight spray of hot metal chips arcs off the cutter, each chip a tiny spark of burnt-orange (#e2531d) and bone-white (#ece4d6) heat, frozen mid-air. the aluminum is cool brushed steel-grey (#88a0ab), the cutter and collet a dark machined silhouette, the background falls to espresso-black (#16130e) bokeh. one hard warm key light rakes from the right to catch the chip spray; everything else is warm-ink shadow. shot on Canon R5 with a 100mm macro, f/4, 1/2000s, ISO 400, very shallow depth of field with only the cutting edge tack-sharp, real photograph not CGI, natural grain, faint real motion blur on the flying chips. mood: precise, kinetic, hot. macro industrial photography, no people, no text, no logos, no UI, no CGI sheen, no exaggerated cartoon sparks, no lens flare."
+  },
+  {
+    "id": "simulate-trace",
+    "type": "image",
+    "slot": "Simulate section — drop into a sim card viz, or use as the section background. Pairs with the Double Pendulum.",
+    "model": "gemini-3-pro-image-preview",
+    "size": "2K",
+    "aspect_ratio": "1:1",
+    "generated_at": "2026-06-03T12:00:00",
+    "filename": "simulate-trace_double_pendulum_lightpaint_orange_0.webp",
+    "prompt": "simulate-trace :: real long-exposure light-painting photograph on a black studio background, physics made visible. a single LED tracer mounted on the tip of a swinging double pendulum draws ONE continuous chaotic looping ribbon of burnt-orange (#e2531d) light against a seamless warm-ink (#16130e) backdrop. the orange trail is a thin, sharply-in-focus atmospheric line, brightest where the pendulum moved slowly and faintly motion-blurred where it whipped fast, knotting over itself in an elegant unrepeatable tangle in the centre of the frame. one faint secondary trail in muted steel-blue (#88a0ab) ghosts behind it from a slower swing. no apparatus visible, only the light. shot on Nikon Z8, 50mm, f/8, ISO 64, 12 second exposure in a blacked-out room, real photograph not CGI, natural sensor noise, true light falloff. mood: scientific, meditative, beautiful. in the spirit of long-exposure light-painting and oscilloscope photography, perfectly centered with generous black negative space around the trail, no text, no logos, no UI, no glowing dust, no extra sparkles, no lens flare."
+  },
+  {
+    "id": "deploy-sense",
+    "type": "image",
+    "slot": "Deploy section — feature still beside the Raymond role copy.",
+    "model": "gemini-3-pro-image-preview",
+    "size": "2K",
+    "aspect_ratio": "16:9",
+    "generated_at": "2026-06-03T12:00:00",
+    "filename": "deploy-sense_warehouse_dusk_sensor_sweep_0.webp",
+    "prompt": "deploy-sense :: real cinematic wide photograph, the system at work. the interior of a large industrial warehouse at dusk, long aisles of racking receding into warm-ink shadow. in the mid-ground an industrial reach-truck (generic, completely unbranded) sits in a low pool of light. a SINGLE thin fan of burnt-orange (#e2531d) sensor light sweeps forward from the truck across the concrete floor, and at the far edge of that fan a small human silhouette stands in the aisle, caught in the beam. the orange sweep is the only warm element and the clear focal point — a clean thin volumetric plane of light, not a glowing cloud. everything else is espresso-black (#16130e) and umber shadow with cool steel-blue (#88a0ab) ambient from high windows, faint bone-white highlights on the racking edges. shot on Sony A7S III, 24mm, f/2.8, ISO 1600, real low-light photograph not CGI, natural high-ISO grain, subtle haze in the air making the sensor plane just visible. mood: tense, watchful, safe. cinematic industrial reportage, no text, no logos, no readable branding, no UI overlays, no sci-fi HUD, no lens flare."
+  },
+  {
+    "id": "texture-layers",
+    "type": "image",
+    "slot": "Any section background / divider — seamless macro texture behind text.",
+    "model": "gemini-3-pro-image-preview",
+    "size": "2K",
+    "aspect_ratio": "16:9",
+    "generated_at": "2026-06-03T12:00:00",
+    "filename": "texture-layers_3dprint_layer_lines_macro_0.webp",
+    "prompt": "texture-layers :: real extreme macro photograph for a section background. the gently curving wall of a 3D-printed part filling the whole frame, raking warm light across hundreds of fine horizontal print layer-lines so they read like topographic contours or brushed sediment. the plastic is a warm bone-paper tone (#ece4d6) shifting to umber (#6f6553) in the grooves, lit by a single low burnt-orange (#e2531d) grazing light from the left that warms the ridges and pools shadow between layers. shot on Canon R5, 100mm macro, f/8 focus-stacked, ISO 100, every layer tack-sharp, real photograph not CGI, natural grain. IMPORTANT: this is a seamless texture meant to sit quietly behind text — keep it even and low-contrast edge to edge, no focal subject, no horizon line, the layer-lines run gently diagonally and continue past all four edges. abstract industrial macro, no people, no text, no logos, no UI, no sparkles, no lens flare."
+  },
+  {
+    "id": "build-loop-cnc",
+    "type": "video",
+    "slot": "Build viewport (9:16) — could replace or sit behind the scroll-scrubbed CNC frames.",
+    "model": "veo-3.1-generate-preview",
+    "resolution": "1080p",
+    "aspect_ratio": "9:16",
+    "duration_seconds": 8,
+    "generated_at": "2026-06-03T12:00:00",
+    "filename": "build-loop-cnc_spindle_cut_vertical_0.mp4",
+    "prompt": "build-loop :: 8-second seamless-loop macro video clip, vertical. extreme close-up of a CNC spindle plunging and tracing a cut through a block of brushed aluminum, slow and deliberate. a steady curl of hot chips peels off the cutter, glinting burnt-orange (#e2531d) and bone-white (#ece4d6). the camera holds a slow, almost imperceptible push-in. brushed steel-blue (#88a0ab) metal, dark machined tooling, espresso-black (#16130e) background, one warm key light from the right. realistic machine motion and the real sound of cutting, shallow depth of field, only the cutting edge sharp. real cinematography not CGI, subtle handheld micro-movement, natural grain. LOOPABLE: begin and end on the same framing and lighting so it cycles invisibly. no text, no logos, no UI, no exaggerated cartoon sparks, no fake slow-motion, no lens flare. vertical 9:16."
+  },
+  {
+    "id": "build-loop-print",
+    "type": "video",
+    "slot": "Build section — small ambient loop on the 3D-printing card.",
+    "model": "veo-3.1-generate-preview",
+    "resolution": "1080p",
+    "aspect_ratio": "16:9",
+    "duration_seconds": 8,
+    "generated_at": "2026-06-03T12:00:00",
+    "filename": "build-loop-print_nozzle_filament_macro_0.mp4",
+    "prompt": "print-loop :: 8-second seamless-loop macro video, the nozzle laying a line. extreme close-up of a 3D printer hot-end extruding a glowing-warm bead of filament that cools from burnt-orange (#e2531d) to bone-white (#ece4d6) as it is laid down in a neat row on the print bed. the nozzle tracks slowly left to right; the camera is locked off, macro, shallow depth of field. warm-ink (#16130e) background, one soft warm light, faint steel-blue (#88a0ab) fill. realistic extrusion motion and the faint hum of stepper motors. real cinematography not CGI, natural grain, subtle focus breathing. LOOPABLE. no text, no logos, no UI, no sparks, no lens flare. 16:9 1080p."
+  },
+  {
+    "id": "hero-orbit",
+    "type": "video",
+    "slot": "Hero ambient loop or section transition — a single hero object.",
+    "model": "veo-3.1-generate-preview",
+    "resolution": "1080p",
+    "aspect_ratio": "16:9",
+    "duration_seconds": 8,
+    "generated_at": "2026-06-03T12:00:00",
+    "filename": "hero-orbit_machined_part_turntable_0.mp4",
+    "prompt": "hero-orbit :: 8-second slow seamless-loop video, a single machined part turning. a precision-machined metal component (an unbranded aluminum bracket or turbine-like disc) rotates very slowly on its axis against a seamless warm-ink (#16130e) studio background, lit by one soft key from the upper-left that travels across the brushed steel-blue (#88a0ab) surface, and one thin burnt-orange (#e2531d) rim light tracing the edge as it turns. cinematic, weighty, product-film quality. real cinematography not CGI, true reflections, gentle film grain, shallow depth of field. LOOPABLE: a slow oscillation or full turn that returns exactly to the start. mood: confident, premium, engineered. no text, no logos, no UI, no sparkles, no lens flare, no busy background. 16:9 1080p."
+  },
+  {
+    "id": "signal-thread",
+    "type": "video",
+    "slot": "Section transition — visualizes the sense → decide → respond spine.",
+    "model": "veo-3.1-generate-preview",
+    "resolution": "1080p",
+    "aspect_ratio": "16:9",
+    "duration_seconds": 8,
+    "generated_at": "2026-06-03T12:00:00",
+    "filename": "signal-thread_orange_line_through_machine_0.mp4",
+    "prompt": "signal-thread :: 8-second cinematic video, one line of light moving through a machine. the camera glides slowly through the dark interior of industrial machinery — rails, bearings, wiring looms in espresso-black (#16130e) and steel-blue (#88a0ab) shadow — following a SINGLE thin thread of burnt-orange (#e2531d) light that travels along the components from left to right like a live signal passing through a control system. the thread is a clean sharp atmospheric line (not a glowing rope), the only warm element and always the focal point. shallow depth of field, slow dolly, faint haze. real cinematography not CGI, natural grain, subtle bokeh on background lights. mood: precise, alive — sense, decide, respond. LOOPABLE. no text, no logos, no UI, no sci-fi HUD, no sparkles, no lens flare. 16:9 1080p."
+  },
+  {
+    "id": "deploy-clip",
+    "type": "video",
+    "slot": "Deploy section — the safety system in action.",
+    "model": "veo-3.1-generate-preview",
+    "resolution": "1080p",
+    "aspect_ratio": "16:9",
+    "duration_seconds": 8,
+    "generated_at": "2026-06-03T12:00:00",
+    "filename": "deploy-clip_warehouse_sensor_brake_0.mp4",
+    "prompt": "deploy-clip :: 8-second cinematic video, the safety system acting. a wide low shot inside a dim warehouse at dusk; an unbranded industrial reach-truck moves slowly down an aisle. a thin fan of burnt-orange (#e2531d) sensor light sweeps the floor ahead; a small human silhouette steps into the aisle at the edge of the beam; the truck smoothly slows and stops, the orange sweep steadying on the figure. espresso-black (#16130e) shadow, cool steel-blue (#88a0ab) window light, faint volumetric haze making the sensor plane just visible. realistic motion, faint warehouse ambience and a soft brake sound. real cinematography not CGI, natural low-light grain. mood: tense, then safe. no readable branding, no text, no UI overlay, no sci-fi HUD, no lens flare. 16:9 1080p."
+  }
+]

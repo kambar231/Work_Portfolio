@@ -1,0 +1,38 @@
+CONCEPT 04 — ENGINEERING TERMINAL / KambarOS  ·  v1
+Created 2026-06-17
+
+The site boots like a machine: a short, tasteful POST sequence
+(SENSE... DECIDE... RESPOND... [OK], "Loading control_systems.sys", a
+progress bar) resolves into "KambarOS" — a faux operating system you
+explore by a working terminal OR by clicking icons and windows.
+
+Design philosophy: CLICK-FIRST, TYPE-OPTIONAL. Every action has a visible
+icon or button so a non-technical recruiter is never gatekept; the terminal
+is a power-user accelerator for engineers who would rather type.
+
+What's inside:
+- Skippable boot sequence (auto-skips on return via an in-memory flag).
+- A real terminal: command parsing, tab-autocomplete, up-arrow history,
+  blinking caret. Commands: help, whoami, ls, ls /raymond|/rit|/amprint|
+  /personal, open <project>, cat <project>, about, experience, contact,
+  resume, clear, tour, and a warm `sudo hire` easter egg.
+- A desktop with folder/file icons mirroring the filesystem
+  (/raymond, /rit, /amprint, /personal) for people who would rather click.
+- Project windows: draggable, focusable, closable, with the standard
+  Problem -> Approach -> The control loop -> Result layout plus stack tags.
+- TWO live canvas mini-sims that prove capability: an actual animated
+  chaotic Double Pendulum (real physics, lazy-initialized) and a Flight
+  Dynamics attitude / step-response visualizer.
+- Persistent top bar with always-visible Resume + About, plus one-click Tour
+  that auto-runs commands with brief narration.
+
+Accessibility / robustness:
+- Honors prefers-reduced-motion (skips boot, calms motion, content stays
+  fully available).
+- Mobile drops draggable windows for a clean stacked app-drawer; tapping an
+  icon opens a full-screen project sheet; terminal is collapsible.
+- No localStorage/sessionStorage — all state lives in JS variables.
+- No external images; every visual is canvas or CSS. Fonts via Google Fonts.
+
+Self-contained single HTML file. Open index.html by double-click. No build step.
+Immutable snapshot — to iterate, copy this folder to ../v2/ and edit the copy.

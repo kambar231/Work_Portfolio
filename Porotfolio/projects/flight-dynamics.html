@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Flight Dynamics Simulation — Kambar Mangibayev</title>
+  <meta name="description" content="A cool project from a Flight Dynamics course at RIT — simulating aircraft response to different conditions in Simulink and MATLAB. Similar code shows up in the analysis of the experimental X-62 VISTA fighter jet." />
+  <meta name="theme-color" content="#f4ede0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..900,0..100,0..1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="cursor" aria-hidden="true"></div>
+  <div class="cursor-dot" aria-hidden="true"></div>
+
+  <header class="nav">
+    <a href="../index.html" class="nav__brand">
+      <span class="nav__mono">KM</span>
+      <span class="nav__sep">/</span>
+      <span class="nav__name">Kambar Mangibayev</span>
+    </a>
+    <nav class="nav__links" aria-label="primary">
+      <a href="../index.html#work">Work</a>
+      <a href="../index.html#projects">Projects</a>
+      <a href="../index.html#reel">Reel</a>
+      <a href="../index.html#about">About</a>
+      <a href="../index.html#contact" class="nav__cta">Contact</a>
+    </nav>
+    <div class="nav__time" aria-hidden="true">
+      <span class="dot"></span><span id="clock">— —</span>
+    </div>
+  </header>
+
+  <main class="case-wrap">
+    <a href="../index.html#projects" class="case__back mono" data-reveal>
+      ← Personal &amp; Academic
+    </a>
+    <header class="case__head">
+      <span class="mono dim" data-reveal>P·06 &nbsp;·&nbsp; Simulink · MATLAB</span>
+      <h1 class="case__title" data-reveal>Flight Dynamics Simulation</h1>
+      <p class="case__tagline" data-reveal><em>Aircraft response, in Simulink — same kind of analysis as the X-62 VISTA testbed.</em></p>
+    </header>
+    <p class="case__lede" data-reveal>A cool project from a Flight Dynamics course at RIT — simulating aircraft response to different conditions in Simulink and MATLAB. Similar code shows up in the analysis of the experimental X-62 VISTA fighter jet.</p>
+
+    <figure class="case__hero" data-reveal>
+      <img src="../assets/img/flight-dynamics.png" alt="Flight Dynamics Simulation" loading="eager" />
+      <figcaption class="case__media-cap mono dim">The X-62 VISTA. Same kind of analysis runs on it; this project is the small-scale, in-class version of that.</figcaption>
+    </figure>
+    <div class="case__body">
+      <div class="case__prose">
+      <section class="case__sec" data-reveal>
+        <h2 class="case__sec-h">What you simulate</h2>
+        <p>Trim conditions, stick steps, rudder steps, aileron steps, all at a fixed time step in ode45. For each one, you log true velocity, pitch rate, roll rate, yaw rate, angle of attack, sideslip, and Euler angles. Then you replay it against a quaternion model and compare.</p>
+        
+        <figure class="case__sec-fig">
+          <img src="../assets/img/flight-1.jpg" alt="The brief — six maneuvers, six datasets. Quaternions on the right, Euler angles on the left, same inputs." loading="lazy" />
+          <figcaption class="case__media-cap mono dim">The brief — six maneuvers, six datasets. Quaternions on the right, Euler angles on the left, same inputs.</figcaption>
+        </figure>
+      </section>
+      <section class="case__sec" data-reveal>
+        <h2 class="case__sec-h">How it&#x27;s wired up</h2>
+        <p>A quaternion model in Simulink, driven by inputs from MATLAB. Nine aircraft were simulated across the same conditions; only the quaternion runs are shown because they're the reliable ones.</p>
+        
+        <figure class="case__sec-fig">
+          <img src="../assets/img/flight-2.jpg" alt="The Simulink quaternion model. Inputs in, attitude out, telemetry to the workspace." loading="lazy" />
+          <figcaption class="case__media-cap mono dim">The Simulink quaternion model. Inputs in, attitude out, telemetry to the workspace.</figcaption>
+        </figure>
+      </section>
+      <section class="case__sec" data-reveal>
+        <h2 class="case__sec-h">Results</h2>
+        <p>These results can be compared directly against actual data collected from aircraft testing — a pilot is asked to fly different conditions, and the simulation either matches or it doesn't. If the control system isn't behaving the way it's expected to, the comparison will show it.</p>
+        
+        <figure class="case__sec-fig">
+          <img src="../assets/img/flight-3.jpg" alt="Telemetry preview from one of the runs. The shape of the response curves is what you compare against the pilot data." loading="lazy" />
+          <figcaption class="case__media-cap mono dim">Telemetry preview from one of the runs. The shape of the response curves is what you compare against the pilot data.</figcaption>
+        </figure>
+      </section>
+      <section class="case__sec" data-reveal>
+        <h2 class="case__sec-h">Why quaternion over Euler</h2>
+        <p>Euler angles are useful — intuitive, easy to read. The downside is gimbal lock: a phenomenon where two rotational axes line up and you lose a degree of freedom, plus you get mathematical singularities that make the integration blow up. Quaternions avoid that, at the cost of being less intuitive to read.</p>
+        
+      </section>
+
+      <aside class="case__todos" data-reveal>
+        <h3 class="mono">Notes for Kambar</h3>
+        <p class="dim">Kept inline so they're easy to spot; remove these before sharing the link.</p>
+        <ul><li>Add Euler-vs-quaternion overlay plot</li><li>Optional: writeup PDF link</li></ul>
+      </aside>
+      </div>
+      <aside class="case__specs" data-reveal>
+        <h3 class="mono dim">Spec sheet</h3>
+        <div class="case__spec"><span class="dim">Year</span><span>RIT coursework</span></div>
+        <div class="case__spec"><span class="dim">Stack</span><span>Simulink · MATLAB</span></div>
+        <div class="case__spec"><span class="dim">Models</span><span>9 aircraft / scenarios</span></div>
+        <div class="case__spec"><span class="dim">Status</span><span>Complete</span></div>
+      </aside>
+    </div>
+
+      <nav class="case__nav" data-reveal>
+        <a class="case__nav-prev" href="./polymer-lithography.html">
+          <span class="mono dim">← Previous</span>
+          <span class="case__nav-title">Polymer Lithography Simulation</span>
+        </a>
+        <a class="case__nav-next" href="./double-pendulum.html">
+          <span class="mono dim">Next →</span>
+          <span class="case__nav-title">Double Pendulum Experiment</span>
+        </a>
+      </nav>
+    <footer class="foot">
+      <div class="foot__col"><span class="mono dim">© 2026 Kambar Mangibayev</span></div>
+      <div class="foot__col mono"><a href="../index.html" class="dim">Back to home</a></div>
+      <button class="foot__top mono" id="toTop" aria-label="Back to top">Back to top ↑</button>
+    </footer>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+  <script src="../assets/js/main.js" defer></script>
+</body>
+</html>

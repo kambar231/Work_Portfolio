@@ -1,0 +1,93 @@
+CONCEPT 02 — "SENSE · DECIDE · RESPOND" CINEMATIC BOOT
+Kambar Mangibayev · Portfolio concept · v1
+===========================================================
+
+WHAT THIS IS
+A single-page, scroll-driven cinematic portfolio that boots like a
+system powering on, then assembles a six-stage narrative as you scroll,
+ending in an interactive project hub. One self-contained index.html —
+no build step, opens by double-clicking.
+
+THE EXPERIENCE
+1. BOOT GATE — A terminal-style power-on sequence logs the system
+   coming online ("calibrating sensors... OK", "arming response
+   pipeline... OK") and fills a progress bar. An "Enter System" button
+   appears when ready. Clicking it dissolves the gate and the persistent
+   HUD (top brand bar + left-side phase rail 00–05 + Hub) fades in.
+
+2. HERO (00 BOOT) — The wordmark "Kambar Mangibayev" self-assembles
+   letter by letter like the first frame of a film, then the thesis
+   "SENSE · DECIDE · RESPOND" resolves, followed by his title line.
+   "Scroll to explore" cue with an animated drip line.
+
+3. PHASED NARRATIVE — each phase is pinned with one clear focal motion
+   and a telemetry HUD label (e.g. "PHASE 03 // BUILD"):
+     01 ORIGIN     — Semey, KZ -> US (2016) -> RIT. An SVG arc draws
+                     itself from point to point on a minimal map.
+     02 FOUNDATION — BS + MEng Mechanical Eng @ RIT (controls), AMPrint
+                     Center, Polymer Lithography (LAMMPS). Layers stack
+                     and flip from "CALIBRATING" to "CALIBRATED".
+     03 BUILD      — Self-built PrintNC CNC + Python slicer/G-code. A
+                     gantry assembles from flying-in parts and a toolpath
+                     traces itself.
+     04 SIMULATE   — Double Pendulum, Vacuum Cannon (1.52 m), Flight
+                     Dynamics (9 aircraft, MATLAB/Simulink, Euler +
+                     quaternion), Saturn V F-1 nozzle FEA (Ansys, 7.5M
+                     lb). Four cards with self-drawing canvas plots
+                     (chaotic trace, velocity ramp, attitude spirals,
+                     FEA stress bands).
+     05 DEPLOY     — Mechanical Systems Engineer @ The Raymond
+                     Corporation (2024–present): pedestrian detection,
+                     automated braking, performance-stability; sensor
+                     fusion, machine vision, embedded C, CAN. The system
+                     "goes live" with a pulsing LIVE indicator.
+
+4. HUB — An interactive constellation grid of 7 clickable project nodes.
+   Each opens a modal with the standard layout: Problem -> My role ->
+   How it works (Sense/Decide/Respond loop) -> Impact -> Stack & tools,
+   plus its own animated canvas visual. CTA strip with Email, Phone, and
+   Resume buttons; footer with full contact details.
+
+DESIGN SYSTEM (shared family look)
+- Dark cinematic engineered: base #0a0b0d, panels #12151a, text #eef2f6,
+  dim #9aa6b2, lines #1c2128 / #2a313b.
+- ONE accent: electric scope-green #5ee6a8 (amber #ffb454 only as a
+  secondary/warning tone in the FEA visual).
+- Fonts: Space Grotesk (display) + JetBrains Mono (HUD/telemetry labels),
+  loaded from Google Fonts CDN.
+- Subtle blueprint grid texture, vignette, thin 1px rules, faint
+  scanline overlay. Generous negative space; weighty, ease-heavy motion
+  (never bouncy).
+
+TECH
+- One self-contained index.html. All CSS/JS inline.
+- CDN only for: Google Fonts, GSAP + ScrollTrigger (scroll-scrubbed pins
+  and timelines), and Lenis (smooth scroll).
+- All visuals are generative SVG + HTML5 canvas — no external image
+  dependencies, so it renders identically anywhere, including offline
+  after fonts/libs cache.
+- Persistent scroll progress bar (top) and phase rail (left) track
+  position; rail items are clickable for navigation.
+
+ACCESSIBILITY & RESPONSIVENESS
+- Respects prefers-reduced-motion: a static fallback renders the FULL
+  story (all phases visible, plots drawn complete, layers shown stacked)
+  and auto-enters past the boot gate so nothing is gated behind motion.
+- Also degrades gracefully if GSAP/Lenis fail to load.
+- Fully responsive; tuned for mobile (rail hides, grids collapse to one
+  column, hero scales) since reviews happen on phone.
+- Modal closes via X, backdrop click, or Escape.
+
+CONTENT
+All copy is real, drawn from the provided brief — no lorem ipsum, no
+fabricated metrics. Contact: kambarmangibayev@gmail.com /
++1 585-309-9467, Rochester, NY.
+
+NOTES / CAVEATS
+- Resume button shows a contact prompt (no resume PDF was provided);
+  swap in a real file link when available.
+- Visuals are intentional schematic/telemetry abstractions of each
+  project rather than photos; the assets folder images were deliberately
+  NOT linked to keep the file fully self-contained and portable.
+- Requires a network connection on first load for the CDN fonts and
+  libraries; once cached it runs offline.
