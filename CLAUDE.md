@@ -39,6 +39,7 @@ Work_Portfolio/
 ├── index.html           # THE portfolio. Plain list. Single file, no build step. (root = GitHub Pages)
 ├── assets/              # images/videos used by index.html (copied from Porotfolio/assets, curated)
 └── Porotfolio/          # SOURCE MATERIAL from earlier attempts. Read-only reference, do not edit.
+    ├── README.md, VERSIONS.md, STORYBOARD.md, PORTFOLIO_BUILD_BRIEF.md  # earlier briefs / bio facts
     ├── index.html + work/*.html + projects/*.html   # v1: editorial site; work/ = Raymond Corp
     │                                                # case studies, projects/ = RIT/personal projects
     ├── assets/img, assets/video                      # curated images + 3 mp4 reels (v1 assets)
