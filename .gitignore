@@ -17,3 +17,7 @@ Thumbs.db
 # The whole scratch dir is ignored; the study .md lives in docs/ and hover.py is already tracked.
 docs/pleurat-film/
 webgen-shots/
+
+# film tool scratch output
+webgen-film/
+webgen-shots/
