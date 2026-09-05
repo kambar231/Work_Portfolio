@@ -4,531 +4,1087 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Kambar Mangibayev, Portfolio</title>
-<meta name="description" content="Portfolio of Kambar Mangibayev, mechanical systems and controls engineer. Vehicle systems, hydraulics, machine vision, FEA, and personal build and simulation projects." />
+<meta name="description" content="Portfolio of Kambar Mangibayev, mechanical systems and controls engineer. Each project is shown as designed, analyzed, built, and proved, with the pictures and test results behind it." />
 <style>
+  :root {
+    --accent: #15607a;
+    --ink: #14181b;
+    --muted: #5a636a;
+    --line: #e4e7ea;
+    --card: #f7f8f9;
+  }
   * { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    color: #111;
+    color: var(--ink);
     background: #fff;
     margin: 0;
-    line-height: 1.5;
+    line-height: 1.55;
   }
-  .wrap {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 40px 24px 80px;
-  }
-  header.site {
-    padding-bottom: 8px;
-  }
-  h1 {
-    font-size: 30px;
-    margin: 0 0 4px;
-    letter-spacing: -0.01em;
-  }
-  .title-line {
-    font-size: 17px;
-    margin: 0 0 2px;
-  }
-  .location {
-    color: #555;
+  img { max-width: 100%; }
+  a { color: var(--accent); }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 44px 24px 90px; }
+
+  /* header */
+  .head-flex { display: flex; gap: 32px; align-items: flex-start; }
+  .portrait { flex: 0 0 200px; max-width: 200px; }
+  .portrait img { width: 100%; display: block; border: 1px solid var(--line); border-radius: 6px; }
+  .head-text { min-width: 0; }
+  h1 { font-size: 32px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .title-line { font-size: 17px; margin: 0 0 2px; color: var(--ink); }
+  .location { color: var(--muted); font-size: 15px; margin: 0 0 14px; }
+  .bio { max-width: 66ch; margin: 0 0 14px; }
+  .links a { margin-right: 18px; display: inline-block; font-weight: 600; }
+
+  /* how to read */
+  .howto {
+    margin: 26px 0 6px;
+    padding: 16px 20px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
     font-size: 15px;
-    margin: 0 0 16px;
+    max-width: 78ch;
   }
-  header.site p.bio {
-    max-width: 70ch;
-    margin: 0 0 16px;
-  }
-  .head-flex {
-    display: flex;
-    gap: 28px;
-    align-items: flex-start;
-  }
-  .head-flex .portrait {
-    flex: 0 0 210px;
-    max-width: 210px;
-  }
-  .head-flex .portrait img {
-    width: 100%;
-    display: block;
-    border: 1px solid #ddd;
-  }
-  .head-flex .head-text {
-    min-width: 0;
-  }
-  .links a {
-    color: #111;
-    margin-right: 18px;
-    display: inline-block;
-  }
-  .skills {
-    color: #333;
-    font-size: 14px;
-    margin-top: 14px;
-    max-width: 80ch;
-  }
-  .skills b { color: #111; }
+  .howto b { color: var(--accent); }
+
+  /* nav */
+  nav.anchors { margin: 22px 0 10px; font-size: 14px; }
+  nav.anchors a { margin-right: 20px; font-weight: 600; text-decoration: none; }
+  nav.anchors a:hover { text-decoration: underline; }
+
+  /* sections */
   h2.section {
     font-size: 22px;
-    margin: 48px 0 8px;
-    border-bottom: 2px solid #111;
+    margin: 54px 0 6px;
+    border-bottom: 2px solid var(--ink);
     padding-bottom: 6px;
   }
-  h2.section .count {
-    font-weight: normal;
-    font-size: 14px;
-    color: #666;
-    margin-left: 8px;
-  }
+  h2.section .count { font-weight: normal; font-size: 14px; color: var(--muted); margin-left: 8px; }
+  .section-lead { color: var(--muted); font-size: 15px; margin: 0 0 6px; max-width: 78ch; }
+
+  /* entry card */
   .entry {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 22px 26px;
+    margin: 22px 0;
+  }
+  .entry h3 { font-size: 20px; margin: 0 0 3px; }
+  .entry .meta { color: var(--muted); font-size: 14px; margin: 0 0 12px; }
+  .stat {
+    font-weight: 700;
+    font-size: 17px;
+    color: var(--accent);
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+  .lede { margin: 0 0 14px; max-width: 74ch; }
+
+  /* step block */
+  .step {
     display: grid;
-    grid-template-columns: 40% 60%;
-    gap: 28px;
-    align-items: start;
+    grid-template-columns: 116px 1fr;
+    gap: 22px;
+    padding: 16px 0;
+    border-top: 1px solid var(--line);
   }
-  .entry .media img,
-  .entry .media video {
-    max-width: 100%;
-    display: block;
-    margin-bottom: 10px;
-    border: 1px solid #ddd;
-  }
-  .entry .media .noimg {
-    color: #888;
-    font-size: 13px;
-    border: 1px dashed #ccc;
-    padding: 16px;
-  }
-  .entry .body h3 {
-    font-size: 19px;
-    margin: 0 0 4px;
-  }
-  .entry .body .meta {
-    color: #555;
-    font-size: 14px;
-    margin: 0 0 10px;
-  }
-  .entry .body p {
-    margin: 0 0 10px;
-  }
-  .entry .body .tools {
-    font-size: 14px;
-    color: #333;
-  }
-  .entry .body .tools b { color: #111; }
-  .cap {
+  .step:first-of-type { border-top: none; padding-top: 4px; }
+  .step-label {
     font-size: 12px;
-    color: #777;
-    margin: -6px 0 12px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    padding-left: 12px;
+    border-left: 3px solid var(--accent);
+    align-self: start;
   }
-  hr {
-    border: none;
-    border-top: 1px solid #ccc;
-    margin: 32px 0;
+  .step-body { min-width: 0; }
+  .step-body p { margin: 0 0 8px; max-width: 72ch; }
+  .step-body p.gap { color: var(--muted); font-style: italic; margin-bottom: 0; }
+  .tools { font-size: 14px; color: var(--muted); margin: 4px 0 0; }
+  .tools b { color: var(--ink); }
+
+  /* media */
+  .media { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0 2px; align-items: flex-start; }
+  .media figure { margin: 0; }
+  .media img { height: 178px; width: auto; display: block; border: 1px solid var(--line); border-radius: 4px; background: #fff; }
+  .media video { width: 100%; max-width: 520px; border: 1px solid var(--line); border-radius: 4px; display: block; }
+  .media figcaption { font-size: 12px; color: var(--muted); margin-top: 5px; max-width: 320px; }
+  .media.wide video { max-width: 560px; }
+
+  /* websites */
+  .sites { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin-top: 14px; }
+  .site-card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .site-card img { width: 100%; height: 180px; object-fit: cover; display: block; border-bottom: 1px solid var(--line); }
+  .site-card .site-body { padding: 14px 18px 16px; }
+  .site-card h3 { margin: 0 0 4px; font-size: 18px; }
+  .site-card h3 a { text-decoration: none; }
+  .site-card p { margin: 0 0 8px; font-size: 14px; }
+  .site-card.noimg .placeholder {
+    height: 180px; display: flex; align-items: center; justify-content: center;
+    background: #eef1f3; color: var(--muted); font-size: 13px; border-bottom: 1px solid var(--line);
+    letter-spacing: 0.08em; text-transform: uppercase;
   }
-  footer {
-    margin-top: 56px;
-    color: #666;
-    font-size: 13px;
-  }
-  a { color: #111; }
-  @media (max-width: 700px) {
-    .entry { grid-template-columns: 1fr; gap: 14px; }
-    h1 { font-size: 26px; }
+
+  /* mini entries */
+  .mini { padding: 14px 20px; border: 1px solid var(--line); border-radius: 6px; background: #fff; margin: 12px 0; }
+  .mini h3 { margin: 0 0 2px; font-size: 16px; }
+  .mini .meta { color: var(--muted); font-size: 13px; margin: 0 0 6px; }
+  .mini p { margin: 0; font-size: 14px; }
+
+  /* education */
+  .edu-grid { display: grid; grid-template-columns: 150px 1fr; gap: 8px 22px; font-size: 15px; margin-top: 12px; }
+  .edu-grid dt { font-weight: 700; color: var(--accent); }
+  .edu-grid dd { margin: 0; }
+  .edu-grid dd + dt { margin-top: 6px; }
+
+  footer { margin-top: 60px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; }
+  footer a { font-weight: 600; }
+
+  @media (max-width: 720px) {
+    .head-flex { flex-direction: column; gap: 18px; }
+    .portrait { flex-basis: 160px; max-width: 160px; }
+    .step { grid-template-columns: 1fr; gap: 8px; }
+    .step-label { padding-left: 10px; }
+    .sites { grid-template-columns: 1fr; }
+    .edu-grid { grid-template-columns: 1fr; gap: 2px; }
+    .edu-grid dd { margin-bottom: 8px; }
+    h1 { font-size: 27px; }
+    .media img { height: 150px; }
   }
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <header class="site">
+  <header class="site" id="top">
    <div class="head-flex">
     <div class="portrait">
       <img src="assets/kambar-portrait.jpg" alt="Portrait photo of Kambar Mangibayev" />
     </div>
     <div class="head-text">
-    <h1>Kambar Mangibayev</h1>
-    <p class="title-line">Mechanical Systems Engineer, Controls. The Raymond Corporation.</p>
-    <p class="location">Rochester, New York</p>
-    <p class="bio">
-      I am a mechanical engineer originally from Semey, Kazakhstan. I came to the United States in 2016
-      and earned my BS and MEng in Mechanical Engineering from the Rochester Institute of Technology,
-      with a concentration in controls engineering. I now design, implement, and validate
-      electromechanical and control systems for industrial vehicles at The Raymond Corporation. The
-      through line across my work is building systems that sense, decide, and respond in the real world.
-    </p>
-    <p class="links">
-      <a href="mailto:kambarmangibayev@gmail.com">kambarmangibayev@gmail.com</a>
-      <a href="tel:+15853099467">+1 585-309-9467</a>
-      <a href="https://github.com/kambar231">GitHub</a>
-    </p>
-    <p class="skills">
-      <b>Skills:</b> Python, MATLAB, Simulink, Embedded C, CAN. FEA and fatigue, CFD, GD&amp;T, DFMA,
-      functional safety. Machine vision and ML perception. CNC, 3D printing, additive manufacturing.
-    </p>
+      <h1>Kambar Mangibayev</h1>
+      <p class="title-line">Mechanical Systems Engineer, Controls. The Raymond Corporation.</p>
+      <p class="location">Binghamton and Rochester, New York</p>
+      <p class="bio">
+        I'm a mechanical systems engineer from Semey, Kazakhstan. I moved to the United States in 2016, and I
+        earned a BS and an MEng in mechanical engineering from RIT with a controls concentration. At The Raymond
+        Corporation I build the electromechanical and control systems that let an industrial vehicle read its own
+        load and act on it. This page walks each thing I've worked on through the same four steps: what I designed,
+        how I analyzed it, what I actually built, and how I know it works. Where there's no photo, I say so instead
+        of padding it.
+      </p>
+      <p class="links">
+        <a href="mailto:kambar231@gmail.com">kambar231@gmail.com</a>
+        <a href="tel:+15853099467">+1 585-309-9467</a>
+        <a href="https://github.com/kambar231">GitHub</a>
+      </p>
     </div>
    </div>
+
+   <div class="howto">
+     Each entry runs through four steps. <b>Designed</b> is the CAD and the sketches. <b>Analyzed</b> is the math,
+     the FEA, and the simulation. <b>Built</b> is the physical hardware or the working code. <b>Proved</b> is the
+     test result and the number, or an honest note when the proof is a photo I don't have yet. The picture that
+     backs each step sits inside that step.
+   </div>
+
+   <nav class="anchors">
+     <a href="#work">Work</a>
+     <a href="#projects">Projects</a>
+     <a href="#websites">Websites</a>
+     <a href="#education">Education and awards</a>
+   </nav>
   </header>
 
-  <h2 class="section">Work <span class="count">The Raymond Corporation, industrial vehicle systems</span></h2>
+  <!-- ============================ WORK ============================ -->
+  <h2 class="section" id="work">Work <span class="count">The Raymond Corporation, 2024 to present</span></h2>
+  <p class="section-lead">
+    Industrial vehicle systems. Most of this work ships on production trucks, so several entries carry an honest
+    note where the hardware or the plot is proprietary rather than a picture I can post.
+  </p>
 
+  <!-- Performance Stability -->
   <div class="entry">
-    <div class="media">
-      <video controls preload="metadata" poster="assets/raymond-poster.jpg">
-        <source src="assets/raymond.mp4" type="video/mp4" />
-        Your browser does not support embedded video.
-      </video>
-      <p class="cap">Raymond Corporation side view brand animation, After Effects loop.</p>
+    <h3>Performance Stability System</h3>
+    <p class="meta">Lead engineer, stability and controls. 2024. Embedded C, MATLAB, CAN.</p>
+    <p class="stat">+14% system performance. -10% battery draw.</p>
+    <p class="lede">
+      A control system that holds a heavy vehicle steady under an unbalanced or shifting load, without pulling
+      performance back when it's safe to push. The whole job was finding the line between spilling a load and
+      over-limiting an operator who needs the speed.
+    </p>
+    <div class="step">
+      <div class="step-label">Designed</div>
+      <div class="step-body">
+        <p>
+          I mapped the two failure zones first: the operator who can't feel a tip coming, and the safety logic so
+          conservative it removes speed the operator actually needs. The controller sits between them, reading load
+          state off the CAN bus and deciding moment by moment how much performance to allow.
+        </p>
+      </div>
     </div>
-    <div class="body">
-      <h3>Performance Stability System</h3>
-      <p class="meta">Lead engineer, stability and controls. 2024.</p>
-      <p>
-        A control system that supports operators in unstable conditions without taking the vehicle out
-        from under them when it is safe to push. Heavy vehicles handling unbalanced or shifting loads sit
-        in two danger zones: when the operator cannot feel a problem coming, and when an over conservative
-        safety system removes performance the operator actually needs. The job was to find the line between
-        them, preventing load spillage while keeping performance available.
-      </p>
-      <p class="tools"><b>Tools:</b> Embedded C, MATLAB, CAN.</p>
+    <div class="step">
+      <div class="step-label">Analyzed</div>
+      <div class="step-body">
+        <p>
+          I ran PID tuning across the electric and hydraulic subsystems, lift and drive and steering, to cut lag
+          and keep the response stable as the load changed. A static stability tool I wrote forecasts the outcome
+          of the ANSI/ITSDF B56.1 tip tests, so we could evaluate a design before building it.
+        </p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-label">Built</div>
+      <div class="step-body">
+        <p>The logic runs on the production vehicle controller and talks to the drivetrain over CAN.</p>
+        <div class="media">
+          <figure>
+            <video controls preload="none" poster="assets/raymond-poster.jpg">
+              <source src="assets/raymond.mp4" type="video/mp4" />
+              Your browser does not support embedded video.
+            </video>
+            <figcaption>The vehicle class this runs on. Brand animation, After Effects loop.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-label">Proved</div>
+      <div class="step-body">
+        <p>Measured against the prior baseline, the system delivered 14% better performance and 10% less battery draw.</p>
+        <p class="gap">No field plot to post. The number is the deliverable, and it's on the resume.</p>
+      </div>
     </div>
   </div>
 
-  <hr />
-
+  <!-- SEnS+ -->
   <div class="entry">
-    <div class="media">
-      <img src="assets/sens-plus-flyer.jpg" alt="Smart Environment Sensor Plus product flyer showing the stereoscopic camera sensor" />
+    <h3>Smart Environment Sensor Plus (SEnS+)</h3>
+    <p class="meta">Lead engineer, machine vision and braking. 2022. Stereo cameras, ML perception, regenerative braking.</p>
+    <p class="lede">
+      Stereoscopic camera detection for pedestrians and obstacles, wired straight into regenerative braking. The
+      perception isn't a beep on a screen. It's a braking action inside the vehicle safety stack.
+    </p>
+    <div class="step">
+      <div class="step-label">Designed</div>
+      <div class="step-body">
+        <p>
+          I designed the sensing chain around a stereo camera pair, dynamic zoning that changes the alert region
+          with vehicle speed and path, and control logic that turns a detection into a brake demand. The hard part
+          was telling a person from a stack of pallets, because a false positive costs throughput and a false
+          negative costs a life.
+        </p>
+      </div>
     </div>
-    <div class="body">
-      <h3>Smart Environment Sensor Plus (SEnS+)</h3>
-      <p class="meta">Lead engineer, machine vision and braking. 2022.</p>
-      <p>
-        Stereoscopic camera detection for pedestrians and obstacles, integrated directly with regenerative
-        braking. The perception is not a notification, it is an action wired into the vehicle safety stack.
-        Pedestrian aware perception is well understood in passenger cars, but less so in industrial machines,
-        where false positives cost throughput and false negatives cost lives. SEnS+ had to tell a person from
-        a stack of pallets in real time, then turn that detection into measurable braking force.
-      </p>
-      <p class="tools"><b>Tools:</b> Stereo cameras, ML perception, regenerative brake demand.</p>
+    <div class="step">
+      <div class="step-label">Analyzed</div>
+      <div class="step-body">
+        <p>
+          Pedestrian perception is solved in passenger cars and much rougher in a warehouse, so the analysis was
+          about where the vision model fails and how to zone around it. I tuned the detection zones against the
+          vehicle's stopping behavior so the brake assist triggers with room to stop.
+        </p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-label">Built</div>
+      <div class="step-body">
+        <p>The sensor and its logic went into a shipping product.</p>
+        <div class="media">
+          <figure>
+            <img loading="lazy" src="assets/sens-plus-flyer.jpg" alt="Smart Environment Sensor Plus product flyer showing the stereoscopic camera sensor mounted on a vehicle" />
+            <figcaption>SEnS+ product sheet. The stereo sensor unit as shipped.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-label">Proved</div>
+      <div class="step-body">
+        <p>Detection drives regenerative braking automatically, so an operator who misses a pedestrian still gets the stop.</p>
+        <p class="gap">Detection-rate and stopping-distance figures are internal. I can walk through them in an interview.</p>
+      </div>
     </div>
   </div>
 
-  <hr />
-
+  <!-- Hydraulic Weight Sensing -->
   <div class="entry">
-    <div class="media">
-      <p class="noimg">No image in source material for this entry.</p>
+    <h3>Hydraulic Weight Sensing</h3>
+    <p class="meta">Lead engineer, hydraulics and signal processing. 2023. Inline pressure transducers, signal processing.</p>
+    <p class="lede">
+      The vehicle weighs its own load. Pressure transducers built into the hydraulic manifold read the lift
+      pressure, and signal processing turns that into a live weight on the operator display.
+    </p>
+    <div class="step">
+      <div class="step-label">Designed</div>
+      <div class="step-body">
+        <p>
+          Instead of a separate scale or a known stop, I put the sensing where the force already is: transducers
+          inline in the hydraulic manifold. Weighing then happens continuously off hardware the vehicle already
+          carries.
+        </p>
+      </div>
     </div>
-    <div class="body">
-      <h3>Hydraulic Weight Sensing</h3>
-      <p class="meta">Lead engineer, hydraulics and signal processing. 2023.</p>
-      <p>
-        Real time load weighing using pressure transducers built into the hydraulic manifold. It drives
-        operator display feedback and automatic speed reduction once the load crosses the rated envelope.
-        Overloaded vehicles are a leading cause of preventable damage to product, machine, and operator, and
-        conventional weighing needs a known stop or a separate scale. The aim was to make weighing happen
-        continuously and invisibly, using the hydraulics already on the vehicle.
-      </p>
-      <p class="tools"><b>Tools:</b> Inline pressure transducers, signal processing, operator display and speed governor.</p>
+    <div class="step">
+      <div class="step-label">Analyzed</div>
+      <div class="step-body">
+        <p>
+          I wrote the signal processing that converts manifold pressure into load weight, filtering out the noise
+          from lift motion and hydraulic transients so the reading settles instead of jumping.
+        </p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-label">Built</div>
+      <div class="step-body">
+        <p class="gap">No photo. The transducers sit inside the manifold on production hydraulics.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-label">Proved</div>
+      <div class="step-body">
+        <p>
+          The weight feeds the operator display, and once a load crosses the rated envelope the system reduces
+          speed on its own. Overloading is a top cause of preventable damage to product, machine, and operator, and
+          this catches it before the lift.
+        </p>
+      </div>
     </div>
   </div>
 
-  <hr />
-
+  <!-- Steer Differentiation -->
   <div class="entry">
-    <div class="media">
-      <p class="noimg">No image in source material for this entry.</p>
+    <h3>Steer Differentiation System</h3>
+    <p class="meta">Lead engineer, sensors and geometry. 2024. AC steering control, CAN bus.</p>
+    <p class="lede">
+      AC steering control logic that lets the drive tires steer at different rates, tightening the turn without
+      making the machine feel twitchy. It cut turning radius and tire wear.
+    </p>
+    <div class="step">
+      <div class="step-label">Designed</div>
+      <div class="step-body">
+        <p>
+          I developed the AC steering control logic for drive-tire steer differentiation, using higher sensor
+          resolution to refine the steering geometry in real time. The design target was a tighter handling
+          envelope that still preserved the operator's feel for the machine.
+        </p>
+      </div>
     </div>
-    <div class="body">
-      <h3>Steer Differentiation System</h3>
-      <p class="meta">Lead engineer, sensors and geometry. 2024.</p>
-      <p>
-        Real time refinement of steering geometry using high fidelity sensor resolution, giving tighter
-        handling envelopes without compromising the operator feel for the machine. Steering systems on
-        industrial vehicles usually trade resolution for robustness: the sensors are coarse and the controllers
-        compensate with smoothing. That works until you want to fuse steering data with stability or perception
-        systems that need cleaner inputs. The goal here was to lift the resolution floor.
-      </p>
-      <p class="tools"><b>Tools:</b> High resolution sensors, CAN bus.</p>
+    <div class="step">
+      <div class="step-label">Analyzed</div>
+      <div class="step-body">
+        <p>
+          Industrial steering usually trades resolution for robustness, so the sensors are coarse and the
+          controller smooths over them. That falls apart once you want to fuse steering data into stability or
+          perception systems that need clean inputs, so I worked on lifting the resolution floor.
+        </p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-label">Built</div>
+      <div class="step-body">
+        <p class="gap">The control logic runs on shipping trucks over CAN. No standalone photo of a control law.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-label">Proved</div>
+      <div class="step-body">
+        <p>Differentiating the steer angle across the drive tires reduced the turning radius and reduced tire wear.</p>
+      </div>
     </div>
   </div>
 
-  <hr />
-
+  <!-- Interface Logic -->
   <div class="entry">
-    <div class="media">
-      <p class="noimg">No image in source material for this entry.</p>
+    <h3>Interface Logic and Access Control</h3>
+    <p class="meta">Lead engineer, HMI and safety. 2023. Role-aware state machine, HMI design.</p>
+    <p class="lede">
+      A rebuild of the vehicle menu system around safety classes and operator access levels. The interface itself
+      decides which controls are reachable, based on who's driving and what the vehicle is doing.
+    </p>
+    <div class="step">
+      <div class="step-label">Designed</div>
+      <div class="step-body">
+        <p>
+          I re-architected the menu as a role-aware state machine. A fleet manager, a technician, and an operator
+          each see a different reachable set, so the right action is obvious and the wrong one is hard to reach.
+        </p>
+      </div>
     </div>
-    <div class="body">
-      <h3>Interface Logic and Access Control</h3>
-      <p class="meta">Lead engineer, HMI and safety. 2023.</p>
-      <p>
-        A re architecture of the vehicle menu system around safety classes and operator access levels. The
-        interface itself decides which controls are reachable, given who is driving and what the vehicle is
-        doing. Industrial vehicle interfaces accumulate options over years, until the menu becomes a hazard
-        surface in itself. The redesign brief was to stop showing operators controls they should not touch,
-        and stop burying the controls technicians need.
-      </p>
-      <p class="tools"><b>Tools:</b> Role aware state machine, HMI design.</p>
+    <div class="step">
+      <div class="step-label">Analyzed</div>
+      <div class="step-body">
+        <p>
+          Industrial interfaces pile up options over years until the menu becomes its own hazard surface. I worked
+          through which controls an operator should never touch and which ones technicians were having to dig for.
+        </p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-label">Built</div>
+      <div class="step-body">
+        <p class="gap">The redesigned interface shipped. Screens are internal product UI, so no screenshot here.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-label">Proved</div>
+      <div class="step-body">
+        <p>
+          Operators stopped seeing controls they shouldn't touch, and technicians stopped hunting for the ones they
+          need. The access rules also feed the functional safety case for the vehicle.
+        </p>
+      </div>
     </div>
   </div>
 
-  <hr />
-
+  <!-- Structural Frame -->
   <div class="entry">
-    <div class="media">
-      <p class="noimg">No image in source material for this entry.</p>
+    <h3>Structural Frame Redesign</h3>
+    <p class="meta">Lead engineer, FEA and fatigue. 2022. FEA, strain-gauge validation.</p>
+    <p class="lede">
+      A tractor frame redesigned from the welds up for infinite fatigue life, and for a distinctive look at the
+      same time. FEA drove it, and strain gauges in the field confirmed it.
+    </p>
+    <div class="step">
+      <div class="step-label">Designed</div>
+      <div class="step-body">
+        <p>
+          Fatigue cracks were showing up late in service, after the warranty window but inside what a customer
+          expects the truck to last. I redesigned the frame so the failure mode was engineered out rather than
+          pushed further down the road, while giving it the look the product team wanted.
+        </p>
+      </div>
     </div>
-    <div class="body">
-      <h3>Structural Frame Redesign</h3>
-      <p class="meta">Lead engineer, FEA and fatigue. 2022.</p>
-      <p>
-        A tractor frame redesigned from the welds up for infinite fatigue life. It was FEA driven and
-        validated with strain gauges in the field, so failure modes were designed out before they reached
-        customers. Frame fatigue cracks had been appearing late in service life, after the warranty window but
-        well inside the customer expectation of useful life. Each one was a service event and a brand event, so
-        the fix had to remove the failure mode entirely rather than push it further down the road.
-      </p>
-      <p class="tools"><b>Tools:</b> FEA, strain gauge validation.</p>
+    <div class="step">
+      <div class="step-label">Analyzed</div>
+      <div class="step-body">
+        <p>
+          FEA drove the geometry, targeting infinite fatigue life at the weld details where the cracks had been
+          starting. I also ran statistical analysis on how design and control changes affect component longevity
+          and replacement frequency.
+        </p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-label">Built</div>
+      <div class="step-body">
+        <p class="gap">No photo. The redesigned frame is on production trucks.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-label">Proved</div>
+      <div class="step-body">
+        <p>
+          Strain gauges on the physical frame in the field validated the model, so the fix was confirmed against
+          real loads instead of only in simulation.
+        </p>
+      </div>
     </div>
   </div>
 
-  <h2 class="section">Projects <span class="count">RIT, research, and personal</span></h2>
+  <!-- ============================ PROJECTS ============================ -->
+  <h2 class="section" id="projects">Projects <span class="count">RIT, research, and personal</span></h2>
+  <p class="section-lead">
+    Coursework, honors research, and things I built at home. These are where the pictures and the plots live, since
+    nothing here is proprietary.
+  </p>
 
+  <!-- Slicer -->
   <div class="entry">
-    <div class="media">
-      <video controls preload="metadata" poster="assets/slicer-poster.jpg">
-        <source src="assets/slicer.mp4" type="video/mp4" />
-        Your browser does not support embedded video.
-      </video>
-      <img src="assets/slicer-stl-viewer.jpg" alt="Custom STL viewer showing a 3D model on the build plate" />
-      <img src="assets/slicer-stl-detail.jpg" alt="Slicer viewer close up at 0.2 mm layer height with the model hull on the build plate grid" />
-      <img src="assets/slicer-layer-plot.jpg" alt="Slicer layer outlines with current and next layer walls overlaid" />
-      <img src="assets/slicer-software.jpg" alt="Screenshot of the custom Python slicer software interface" />
+    <h3>3D Slicer and G-code Generator</h3>
+    <p class="meta">Personal, 2025 to 2026. Python, PyQt, Matplotlib.</p>
+    <p class="lede">
+      An STL to G-code pipeline written from scratch in Python, because off-the-shelf slicers won't let you slice
+      the way I wanted. The question I care about, what happens when the layer planes aren't horizontal, lives
+      below their abstractions.
+    </p>
+    <div class="step">
+      <div class="step-label">Designed</div>
+      <div class="step-body">
+        <p>
+          I built a small pipeline that exposes every stage instead of hiding it. You load an STL, set a layer
+          height and resolution, then slice and generate G-code, and each stage shows its own intermediate state.
+        </p>
+        <div class="media">
+          <figure>
+            <img loading="lazy" src="assets/slicer-software.jpg" alt="Screenshot of the custom Python slicer software interface" />
+            <figcaption>The slicer UI, built in PyQt.</figcaption>
+          </figure>
+          <figure>
+            <img loading="lazy" src="assets/slicer-stl-viewer.jpg" alt="Custom STL viewer showing a 3D model on the build plate" />
+            <figcaption>Custom STL viewer, model on the build plate.</figcaption>
+          </figure>
+        </div>
+      </div>
     </div>
-    <div class="body">
-      <h3>3D Slicer and G-code Generator</h3>
-      <p class="meta">Personal, Python and 3D printing. 2025 to 2026.</p>
-      <p>
-        An STL to G-code pipeline written from first principles in Python, because off the shelf slicers do not
-        let you slice the way I wanted to. The interesting question, what happens when the layer planes are not
-        horizontal, lives below their abstractions, so I built a smaller pipeline that exposes every stage. You
-        load an STL, set a layer height and resolution, then slice and generate G-code, and each stage emits and
-        shows its own intermediate state. It is the foundation for a research effort on support reduction through
-        tilted or curved slicing planes.
-      </p>
-      <p class="tools"><b>Tools:</b> Python, PyQt, Matplotlib.</p>
+    <div class="step">
+      <div class="step-label">Analyzed</div>
+      <div class="step-body">
+        <p>Every layer is computed and drawn, so I can see the wall paths and check the geometry at each height.</p>
+        <div class="media">
+          <figure>
+            <img loading="lazy" src="assets/slicer-layer-plot.jpg" alt="Slicer layer outlines with current and next layer walls overlaid" />
+            <figcaption>Current and next layer walls, overlaid.</figcaption>
+          </figure>
+          <figure>
+            <img loading="lazy" src="assets/slicer-stl-detail.jpg" alt="Slicer viewer close up at 0.2 mm layer height on the build plate grid" />
+            <figcaption>Close up at 0.2 mm layer height.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-label">Built</div>
+      <div class="step-body">
+        <p>The working program slices a real STL and writes G-code end to end.</p>
+        <div class="media wide">
+          <figure>
+            <video controls preload="none" poster="assets/slicer-poster.jpg">
+              <source src="assets/slicer.mp4" type="video/mp4" />
+              Your browser does not support embedded video.
+            </video>
+            <figcaption>Load, slice, and generate, recorded from the running app.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-label">Proved</div>
+      <div class="step-body">
+        <p>
+          It generates usable G-code from an arbitrary STL. It's the foundation for a research effort on cutting
+          support material with tilted or curved slicing planes, which is the reason I wrote my own in the first place.
+        </p>
+      </div>
     </div>
   </div>
 
-  <hr />
-
+  <!-- Investment Casting -->
   <div class="entry">
-    <div class="media">
-      <img src="assets/casting-1.jpg" alt="Water nozzle part in CAD" />
-      <img src="assets/casting-2.jpg" alt="Cross section of the ceramic mold with cores and the tilt for printability" />
-      <img src="assets/casting-3.jpg" alt="Truncated octahedron lattice shell generated for the mold" />
-      <img src="assets/casting-4.jpg" alt="Support generation for the ceramic mold shell" />
-      <img src="assets/casting-5.jpg" alt="Transient CFD setup showing the half model mesh for the metal fill" />
+    <h3>Additive Manufacturing and Investment Casting</h3>
+    <p class="meta">RIT, AMPrint Center. Fusion 360, nTopology, CFD.</p>
+    <p class="lede">
+      Pour molten aluminium into a 3D printed ceramic mold and get a metal water nozzle back out. The trick is
+      keeping the printed mold both printable and strong enough not to warp when it's fired.
+    </p>
+    <div class="step">
+      <div class="step-label">Designed</div>
+      <div class="step-body">
+        <p>
+          In Fusion 360 I built the negative mold around the part, pour holes at the top and drainage at the bottom,
+          then rotated the whole mold 2 degrees so a 90 degree overhang section stayed printable. To stop the shell
+          warping in the kiln, I generated a truncated-octahedron lattice in nTopology so most struts run vertical
+          with the print direction.
+        </p>
+        <div class="media">
+          <figure><img loading="lazy" src="assets/casting-1.jpg" alt="Water nozzle part modeled in CAD" /><figcaption>The part: a water nozzle.</figcaption></figure>
+          <figure><img loading="lazy" src="assets/casting-2.jpg" alt="Cross section of the ceramic mold with cores and the 2 degree tilt for printability" /><figcaption>Mold cross section, cores and 2 degree tilt.</figcaption></figure>
+          <figure><img loading="lazy" src="assets/casting-3.jpg" alt="Truncated octahedron lattice shell generated in nTopology for the mold" /><figcaption>Truncated-octahedron lattice shell.</figcaption></figure>
+          <figure><img loading="lazy" src="assets/casting-4.jpg" alt="Support generation for the ceramic mold shell" /><figcaption>Support generation for the shell.</figcaption></figure>
+        </div>
+      </div>
     </div>
-    <div class="body">
-      <h3>Additive Manufacturing and Investment Casting</h3>
-      <p class="meta">RIT, AMPrint Center. Additive manufacturing, CFD, casting.</p>
-      <p>
-        Pour molten aluminium into a 3D printed ceramic mold and get a metal water nozzle. In Fusion 360 I built
-        the negative mold around the part, with pour holes at the top and drainage at the bottom, and rotated the
-        whole mold by 2 degrees so a 90 degree overhang section stayed printable. To stop the mold warping when
-        fired, I generated a truncated octahedron lattice shell in nTopology, so most struts run vertical with the
-        print direction. Before casting, a transient CFD simulation with air and liquid aluminium at 1273 K checked
-        whether the metal would fill the geometry without freezing or trapping air.
-      </p>
-      <p class="tools"><b>Tools:</b> Fusion 360, nTopology, CFD.</p>
+    <div class="step">
+      <div class="step-label">Analyzed</div>
+      <div class="step-body">
+        <p>
+          Before committing metal, I ran a transient CFD simulation with air and liquid aluminium at 1273 K to
+          check whether the pour would fill the geometry without freezing early or trapping air.
+        </p>
+        <div class="media">
+          <figure><img loading="lazy" src="assets/casting-5.jpg" alt="Transient CFD setup showing the half model mesh for the metal fill" /><figcaption>Transient CFD, half-model mesh of the fill.</figcaption></figure>
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-label">Built</div>
+      <div class="step-body">
+        <p class="gap">The mold prints and the pour is designed. I don't have a clean photo of the finished cast nozzle yet.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-label">Proved</div>
+      <div class="step-body">
+        <p>
+          The CFD showed a complete fill before any aluminium was melted, which is the whole point of simulating a
+          pour: you find the cold shut or the trapped-air pocket on the screen, not in a ruined mold.
+        </p>
+      </div>
     </div>
   </div>
 
-  <hr />
-
+  <!-- PrintNC -->
   <div class="entry">
-    <div class="media">
-      <video controls preload="metadata" poster="assets/cnc-poster.jpg">
-        <source src="assets/cnc.mp4" type="video/mp4" />
-        Your browser does not support embedded video.
-      </video>
-      <img src="assets/cnc-build.jpg" alt="PrintNC CNC router build with welded steel frame and assembled gantry" />
-      <img src="assets/cnc-bed.jpg" alt="Finished PrintNC on the bench with the full work area and gantry in view" />
-      <p class="cap">The finished machine, 1200 by 800 mm work area with the water cooled spindle on the gantry.</p>
-      <img src="assets/cnc-render.jpg" alt="PrintNC reference CAD render" />
-      <img src="assets/cnc-cut-rough.jpg" alt="First rough test cut of initials in an MDF spoilboard" />
-      <img src="assets/cnc-cut-clean.jpg" alt="Cleaner second pass of the cut letters with vertical walls" />
-      <img src="assets/cnc-cut-warm.jpg" alt="The same cut lit warm showing the finished tool path" />
+    <h3>PrintNC Build (CNC Router)</h3>
+    <p class="meta">Personal, operational. Fusion 360, welded steel frame, 2.2 kW water-cooled spindle, VFD.</p>
+    <p class="lede">
+      An industrial-grade CNC router I built on the third floor of an apartment. Heavy steel frame for rigidity,
+      3D printed parts for alignment, 1200 by 800 mm of work area, and it holds plus or minus 0.1 mm.
+    </p>
+    <div class="step">
+      <div class="step-label">Designed</div>
+      <div class="step-body">
+        <p>I worked from the PrintNC reference design in Fusion 360, sizing the frame and gantry for the cut area I wanted.</p>
+        <div class="media">
+          <figure><img loading="lazy" src="assets/cnc-render.jpg" alt="PrintNC reference CAD render of the router" /><figcaption>Reference CAD render.</figcaption></figure>
+        </div>
+      </div>
     </div>
-    <div class="body">
-      <h3>PrintNC Build (CNC)</h3>
-      <p class="meta">Personal, manufacturing and CNC. Operational.</p>
-      <p>
-        An industrial grade CNC router built on the third floor of an apartment, using a heavy steel frame for
-        rigidity and 3D printed parts for precision alignment. The work area is 1200 by 800 mm, the spindle is a
-        2.2 kW water cooled high frequency unit, and the machine holds a tolerance of plus or minus 0.1 mm. I cut
-        and tapped the steel members, then integrated the spindle and VFD with a dedicated EMI line filter,
-        shielded cabling, and a single star ground to keep electrical noise out of the logic circuits. It now cuts
-        parts for downstream projects.
-      </p>
-      <p class="tools"><b>Tools:</b> Fusion 360, steel frame, 2.2 kW water cooled spindle, VFD.</p>
+    <div class="step">
+      <div class="step-label">Analyzed</div>
+      <div class="step-body">
+        <p>
+          Rigidity comes from the steel, so I cut and tapped the members for a stiff frame. The 2.2 kW spindle and
+          its VFD throw a lot of electrical noise, so I planned a dedicated EMI line filter, shielded cabling, and a
+          single star ground to keep that noise out of the logic circuits.
+        </p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-label">Built</div>
+      <div class="step-body">
+        <p>Welded steel frame, assembled gantry, water-cooled spindle, wired and running.</p>
+        <div class="media">
+          <figure><img loading="lazy" src="assets/cnc-build.jpg" alt="PrintNC CNC router build with welded steel frame and assembled gantry" /><figcaption>Frame and gantry assembled.</figcaption></figure>
+          <figure><img loading="lazy" src="assets/cnc-bed.jpg" alt="Finished PrintNC on the bench with the full work area and gantry in view" /><figcaption>The finished machine on the bench.</figcaption></figure>
+          <figure>
+            <video controls preload="none" poster="assets/cnc-poster.jpg">
+              <source src="assets/cnc.mp4" type="video/mp4" />
+              Your browser does not support embedded video.
+            </video>
+            <figcaption>Cutting under power.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-label">Proved</div>
+      <div class="step-body">
+        <p>It cuts. The first pass was rough, the second came out with clean vertical walls, and the machine now cuts parts for other projects.</p>
+        <div class="media">
+          <figure><img loading="lazy" src="assets/cnc-cut-rough.jpg" alt="First rough test cut of initials in an MDF spoilboard" /><figcaption>First rough test cut.</figcaption></figure>
+          <figure><img loading="lazy" src="assets/cnc-cut-clean.jpg" alt="Cleaner second pass of the cut letters with vertical walls" /><figcaption>Cleaner second pass, vertical walls.</figcaption></figure>
+          <figure><img loading="lazy" src="assets/cnc-cut-warm.jpg" alt="The finished cut lit warm showing the tool path" /><figcaption>The finished cut.</figcaption></figure>
+        </div>
+      </div>
     </div>
   </div>
 
-  <hr />
-
+  <!-- 3D Printing -->
   <div class="entry">
-    <div class="media">
-      <img src="assets/magsafe-stand-hero.jpg" alt="3D printed MagSafe phone stand in white PLA" />
-      <img src="assets/magsafe-stand-paired.jpg" alt="MagSafe stand on a bedside table next to a lamp" />
-      <img src="assets/magsafe-stand-detail.jpg" alt="Top down view of the MagSafe stand with concentric ribs" />
-      <img src="assets/motor-exploded.jpg" alt="Exploded view of the 3D printed electric motor showing all four pieces" />
-      <img src="assets/motor-stator.jpg" alt="Close up of the printed stator with hand wound copper windings" />
-      <img src="assets/motor-shaft.jpg" alt="Assembled 3D printed motor balanced on its bearing with the shaft out" />
-      <img src="assets/motor-desk.jpg" alt="Early arrangement of the motor parts on a desk" />
-      <img src="assets/motor-study.jpg" alt="Study of the 3D printed motor assembly" />
+    <h3>3D Printing and Fabrication</h3>
+    <p class="meta">Personal, ongoing. Started at RIT. FDM printing, PLA and PETG, CAD, Arduino.</p>
+    <p class="lede">
+      Printing started as a hobby and turned into how I engineer: iterate fast, prototype early, learn by building.
+      As a broke college student, every print felt like printing with diamonds, so each one had to count.
+    </p>
+    <div class="step">
+      <div class="step-label">Designed</div>
+      <div class="step-body">
+        <p>
+          I designed an electric motor from scratch, inspired by Christoph Laimer, with a printed stator and rotor
+          and copper wound by hand around the teeth.
+        </p>
+        <div class="media">
+          <figure><img loading="lazy" src="assets/motor-exploded.jpg" alt="Exploded view of the 3D printed electric motor showing all four pieces" /><figcaption>Exploded view of the motor.</figcaption></figure>
+          <figure><img loading="lazy" src="assets/motor-desk.jpg" alt="Early arrangement of the motor parts on a desk" /><figcaption>Parts laid out early on.</figcaption></figure>
+        </div>
+      </div>
     </div>
-    <div class="body">
-      <h3>3D Printing and Fabrication</h3>
-      <p class="meta">Personal, ongoing. Started at RIT.</p>
-      <p>
-        3D printing started as a hobby and became a foundation for how I engineer: iterate fast, prototype early,
-        and learn by building. As a broke college student, every print felt like printing with diamonds, so each
-        iteration had to count. I designed an electric motor from scratch, inspired by Christoph Laimer, with a
-        printed stator and rotor and copper wound by hand around the teeth. The prototype runs but overheats,
-        because several load bearing parts are PLA that softens under temperature, and the fix is PETG or PA-CF for
-        the structural pieces. The same practice produced an Iron Man MK7 helmet finished through sanding, filler,
-        and paint, and a MagSafe stand for my wife that costs about 4 dollars of PLA against a 69 dollar store version.
-      </p>
-      <p class="tools"><b>Tools:</b> FDM printing, PLA and PETG, CAD, Arduino and SG90 servos.</p>
+    <div class="step">
+      <div class="step-label">Analyzed</div>
+      <div class="step-body">
+        <p>
+          The prototype runs but overheats. Several load-bearing parts are PLA, which softens under temperature, so
+          the honest fix is PETG or PA-CF for the structural pieces. That's the finding, not a footnote.
+        </p>
+        <div class="media">
+          <figure><img loading="lazy" src="assets/motor-study.jpg" alt="Study of the 3D printed motor assembly" /><figcaption>Assembly study.</figcaption></figure>
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-label">Built</div>
+      <div class="step-body">
+        <p>
+          I wound the stator by hand and assembled the motor on its bearing. The same practice produced a MagSafe
+          stand for my wife and an Iron Man MK7 helmet finished through sanding, filler, and paint.
+        </p>
+        <div class="media">
+          <figure><img loading="lazy" src="assets/motor-stator.jpg" alt="Close up of the printed stator with hand wound copper windings" /><figcaption>Hand-wound stator.</figcaption></figure>
+          <figure><img loading="lazy" src="assets/motor-shaft.jpg" alt="Assembled 3D printed motor balanced on its bearing with the shaft out" /><figcaption>Assembled on its bearing.</figcaption></figure>
+          <figure><img loading="lazy" src="assets/magsafe-stand-hero.jpg" alt="3D printed MagSafe phone stand in white PLA" /><figcaption>MagSafe stand, printed in PLA.</figcaption></figure>
+          <figure><img loading="lazy" src="assets/magsafe-stand-detail.jpg" alt="Top down view of the MagSafe stand with concentric ribs" /><figcaption>Concentric ribs, top down.</figcaption></figure>
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-label">Proved</div>
+      <div class="step-body">
+        <p>
+          The motor spins, which proved the geometry and the hand winding work even though the material choice
+          doesn't. The MagSafe stand costs about 4 dollars of PLA against a 69 dollar store version, and it's on my
+          wife's bedside table.
+        </p>
+        <div class="media">
+          <figure><img loading="lazy" src="assets/magsafe-stand-paired.jpg" alt="MagSafe stand in use on a bedside table next to a lamp" /><figcaption>In use at home.</figcaption></figure>
+        </div>
+      </div>
     </div>
   </div>
 
-  <hr />
-
+  <!-- Polymer Lithography -->
   <div class="entry">
-    <div class="media">
-      <img src="assets/polymer-1.jpg" alt="Block copolymer chains in a simulation cell before phase separation" />
-      <img src="assets/polymer-2.jpg" alt="Diagram of block copolymer shapes including spheres, lamellae, cylinders, and stripes" />
-      <img src="assets/polymer-3.jpg" alt="Simulation cell showing a cleanly striped phase separated end state" />
-      <img src="assets/polymer-phase-sep.jpg" alt="Molecular dynamics render of two phase separated block types, oil like in red and water like in teal" />
+    <h3>Polymer Lithography Simulation</h3>
+    <p class="meta">RIT Honors research, Dr. Padmanabhan, 2020. LAMMPS, molecular dynamics.</p>
+    <p class="lede">
+      Block copolymer phase separation, simulated to bridge the gap between simulation and experiment for
+      microfabrication. Join a water-like and an oil-like macromolecule into one chain and they repel and self
+      organize into patterns you can print with.
+    </p>
+    <div class="step">
+      <div class="step-label">Designed</div>
+      <div class="step-body">
+        <p>
+          Depending on the block ratio and chemistry, the same system settles into holes, spheres, stripes, or
+          lamellae, and those shapes are what lithography then uses. The design space is which pattern you get.
+        </p>
+        <div class="media">
+          <figure><img loading="lazy" src="assets/polymer-2.jpg" alt="Diagram of block copolymer morphologies including spheres, lamellae, cylinders, and stripes" /><figcaption>The target morphologies.</figcaption></figure>
+        </div>
+      </div>
     </div>
-    <div class="body">
-      <h3>Polymer Lithography Simulation</h3>
-      <p class="meta">RIT Honors research, Dr. Padmanabhan. Molecular dynamics.</p>
-      <p>
-        Block copolymer phase separation simulated to bridge the gap between simulation and experiment for
-        microfabrication. Water like and oil like macromolecules joined into a block copolymer repel and align
-        into patterns, and depending on the ratio and chemistry you get holes, spheres, stripes, or lamellae that
-        are then used in lithography. Because each parameter, temperature, repulsion strength, and atom size,
-        affects the structure chaotically, we ran thousands of simulations to find where to start experiments
-        instead of running expensive lab runs blind. The model is about 100 lines of molecular dynamics using the
-        Weeks Chandler Andersen potential, run in LAMMPS on the RIT research cluster, and the results showed that
-        the interaction parameter falls with temperature and rises with repulsion strength.
-      </p>
-      <p class="tools"><b>Tools:</b> LAMMPS, RIT research cluster, molecular dynamics, WCA potential.</p>
+    <div class="step">
+      <div class="step-label">Analyzed</div>
+      <div class="step-body">
+        <p>
+          The model is about 100 lines of molecular dynamics using the Weeks-Chandler-Andersen potential, run in
+          LAMMPS on the RIT research cluster. Temperature, repulsion strength, and atom size each push the outcome
+          chaotically, so we ran thousands of simulations to find where to start experiments instead of running
+          expensive lab runs blind.
+        </p>
+        <div class="media">
+          <figure><img loading="lazy" src="assets/polymer-1.jpg" alt="Block copolymer chains in the simulation cell before phase separation" /><figcaption>Chains before separation.</figcaption></figure>
+          <figure><img loading="lazy" src="assets/polymer-phase-sep.jpg" alt="Molecular dynamics render of two phase separated block types, oil like in red and water like in teal" /><figcaption>Two phases separating.</figcaption></figure>
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-label">Built</div>
+      <div class="step-body">
+        <p class="gap">The build here is the simulation itself, the WCA model and its LAMMPS runs. No physical rig.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-label">Proved</div>
+      <div class="step-body">
+        <p>
+          The runs reached clean separated end states, and the results showed the interaction parameter falls with
+          temperature and rises with repulsion strength. That's a starting map for the lab instead of a blind search.
+        </p>
+        <div class="media">
+          <figure><img loading="lazy" src="assets/polymer-3.jpg" alt="Simulation cell showing a cleanly striped phase separated end state" /><figcaption>A clean striped end state.</figcaption></figure>
+        </div>
+      </div>
     </div>
   </div>
 
-  <hr />
-
+  <!-- Flight Dynamics -->
   <div class="entry">
-    <div class="media">
-      <img src="assets/flight-dynamics.png" alt="Flight dynamics simulation diagram" />
-      <img src="assets/flight-1.jpg" alt="The X-62 VISTA experimental aircraft, the reference for this analysis" />
-      <img src="assets/flight-2.jpg" alt="Simulink quaternion model with inputs and attitude output" />
-      <img src="assets/flight-3.jpg" alt="Telemetry preview of the response curves from one simulation run" />
+    <h3>Flight Dynamics Simulation</h3>
+    <p class="meta">RIT coursework. Simulink, MATLAB, ode45.</p>
+    <p class="lede">
+      Aircraft response simulated in Simulink and MATLAB, the same kind of analysis used on the experimental X-62
+      VISTA testbed. Each run is a trim condition or a control step, integrated in ode45.
+    </p>
+    <div class="step">
+      <div class="step-label">Designed</div>
+      <div class="step-body">
+        <p>
+          I built a quaternion attitude model rather than Euler angles, because Euler angles hit gimbal lock and
+          integration singularities. Quaternions avoid that, at the cost of being harder to read off the page.
+        </p>
+        <div class="media">
+          <figure><img loading="lazy" src="assets/flight-dynamics.png" alt="Flight dynamics simulation block diagram" /><figcaption>The simulation, laid out.</figcaption></figure>
+          <figure><img loading="lazy" src="assets/flight-2.jpg" alt="Simulink quaternion model with control inputs and attitude output" /><figcaption>Simulink quaternion model.</figcaption></figure>
+        </div>
+      </div>
     </div>
-    <div class="body">
-      <h3>Flight Dynamics Simulation</h3>
-      <p class="meta">RIT coursework, Simulink and MATLAB.</p>
-      <p>
-        Aircraft response simulated in Simulink and MATLAB, the same kind of analysis used on the experimental
-        X-62 VISTA testbed. Each run simulates a trim condition or a stick, rudder, or aileron step at a fixed time
-        step in ode45, logging true velocity, pitch, roll, and yaw rates, angle of attack, sideslip, and Euler
-        angles. Nine aircraft were simulated across the same conditions, and the results can be compared directly
-        against real flight test data to check whether the control system behaves as expected. I used a quaternion
-        model over Euler angles because Euler angles suffer gimbal lock and integration singularities, which
-        quaternions avoid at the cost of being less intuitive to read.
-      </p>
-      <p class="tools"><b>Tools:</b> Simulink, MATLAB, ode45.</p>
+    <div class="step">
+      <div class="step-label">Analyzed</div>
+      <div class="step-body">
+        <p>
+          A run applies a stick, rudder, or aileron step at a fixed time step and logs true velocity, pitch, roll
+          and yaw rates, angle of attack, sideslip, and Euler angles. I ran nine different aircraft through the same
+          conditions.
+        </p>
+        <div class="media">
+          <figure><img loading="lazy" src="assets/flight-1.jpg" alt="The X-62 VISTA experimental aircraft, the reference for this analysis" /><figcaption>X-62 VISTA, the reference.</figcaption></figure>
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-label">Built</div>
+      <div class="step-body">
+        <p class="gap">This one is a model, not hardware. The build is the Simulink and MATLAB code that runs the nine configurations.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-label">Proved</div>
+      <div class="step-body">
+        <p>The logged response curves can be compared directly against real flight-test data to check the control behavior.</p>
+        <div class="media">
+          <figure><img loading="lazy" src="assets/flight-3.jpg" alt="Telemetry preview of the response curves from one simulation run" /><figcaption>Response curves from one run.</figcaption></figure>
+        </div>
+      </div>
     </div>
   </div>
 
-  <hr />
-
+  <!-- Double Pendulum -->
   <div class="entry">
-    <div class="media">
-      <img src="assets/pendulum-1.jpg" alt="The physical double pendulum rig with two arms and bearings at each pivot" />
-      <img src="assets/pendulum-2.jpg" alt="Kinovea tracking of the pendulum with colored dots on each arm" />
-      <img src="assets/pendulum-3.jpg" alt="Plot of simulated versus measured angles with a Monte Carlo error band" />
+    <h3>Double Pendulum Experiment</h3>
+    <p class="meta">RIT coursework, dynamics and validation. MATLAB, Kinovea.</p>
+    <p class="lede">
+      A theoretical model of a chaotic system, checked against a physical rig released from the same starting point.
+      The target was under 10 percent error for the first two seconds.
+    </p>
+    <div class="step">
+      <div class="step-label">Designed</div>
+      <div class="step-body">
+        <p>
+          I derived a Lagrangian model of the two-arm pendulum and integrated it as a set of ODEs in MATLAB. Chaos
+          means the interesting question isn't whether it matches, it's how long before it stops matching.
+        </p>
+      </div>
     </div>
-    <div class="body">
-      <h3>Double Pendulum Experiment</h3>
-      <p class="meta">RIT coursework, dynamics and validation.</p>
-      <p>
-        A theoretical model of a chaotic system, validated against a physical rig released from the same starting
-        condition. The pendulum is two solid arms on bearings, with the top arm released from 45 degrees against a
-        hard stopper, and the motion is captured at 120 frames per second. Colored dots are tracked in Kinovea, the
-        arm angles are computed and fed into MATLAB, and a mean squared error and visual overlay compare measured
-        against simulated, with a Monte Carlo envelope from 1000 runs. The model and rig agree for about a second
-        and a half, and the disagreement after that quantifies how much you do not know about the bearing friction
-        and the imperfect release. The target was under 10 percent error for the first two seconds.
-      </p>
-      <p class="tools"><b>Tools:</b> MATLAB, Kinovea, Lagrangian model with ODE integration.</p>
+    <div class="step">
+      <div class="step-label">Analyzed</div>
+      <div class="step-body">
+        <p>
+          I captured the rig at 120 frames per second, tracked colored dots on each arm in Kinovea, and computed the
+          arm angles to feed back into MATLAB. A Monte Carlo envelope from 1000 runs sets the band on the prediction.
+        </p>
+        <div class="media">
+          <figure><img loading="lazy" src="assets/pendulum-2.jpg" alt="Kinovea tracking of the pendulum with colored dots on each arm" /><figcaption>Kinovea tracking each arm.</figcaption></figure>
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-label">Built</div>
+      <div class="step-body">
+        <p>Two solid arms on bearings, with the top arm released from 45 degrees against a hard stopper for a repeatable start.</p>
+        <div class="media">
+          <figure><img loading="lazy" src="assets/pendulum-1.jpg" alt="The physical double pendulum rig with two arms and bearings at each pivot" /><figcaption>The physical rig.</figcaption></figure>
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-label">Proved</div>
+      <div class="step-body">
+        <p>
+          Model and rig agree for about a second and a half. What happens after that is the useful part: the
+          disagreement quantifies how much I don't know about the bearing friction and the imperfect release.
+        </p>
+        <div class="media">
+          <figure><img loading="lazy" src="assets/pendulum-3.jpg" alt="Plot of simulated versus measured angles with a Monte Carlo error band" /><figcaption>Simulated vs measured, with the Monte Carlo band.</figcaption></figure>
+        </div>
+      </div>
     </div>
   </div>
 
-  <hr />
-
+  <!-- Vacuum Cannon -->
   <div class="entry">
-    <div class="media">
-      <img src="assets/cannon-1.jpg" alt="Vacuum cannon setup drawn flat with a PVC pipe, vacuum pump, and ballistic block" />
-      <img src="assets/cannon-2.jpg" alt="Free body diagram of the forces on the ping pong ball inside the tube" />
-      <img src="assets/cannon-3.jpg" alt="Plot of predicted versus measured exit velocity at 2 and 8 kilopascals" />
+    <h3>Vacuum Cannon Experiment</h3>
+    <p class="meta">RIT coursework, fluid dynamics and validation. MATLAB.</p>
+    <p class="lede">
+      Predict a ping pong ball's exit velocity from compressible flow, then go measure it. Pump the air out of a
+      sealed tube, punch the back open, and the pressure difference fires the ball.
+    </p>
+    <div class="step">
+      <div class="step-label">Designed</div>
+      <div class="step-body">
+        <p>
+          The setup is a 1.52 m PVC pipe sealed at both ends with tape, a vacuum pump, and a ballistic block that
+          records displacement when the ball lands.
+        </p>
+        <div class="media">
+          <figure><img loading="lazy" src="assets/cannon-1.jpg" alt="Vacuum cannon setup drawn flat with a PVC pipe, vacuum pump, and ballistic block" /><figcaption>The setup, drawn flat.</figcaption></figure>
+        </div>
+      </div>
     </div>
-    <div class="body">
-      <h3>Vacuum Cannon Experiment</h3>
-      <p class="meta">RIT coursework, fluid dynamics and validation.</p>
-      <p>
-        Ping pong ball exit velocity predicted from compressible flow, then measured. Air is pumped out of a 1.52 m
-        PVC pipe sealed at both ends with tape, the back is punctured, air rushes in, and the ball is shot out into
-        a ballistic block that records displacement. The exit velocity is recovered with an Eulerian method that
-        integrates the net pressure force over small time steps, and predicted values are compared against measured
-        runs at 2 and 8 kPa across 10 runs. The model uses a Vena Contracta inlet coefficient and ignores friction
-        and air bypassing the ball, and reading where it under or overshoots shows where the physics is missing,
-        with friction the largest and cheapest discrepancy to fix.
-      </p>
-      <p class="tools"><b>Tools:</b> MATLAB, Eulerian time step integration.</p>
+    <div class="step">
+      <div class="step-label">Analyzed</div>
+      <div class="step-body">
+        <p>
+          I recovered the exit velocity with an Eulerian method that integrates the net pressure force over small
+          time steps, using a Vena Contracta inlet coefficient. The model ignores friction and air slipping past the
+          ball, which is deliberate: those gaps are where the error will show up.
+        </p>
+        <div class="media">
+          <figure><img loading="lazy" src="assets/cannon-2.jpg" alt="Free body diagram of the forces on the ping pong ball inside the tube" /><figcaption>Free body diagram in the tube.</figcaption></figure>
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-label">Built</div>
+      <div class="step-body">
+        <p class="gap">The physical cannon is the taped PVC tube and pump in the setup above. No separate build photo.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-label">Proved</div>
+      <div class="step-body">
+        <p>
+          I compared predicted against measured across 10 runs at 2 and 8 kPa. Reading where it over or undershoots
+          points straight at the missing physics, and friction is the largest and cheapest of those to add next.
+        </p>
+        <div class="media">
+          <figure><img loading="lazy" src="assets/cannon-3.jpg" alt="Plot of predicted versus measured exit velocity at 2 and 8 kilopascals" /><figcaption>Predicted vs measured, 2 and 8 kPa.</figcaption></figure>
+        </div>
+      </div>
     </div>
   </div>
 
-  <hr />
-
+  <!-- Saturn V FEA -->
   <div class="entry">
-    <div class="media">
-      <p class="noimg">Writeup in progress. No image in source material yet.</p>
+    <h3>Saturn V Finite Element Analysis</h3>
+    <p class="meta">Personal, 2024. Ansys, FEA.</p>
+    <p class="lede">
+      A finite element study on the Saturn V, analyzing the Rocketdyne F-1 engine nozzle from the Apollo 11 vehicle,
+      which produced roughly 7.5 million pounds of thrust.
+    </p>
+    <div class="step">
+      <div class="step-label">Designed</div>
+      <div class="step-body">
+        <p>I modeled the F-1 nozzle geometry to set up a structural study against its operating loads.</p>
+      </div>
     </div>
-    <div class="body">
-      <h3>Saturn V Finite Element Analysis</h3>
-      <p class="meta">Personal, FEA and structural. 2024.</p>
-      <p>
-        A finite element study on the Saturn V, using Ansys to analyze the Rocketdyne F-1 engine nozzle from the
-        Apollo 11 vehicle, which produced roughly 7.5 million pounds of thrust. The goal is to verify that the
-        structure does not fail under its operating stresses, through static stress and modal analysis with
-        worst case load envelopes. The writeup, including stress contours and mode shapes, is still pending.
-      </p>
-      <p class="tools"><b>Tools:</b> Ansys, FEA.</p>
+    <div class="step">
+      <div class="step-label">Analyzed</div>
+      <div class="step-body">
+        <p>
+          The plan is static stress and modal analysis with worst-case load envelopes, to check that the structure
+          holds under the stresses it sees in flight.
+        </p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-label">Built</div>
+      <div class="step-body">
+        <p class="gap">This is an analysis project, so there's no hardware to build.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-label">Proved</div>
+      <div class="step-body">
+        <p class="gap">In progress. The writeup with stress contours and mode shapes is still pending, and I'd rather post it when it's real than mock one up.</p>
+      </div>
     </div>
   </div>
+
+  <!-- Short entries -->
+  <h3 style="font-size:16px;margin:34px 0 4px;color:var(--muted);">Also at RIT (short entries)</h3>
+  <div class="mini">
+    <h3>RIT Space Exploration CubeSat</h3>
+    <p class="meta">2022 to 2023. Structures and integration.</p>
+    <p>The first RIT student-initiated project built to fly to space. I contributed to the mechanical side. No public photos or plots I can post here.</p>
+  </div>
+  <div class="mini">
+    <h3>CatBot Robotics</h3>
+    <p class="meta">RIT Robotics Club, 2022 to 2023. Control systems.</p>
+    <p>Design improvement and joint-movement control system work on the club's quadruped robot. Team project, so I'm not posting shared media here.</p>
+  </div>
+
+  <!-- ============================ WEBSITES ============================ -->
+  <h2 class="section" id="websites">Websites <span class="count">hand-written, no framework</span></h2>
+  <p class="section-lead">
+    A separate portfolio of interactive websites, four fictional brands built as self-contained single-file
+    HTML, CSS, and JavaScript, each in a few hours. The page you're reading now is hand-written the same way.
+    Live index: <a href="https://kambar231.github.io/WebPort/">kambar231.github.io/WebPort</a>.
+  </p>
+  <div class="sites">
+    <div class="site-card">
+      <a href="https://kambar231.github.io/WebPort/terra-museum/"><img loading="lazy" src="assets/web/terra.jpg" alt="TERRA museum site, a content-aware relief reveal rendered in WebGL" /></a>
+      <div class="site-body">
+        <h3><a href="https://kambar231.github.io/WebPort/terra-museum/">TERRA</a></h3>
+        <p>Museum concept with a WebGL flow-field and a relief reveal that responds to the content behind it.</p>
+      </div>
+    </div>
+    <div class="site-card">
+      <a href="https://kambar231.github.io/WebPort/biavola/"><img loading="lazy" src="assets/web/biavola.jpg" alt="BIAVOLA wood-fired pizza site, a margherita on a masked stage" /></a>
+      <div class="site-body">
+        <h3><a href="https://kambar231.github.io/WebPort/biavola/">BIAVOLA</a></h3>
+        <p>Wood-fired pizza concept. Hover feeds a central stage, with masked imagery swapping behind the type.</p>
+      </div>
+    </div>
+    <div class="site-card">
+      <a href="https://kambar231.github.io/WebPort/onda-day/"><img loading="lazy" src="assets/web/onda.jpg" alt="ONDA fitness band site, a stone-textured hero from the daylight scroll story" /></a>
+      <div class="site-body">
+        <h3><a href="https://kambar231.github.io/WebPort/onda-day/">ONDA</a></h3>
+        <p>Fitness band concept built as an ambient daylight scroll story, from wake to night.</p>
+      </div>
+    </div>
+    <div class="site-card noimg">
+      <a href="https://kambar231.github.io/WebPort/numera/"><div class="placeholder">Live site</div></a>
+      <div class="site-body">
+        <h3><a href="https://kambar231.github.io/WebPort/numera/">NUMERA</a></h3>
+        <p>AI-accounting SaaS concept, driven by design tokens and scroll choreography. This one is CSS and layout rather than photography, so it has no representative image to pull.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================ EDUCATION ============================ -->
+  <h2 class="section" id="education">Education and awards</h2>
+  <dl class="edu-grid">
+    <dt>Degrees</dt>
+    <dd>
+      Rochester Institute of Technology. BS and MEng in Mechanical Engineering, controls concentration.
+      GPA 3.90 (BS) and 4.00 (MEng).
+    </dd>
+    <dt>Research and teaching</dt>
+    <dd>
+      Additive Manufacturing Print Center, student researcher (2023 to 2024). Honors summer research on
+      polymer-based lithography (2020). Teaching assistant for Introduction to Programming in MATLAB and Simulink
+      (2020 to 2024).
+    </dd>
+    <dt>Awards</dt>
+    <dd>
+      Outstanding Undergraduate Scholar Award (2022), for the top 1 percent of students who pair academic work with
+      community service. Greater Good Award (2019).
+    </dd>
+    <dt>Leadership</dt>
+    <dd>
+      Green Life Project co-founder: brought together over 600 volunteers to plant more than 2000 trees in Mexico
+      (2018 to 2019). Momentum II sustainability leadership program.
+    </dd>
+    <dt>Software</dt>
+    <dd>
+      Ansys, Python, C++, MATLAB, Simulink, PTC Creo, CATIA, SOLIDWORKS, Fusion 360, Autodesk Inventor, nTopology,
+      LabView, Arduino, CANalyzer and CAN bus protocols, Blender, Excel VBA, MiniTab.
+    </dd>
+    <dt>Hard skills</dt>
+    <dd>
+      CAD, machining, CNC, 3D printing, GD&amp;T, DFMA, PID controls and calibration, FMEA, functional safety
+      (ANSI B56.1, ISO 13849, IEC 62061), FEA, CFD.
+    </dd>
+    <dt>Languages</dt>
+    <dd>Kazakh (native), Russian (native), English (fluent), Spanish and Arabic (beginner).</dd>
+  </dl>
 
   <footer>
-    <p>Kambar Mangibayev. Rochester, New York. Built by hand, hosted on GitHub Pages.</p>
+    <p>
+      Kambar Mangibayev. Binghamton and Rochester, New York.
+      <a href="mailto:kambar231@gmail.com">kambar231@gmail.com</a>,
+      <a href="tel:+15853099467">+1 585-309-9467</a>,
+      <a href="https://github.com/kambar231">GitHub</a>.
+    </p>
+    <p>Built by hand, hosted on GitHub Pages. <a href="#top">Back to top</a>.</p>
   </footer>
 
 </div>
