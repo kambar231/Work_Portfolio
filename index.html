@@ -79,8 +79,9 @@
     display: block;
     color: inherit;
     text-decoration: none;
+    position: relative;
   }
-  details.card > summary { list-style: none; cursor: pointer; display: block; }
+  details.card > summary { list-style: none; cursor: pointer; display: block; position: relative; }
   details.card > summary::-webkit-details-marker { display: none; }
   details.card > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 
@@ -236,16 +237,16 @@
       <summary>
         <div class="face panel">
           <div class="panel-text">+14% performance, -10% battery draw<small>Performance Stability System</small></div>
+          <div class="overlay">
+          <h3>Performance Stability System</h3>
+          <p>A control system that holds a heavy vehicle steady under an unbalanced or shifting load, without pulling performance back when it's safe to push. The whole job was finding the line between spilling a load and over-limiting an operator who needs the speed.</p>
+        </div>
         </div>
         <div class="card-meta">
           <h3 class="card-title">Performance Stability System</h3>
           <p class="ctx">Lead engineer, stability and controls. 2024.</p>
           <p class="desc-touch">A control system that holds a heavy vehicle steady under a shifting load, without pulling performance back when it's safe to push.</p>
           <p class="more">Designed / Analyzed / Built / Proved</p>
-        </div>
-        <div class="overlay">
-          <h3>Performance Stability System</h3>
-          <p>A control system that holds a heavy vehicle steady under an unbalanced or shifting load, without pulling performance back when it's safe to push. The whole job was finding the line between spilling a load and over-limiting an operator who needs the speed.</p>
         </div>
       </summary>
       <div class="detail">
@@ -343,16 +344,16 @@
       <summary>
         <div class="face panel">
           <div class="panel-text">The truck weighs its own load<small>Hydraulic Weight Sensing</small></div>
+          <div class="overlay">
+          <h3>Hydraulic Weight Sensing</h3>
+          <p>The vehicle weighs its own load. Pressure transducers built into the hydraulic manifold read the lift pressure, and signal processing turns that into a live weight on the operator display.</p>
+        </div>
         </div>
         <div class="card-meta">
           <h3 class="card-title">Hydraulic Weight Sensing</h3>
           <p class="ctx">Lead engineer, hydraulics and signal processing. 2023.</p>
           <p class="desc-touch">Pressure transducers in the hydraulic manifold read lift pressure, and signal processing turns it into a live weight on the display.</p>
           <p class="more">Designed / Analyzed / Built / Proved</p>
-        </div>
-        <div class="overlay">
-          <h3>Hydraulic Weight Sensing</h3>
-          <p>The vehicle weighs its own load. Pressure transducers built into the hydraulic manifold read the lift pressure, and signal processing turns that into a live weight on the operator display.</p>
         </div>
       </summary>
       <div class="detail">
@@ -388,16 +389,16 @@
       <summary>
         <div class="face panel">
           <div class="panel-text">Tighter turns, less tire wear<small>Steer Differentiation System</small></div>
+          <div class="overlay">
+          <h3>Steer Differentiation System</h3>
+          <p>AC steering control logic that lets the drive tires steer at different rates, tightening the turn without making the machine feel twitchy. It cut turning radius and tire wear.</p>
+        </div>
         </div>
         <div class="card-meta">
           <h3 class="card-title">Steer Differentiation System</h3>
           <p class="ctx">Lead engineer, sensors and geometry. 2024.</p>
           <p class="desc-touch">AC steering logic that lets the drive tires steer at different rates, tightening the turn without making the machine feel twitchy.</p>
           <p class="more">Designed / Analyzed / Built / Proved</p>
-        </div>
-        <div class="overlay">
-          <h3>Steer Differentiation System</h3>
-          <p>AC steering control logic that lets the drive tires steer at different rates, tightening the turn without making the machine feel twitchy. It cut turning radius and tire wear.</p>
         </div>
       </summary>
       <div class="detail">
@@ -433,16 +434,16 @@
       <summary>
         <div class="face panel">
           <div class="panel-text">Controls gated by who is driving<small>Interface Logic and Access Control</small></div>
+          <div class="overlay">
+          <h3>Interface Logic and Access Control</h3>
+          <p>A rebuild of the vehicle menu system around safety classes and operator access levels. The interface itself decides which controls are reachable, based on who's driving and what the vehicle is doing.</p>
+        </div>
         </div>
         <div class="card-meta">
           <h3 class="card-title">Interface Logic and Access Control</h3>
           <p class="ctx">Lead engineer, HMI and safety. 2023.</p>
           <p class="desc-touch">A rebuild of the vehicle menu around safety classes and access levels. The interface decides which controls are reachable.</p>
           <p class="more">Designed / Analyzed / Built / Proved</p>
-        </div>
-        <div class="overlay">
-          <h3>Interface Logic and Access Control</h3>
-          <p>A rebuild of the vehicle menu system around safety classes and operator access levels. The interface itself decides which controls are reachable, based on who's driving and what the vehicle is doing.</p>
         </div>
       </summary>
       <div class="detail">
@@ -478,16 +479,16 @@
       <summary>
         <div class="face panel">
           <div class="panel-text">Infinite fatigue life, strain-gauge validated<small>Structural Frame Redesign</small></div>
+          <div class="overlay">
+          <h3>Structural Frame Redesign</h3>
+          <p>A tractor frame redesigned from the welds up for infinite fatigue life, and for a distinctive look at the same time. FEA drove it, and strain gauges in the field confirmed it.</p>
+        </div>
         </div>
         <div class="card-meta">
           <h3 class="card-title">Structural Frame Redesign</h3>
           <p class="ctx">Lead engineer, FEA and fatigue. 2022.</p>
           <p class="desc-touch">A tractor frame redesigned from the welds up for infinite fatigue life. FEA drove it, strain gauges in the field confirmed it.</p>
           <p class="more">Designed / Analyzed / Built / Proved</p>
-        </div>
-        <div class="overlay">
-          <h3>Structural Frame Redesign</h3>
-          <p>A tractor frame redesigned from the welds up for infinite fatigue life, and for a distinctive look at the same time. FEA drove it, and strain gauges in the field confirmed it.</p>
         </div>
       </summary>
       <div class="detail">
@@ -527,16 +528,16 @@
       <summary>
         <div class="face panel">
           <div class="panel-text">Teardown reports for Cummins, Harley-Davidson, Ford<small>Variable Camshaft Timing co-op</small></div>
+          <div class="overlay">
+          <h3>Variable Camshaft Timing Co-op</h3>
+          <p>A product engineering co-op on variable camshaft timing units. I worked prototypes from analysis through end-of-line testing, and wrote the tool that turned teardown measurements into the reports customers read.</p>
+        </div>
         </div>
         <div class="card-meta">
           <h3 class="card-title">Variable Camshaft Timing (VCT) Co-op</h3>
           <p class="ctx">Product engineering co-op. June to December 2022.</p>
           <p class="desc-touch">Prototypes from analysis through end-of-line testing, plus the MATLAB tool that turned teardown measurements into customer reports.</p>
           <p class="more">Designed / Analyzed / Built / Proved</p>
-        </div>
-        <div class="overlay">
-          <h3>Variable Camshaft Timing Co-op</h3>
-          <p>A product engineering co-op on variable camshaft timing units. I worked prototypes from analysis through end-of-line testing, and wrote the tool that turned teardown measurements into the reports customers read.</p>
         </div>
       </summary>
       <div class="detail">
@@ -576,16 +577,16 @@
       <summary>
         <div class="face panel">
           <div class="panel-text">+7% Overall Equipment Effectiveness<small>Packaging line sorting system</small></div>
+          <div class="overlay">
+          <h3>Packaging Line Sorting System</h3>
+          <p>A new sorting system for the packaging line, from spotting where the line was losing time to prototyping the fix. The point was throughput the plant could measure.</p>
+        </div>
         </div>
         <div class="card-meta">
           <h3 class="card-title">Packaging Line Sorting System</h3>
           <p class="ctx">Packaging reliability intern. July 2021 to January 2022.</p>
           <p class="desc-touch">A new sorting system for the packaging line, from spotting where the line lost time to prototyping the fix. It lifted OEE 7%.</p>
           <p class="more">Designed / Analyzed / Built / Proved</p>
-        </div>
-        <div class="overlay">
-          <h3>Packaging Line Sorting System</h3>
-          <p>A new sorting system for the packaging line, from spotting where the line was losing time to prototyping the fix. The point was throughput the plant could measure.</p>
         </div>
       </summary>
       <div class="detail">
@@ -1093,16 +1094,16 @@
       <summary>
         <div class="face panel">
           <div class="panel-text">F-1 nozzle, 7.5M lbf<small>Static and modal FEA, in progress</small></div>
+          <div class="overlay">
+          <h3>Saturn V Finite Element Analysis</h3>
+          <p>A finite element study on the Saturn V, analyzing the Rocketdyne F-1 engine nozzle from the Apollo 11 vehicle, which produced roughly 7.5 million pounds of thrust.</p>
+        </div>
         </div>
         <div class="card-meta">
           <h3 class="card-title">Saturn V Finite Element Analysis</h3>
           <p class="ctx">Personal, 2024. Ansys, FEA.</p>
           <p class="desc-touch">A static and modal FEA study of the Apollo 11 F-1 engine nozzle. Writeup with stress contours still pending.</p>
           <p class="more">Designed / Analyzed / Built / Proved</p>
-        </div>
-        <div class="overlay">
-          <h3>Saturn V Finite Element Analysis</h3>
-          <p>A finite element study on the Saturn V, analyzing the Rocketdyne F-1 engine nozzle from the Apollo 11 vehicle, which produced roughly 7.5 million pounds of thrust.</p>
         </div>
       </summary>
       <div class="detail">
