@@ -41,6 +41,23 @@
     max-width: 70ch;
     margin: 0 0 16px;
   }
+  .head-flex {
+    display: flex;
+    gap: 28px;
+    align-items: flex-start;
+  }
+  .head-flex .portrait {
+    flex: 0 0 210px;
+    max-width: 210px;
+  }
+  .head-flex .portrait img {
+    width: 100%;
+    display: block;
+    border: 1px solid #ddd;
+  }
+  .head-flex .head-text {
+    min-width: 0;
+  }
   .links a {
     color: #111;
     margin-right: 18px;
@@ -127,6 +144,11 @@
 <div class="wrap">
 
   <header class="site">
+   <div class="head-flex">
+    <div class="portrait">
+      <img src="assets/kambar-portrait.jpg" alt="Portrait photo of Kambar Mangibayev" />
+    </div>
+    <div class="head-text">
     <h1>Kambar Mangibayev</h1>
     <p class="title-line">Mechanical Systems Engineer, Controls. The Raymond Corporation.</p>
     <p class="location">Rochester, New York</p>
@@ -146,6 +168,8 @@
       <b>Skills:</b> Python, MATLAB, Simulink, Embedded C, CAN. FEA and fatigue, CFD, GD&amp;T, DFMA,
       functional safety. Machine vision and ML perception. CNC, 3D printing, additive manufacturing.
     </p>
+    </div>
+   </div>
   </header>
 
   <h2 class="section">Work <span class="count">The Raymond Corporation, industrial vehicle systems</span></h2>
@@ -334,6 +358,8 @@
         Your browser does not support embedded video.
       </video>
       <img src="assets/cnc-build.jpg" alt="PrintNC CNC router build with welded steel frame and assembled gantry" />
+      <img src="assets/cnc-bed.jpg" alt="Finished PrintNC on the bench with the full work area and gantry in view" />
+      <p class="cap">The finished machine, 1200 by 800 mm work area with the water cooled spindle on the gantry.</p>
       <img src="assets/cnc-render.jpg" alt="PrintNC reference CAD render" />
       <img src="assets/cnc-cut-rough.jpg" alt="First rough test cut of initials in an MDF spoilboard" />
       <img src="assets/cnc-cut-clean.jpg" alt="Cleaner second pass of the cut letters with vertical walls" />
