@@ -12,3 +12,18 @@ Porotfolio/Slicer/*.mp4
 # OS / editor
 Thumbs.db
 .DS_Store
+
+# pleurat.com animation study — frames/scratch (keep only the .md + hover.py)
+docs/pleurat-film/*.png
+docs/pleurat-film/*.json
+docs/pleurat-film/*.html
+docs/pleurat-film/run_*/
+docs/pleurat-film/chart/
+docs/pleurat-film/hero/
+docs/pleurat-film/charttime/
+docs/pleurat-film/hover/*.png
+docs/pleurat-film/fetch.py
+docs/pleurat-film/pos.py
+docs/pleurat-film/timelapse.py
+docs/pleurat-film/chart_time.py
+docs/pleurat-film/index.js
