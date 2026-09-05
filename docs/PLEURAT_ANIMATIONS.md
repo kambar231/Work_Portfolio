@@ -152,6 +152,58 @@ time-lapses (hero, chart).
   center and map to opacity/scale (rAF or `animation-timeline: view()`). Parallax = different
   `translateY` factors per column. **Difficulty: medium.**
 
+### 8, detailed — the mosaic, measured precisely (2026-09-05)
+
+Correction to the summary above: #8 is **not** a focus-follows-scroll gallery, and it has **no
+parallax and no grayscale/opacity dimming**. Measured from the live DOM and a 120-frame film
+(`--from 5234 --to 8224`, ~25 px step) plus the site's own CSS (`assets/index-sXIK4by5.css`) and
+`theme-DOAwoE7X.css`, it is a single **scroll-driven zoom-out (dolly) of one wide tile grid,
+centered on a fixed lead tile**.
+
+**Markup / layout (exact):**
+- `section.sv-mosaic-track` → `div.sv-mosaic-pin` → `a.sv-mosaic-window` (links to /work) →
+  `div.sv-mosaic` (CSS grid) → 20 × `figure.tile > img`.
+- `.sv-mosaic-track`: `height: 320svh` desktop (this is the scroll budget the pin eats); a 1px top
+  rule via `background: linear-gradient(frame)`. On 390-wide mobile the track is ~1603 px (~1.9
+  viewports).
+- `.sv-mosaic-pin`: `position: sticky; top: 0; height: 100svh`.
+- `.sv-mosaic-window`: `overflow: hidden`, full width capped by a measure, `--px/--py: 50%`.
+- `.sv-mosaic`: `display: grid; grid-template-columns: repeat(var(--cols),1fr)`; `--cols: 5`
+  desktop, **3 on mobile**; `gap: clamp(4px,.45vw,8px)` = 6.48 px at 1440; explicit inline
+  `width: 6897.85px`; centered with `position:absolute; top/left:50%; translate:-50% -50%`;
+  `transform-origin: center; will-change: transform`.
+- `.tile`: `aspect-ratio: 16/12; border: 1px solid var(--sv-line); opacity: var(--rest)`;
+  `img { object-fit: cover }`. `--rest` stays **1** the whole time (measured under scroll and
+  under pointer move), so tiles never dim. `.tile.is-lead` is a **fixed** tile (index 7 of 20,
+  roughly the visual center) with `opacity: 1`; it is the zoom anchor, not a scroll-tracked focus.
+
+**Motion (exact), applied as an inline transform on `.sv-mosaic` by a rAF loop:**
+- Driver: scroll progress `p` (0→1) across the pinned range (pin active y ≈ 5959→7939, ~1980 px).
+- `scale(p)`: **1.0 → 0.192**, strong ease-out. Fits `scale = 0.192 + 0.808·(1-p)^2.2`.
+  Measured: p = 0 / 0.2 / 0.5 / 0.8 / 1.0 → scale 1.000 / 0.687 / 0.368 / 0.216 / 0.192.
+- `translate(0, ty)`: **ty 519 px → 0 px**, keeps the lead tile centered as the grid shrinks
+  (ty roughly tracks scale). translateX stays 0 (lead tile is already horizontally centered).
+- No per-tile transition/parallax; the only animated thing is the one grid transform.
+
+**How it reads:** at pin start the lead tile (Mindpath ADHD screen) fills the whole window at
+scale 1; scrolling zooms the camera out until the entire 5-column wall of work sits centered at
+scale ~0.19; then the pin releases and the wall scrolls up into the footer.
+
+**Lead-in (y 5234→5959):** no heading lives inside the track. What precedes it is the `#profile`
+"Where I've worked" block doing the standard `.sv-rv.is-in` fade-and-rise (opacity + translateY,
+0.8s, `cubic-bezier(0.2,0.8,0.2,1)`). The pin simply catches at y5959.
+
+**Pinned:** yes, `position: sticky`, 3.2 viewports of scroll consumed on desktop.
+
+**Reduced-motion / no-JS fallback:** `.sv-mosaic-track.is-flat` → track `height:auto`, pin
+`position:static`, `.sv-mosaic { transform:none; width:100%; --cols:2 }`, every `.tile { opacity:1 }`.
+A plain 2-column static grid, no pin, no zoom.
+
+**Reference frames:** `mosaic/run_20260905_141421/film_..._000_y5234.png` (lead-in, #profile),
+`..._028_y5938.png` (lead tile full-bleed, scale 1), `..._043_y6314.png` and `..._053_y6566.png`
+(mid zoom), `..._078_y7194.png` (wall emerging, ~scale 0.3), `..._108_y7948.png` and
+`..._119_y8224.png` (full wall, scale 0.19). Earlier pass: `run_20260905_122442/film_..._054_y6729.png`.
+
 ### 9. Sticky nav — active-section dot + day/night toggle
 - **Where / trigger:** nav is sticky; scroll updates which link shows the amber dot; clicking the
   toggle flips the whole theme.

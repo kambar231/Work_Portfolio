@@ -176,6 +176,68 @@
     h1 { font-size: 27px; }
     .media img { height: 150px; }
   }
+
+  /* ===== Raymond scroll mosaic (pleurat study #8: pinned zoom-out) ===== */
+  /* Default and no-JS: a plain card grid, every tile visible. Enhancement only. */
+  .rc-lead { margin: 24px 0 8px; }
+  .rc-track { position: relative; }
+  .rc-mosaic {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 16px;
+  }
+  @media (max-width: 900px) { .rc-mosaic { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px) { .rc-mosaic { grid-template-columns: 1fr; } }
+
+  /* Lead-in heading reveal (fade + rise), mirrors pleurat's .sv-rv */
+  .rc-js .rc-reveal {
+    opacity: 0; transform: translateY(24px);
+    transition: opacity .8s cubic-bezier(.2,.8,.2,1), transform .8s cubic-bezier(.2,.8,.2,1);
+  }
+  .rc-js .rc-reveal.is-in { opacity: 1; transform: none; }
+
+  /* Cinematic mode: JS present and motion allowed. A pinned zoom-out of the tile grid. */
+  .rc-js.rc-motion .rc-track { height: var(--rc-track-h, 200vh); }
+  .rc-js.rc-motion .rc-pin {
+    position: sticky; top: 0; height: 100vh; overflow: hidden;
+    display: grid; place-items: center;
+  }
+  .rc-js.rc-motion .rc-window { position: relative; width: 100%; height: 100%; overflow: hidden; }
+  .rc-js.rc-motion .rc-mosaic {
+    position: absolute; top: 50%; left: 50%; margin: 0; gap: 12px;
+    width: var(--rc-w, 300%);
+    translate: -50% -50%; transform-origin: center center; will-change: transform;
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .rc-js.rc-motion .rc-tile {
+    opacity: var(--rc-op, 1); transition: opacity .12s linear;
+  }
+  .rc-js.rc-motion .rc-tile.is-lead { opacity: 1; }
+  /* parallax rides on the summary so the tile itself stays untransformed (keeps the
+     open detail's position:fixed relative to the viewport, not to a transformed ancestor) */
+  .rc-js.rc-motion .rc-tile > summary { transform: translateY(var(--rc-dy, 0)); will-change: transform; }
+
+  /* Open state: flatten everything (no transformed ancestor) and show the detail as a
+     fixed reading panel over the page. */
+  .rc-js.rc-motion.rc-open .rc-track { height: auto; }
+  .rc-js.rc-motion.rc-open .rc-pin { position: static; height: auto; overflow: visible; display: block; }
+  .rc-js.rc-motion.rc-open .rc-window { height: auto; overflow: visible; }
+  .rc-js.rc-motion.rc-open .rc-mosaic {
+    position: static; translate: none; transform: none !important; width: 100% !important;
+    will-change: auto; /* clear the containing block so the fixed detail is viewport-relative */
+  }
+  .rc-js.rc-motion.rc-open .rc-tile { opacity: 1 !important; }
+  .rc-js.rc-motion.rc-open .rc-tile > summary { transform: none; will-change: auto; }
+
+  .rc-js.rc-motion .rc-tile[open] > .detail {
+    position: fixed; inset: 0; z-index: 200; background: #fff; overflow: auto;
+    padding: 66px max(22px, calc(50% - 470px)) 56px; border-top: none;
+  }
+  .rc-close {
+    position: fixed; top: 14px; right: 16px; z-index: 210;
+    font: 600 13px/1 inherit; letter-spacing: 0.02em;
+    color: #fff; background: var(--ink); border: none; border-radius: 6px;
+    padding: 9px 15px; cursor: pointer;
+  }
+  .rc-close:hover { background: var(--accent); }
 </style>
 </head>
 <body>
@@ -224,16 +286,21 @@
   <!-- ============================ WORK ============================ -->
   <h2 class="section" id="work">Work <span class="count">Raymond Corporation, BorgWarner, Boston Beer</span></h2>
 
-  <h3 class="subhead">The Raymond Corporation, 2024 to present</h3>
-  <p class="section-lead">
-    Industrial vehicle systems. Most of this work ships on production trucks, so several cards use a plain panel and
-    an honest note where the hardware or the plot is proprietary rather than a picture I can post.
-  </p>
+  <div class="rc-lead rc-reveal">
+    <h3 class="subhead">The Raymond Corporation, 2024 to present</h3>
+    <p class="section-lead">
+      Industrial vehicle systems. Most of this work ships on production trucks, so several cards use a plain panel and
+      an honest note where the hardware or the plot is proprietary rather than a picture I can post.
+    </p>
+  </div>
 
-  <div class="grid">
+  <div class="rc-track" id="rc-track">
+   <div class="rc-pin">
+    <div class="rc-window">
+     <div class="rc-mosaic" id="rc-mosaic">
 
     <!-- Performance Stability -->
-    <details class="card">
+    <details class="card rc-tile">
       <summary>
         <div class="face panel">
           <div class="panel-text">+14% performance, -10% battery draw<small>Performance Stability System</small></div>
@@ -288,7 +355,7 @@
     </details>
 
     <!-- SEnS+ -->
-    <details class="card">
+    <details class="card rc-tile">
       <summary>
         <div class="face">
           <img loading="lazy" src="assets/sens-plus-flyer.jpg" alt="Smart Environment Sensor Plus product flyer showing the stereoscopic camera sensor mounted on a vehicle" />
@@ -340,7 +407,7 @@
     </details>
 
     <!-- Hydraulic Weight Sensing -->
-    <details class="card">
+    <details class="card rc-tile">
       <summary>
         <div class="face panel">
           <div class="panel-text">The truck weighs its own load<small>Hydraulic Weight Sensing</small></div>
@@ -385,7 +452,7 @@
     </details>
 
     <!-- Steer Differentiation -->
-    <details class="card">
+    <details class="card rc-tile">
       <summary>
         <div class="face panel">
           <div class="panel-text">Tighter turns, less tire wear<small>Steer Differentiation System</small></div>
@@ -430,7 +497,7 @@
     </details>
 
     <!-- Interface Logic -->
-    <details class="card">
+    <details class="card rc-tile">
       <summary>
         <div class="face panel">
           <div class="panel-text">Controls gated by who is driving<small>Interface Logic and Access Control</small></div>
@@ -475,7 +542,7 @@
     </details>
 
     <!-- Structural Frame -->
-    <details class="card">
+    <details class="card rc-tile">
       <summary>
         <div class="face panel">
           <div class="panel-text">Infinite fatigue life, strain-gauge validated<small>Structural Frame Redesign</small></div>
@@ -519,6 +586,9 @@
       </div>
     </details>
 
+     </div>
+    </div>
+   </div>
   </div>
 
   <h3 class="subhead">BorgWarner, Ithaca, New York, 2022</h3>
@@ -1259,5 +1329,120 @@
   </footer>
 
 </div>
+
+<script>
+/* Raymond scroll mosaic: a pinned zoom-out reveal modeled on pleurat.com section #8.
+   Progressive enhancement only. No JS -> plain card grid. Reduced motion -> static grid. */
+(function () {
+  var root = document.documentElement;
+  var track = document.getElementById('rc-track');
+  var mosaic = document.getElementById('rc-mosaic');
+  if (!track || !mosaic) return;
+  root.classList.add('rc-js');
+
+  var tiles = Array.prototype.slice.call(mosaic.querySelectorAll('.rc-tile'));
+  var LEAD = 1; /* top-center tile is the zoom anchor (SEnS+, which has a photo) */
+  if (tiles[LEAD]) tiles[LEAD].classList.add('is-lead');
+
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* Lead-in heading reveal */
+  var rev = document.querySelector('.rc-reveal');
+  if (rev) {
+    if (reduce || !('IntersectionObserver' in window)) {
+      rev.classList.add('is-in');
+    } else {
+      var io = new IntersectionObserver(function (es) {
+        es.forEach(function (e) { if (e.isIntersecting) { rev.classList.add('is-in'); io.disconnect(); } });
+      }, { threshold: 0.2 });
+      io.observe(rev);
+    }
+  }
+
+  /* Small screens and reduced motion: plain stacked grid, native inline expansion,
+     every tile full color. The cinematic zoom needs room to read. */
+  if (reduce || window.innerWidth < 760) return;
+  root.classList.add('rc-motion');
+
+  var winEl = mosaic.parentElement; /* .rc-window */
+  var W = 0, gridW = 0, scaleFit = 0.33, leadDX = 0, leadDY = 0;
+
+  function measure() {
+    W = winEl.clientWidth || track.clientWidth;
+    var gap = 12;
+    gridW = 3 * W + 2 * gap;
+    mosaic.style.width = gridW + 'px';
+    /* offsets are layout coordinates, unaffected by the transform */
+    scaleFit = Math.min(0.9, W / gridW);
+    var lead = tiles[LEAD] || tiles[0];
+    var lcx = lead.offsetLeft + lead.offsetWidth / 2;
+    var lcy = lead.offsetTop + lead.offsetHeight / 2;
+    leadDX = mosaic.offsetWidth / 2 - lcx;
+    leadDY = mosaic.offsetHeight / 2 - lcy;
+  }
+
+  function update() {
+    if (root.classList.contains('rc-open')) return;
+    var rect = track.getBoundingClientRect();
+    var vh = window.innerHeight;
+    var span = track.offsetHeight - vh;
+    var p = span > 0 ? (-rect.top) / span : 0;
+    p = p < 0 ? 0 : (p > 1 ? 1 : p);
+    var s = scaleFit + (1 - scaleFit) * Math.pow(1 - p, 2.2); /* 1 -> scaleFit, ease-out (measured k=2.2) */
+    var tx = leadDX * s, ty = leadDY * s;
+    mosaic.style.transform = 'translate(' + tx.toFixed(1) + 'px,' + ty.toFixed(1) + 'px) scale(' + s.toFixed(4) + ')';
+    var op = Math.max(0, Math.min(1, (p - 0.2) / 0.6)) * 0.55 + 0.45; /* non-lead tiles 0.45 -> 1 */
+    mosaic.style.setProperty('--rc-op', op.toFixed(3));
+    for (var i = 0; i < tiles.length; i++) {
+      if (i === LEAD) continue;
+      var col = i % 3;
+      var dy = (col - 1) * 16 * (1 - p); /* mild per-column parallax, converges by p=1 */
+      var sm = tiles[i].querySelector('summary');
+      if (sm) sm.style.setProperty('--rc-dy', dy.toFixed(1) + 'px');
+    }
+  }
+
+  var ticking = false;
+  function onScroll() {
+    if (!ticking) { ticking = true; requestAnimationFrame(function () { update(); ticking = false; }); }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', function () { measure(); update(); });
+
+  /* Open a tile -> flatten (no transformed ancestor) + show its detail as a fixed panel */
+  function addClose(t) {
+    var d = t.querySelector('.detail');
+    if (d && !d.querySelector('.rc-close')) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'rc-close'; b.textContent = 'Close';
+      b.addEventListener('click', function () { t.open = false; });
+      d.insertBefore(b, d.firstChild);
+    }
+  }
+  function anyOpen() { return tiles.some(function (o) { return o.open; }); }
+  tiles.forEach(function (t) {
+    t.addEventListener('toggle', function () {
+      if (t.open) {
+        tiles.forEach(function (o) { if (o !== t) o.open = false; });
+        root.classList.add('rc-open');
+        document.body.style.overflow = 'hidden';
+        addClose(t);
+        t.querySelector('.detail').scrollTop = 0;
+      } else if (!anyOpen()) {
+        root.classList.remove('rc-open');
+        document.body.style.overflow = '';
+        measure(); update();
+      }
+    });
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && anyOpen()) tiles.forEach(function (o) { o.open = false; });
+  });
+
+  measure();
+  update();
+  window.addEventListener('load', function () { measure(); update(); });
+})();
+</script>
 </body>
 </html>
