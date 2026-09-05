@@ -177,67 +177,138 @@
     .media img { height: 150px; }
   }
 
-  /* ===== Raymond scroll mosaic (pleurat study #8: pinned zoom-out) ===== */
-  /* Default and no-JS: a plain card grid, every tile visible. Enhancement only. */
-  .rc-lead { margin: 24px 0 8px; }
-  .rc-track { position: relative; }
-  .rc-mosaic {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 16px;
-  }
-  @media (max-width: 900px) { .rc-mosaic { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 600px) { .rc-mosaic { grid-template-columns: 1fr; } }
+  /* ===== Raymond forklift hero: line-art truck with cards orbiting to their parts ===== */
+  /* Fallback first (no JS, reduced motion, or narrow screens): the truck sits on top,
+     the six cards stack in a grid with all their info shown, and each card is a native
+     <details> that opens inline. The motion layer below is progressive enhancement. */
+  .fk-lead { margin: 22px 0 6px; }
+  .fk-track { position: relative; }
+  .fk-stage { position: relative; }
+  .fk-truck { display: block; width: 300px; max-width: 78%; height: auto; margin: 10px auto 22px; }
+  .fk-leaders { display: none; }
+  .fk-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 8px; }
+  @media (max-width: 900px) { .fk-cards { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px) { .fk-cards { grid-template-columns: 1fr; } }
 
-  /* Lead-in heading reveal (fade + rise), mirrors pleurat's .sv-rv */
-  .rc-js .rc-reveal {
-    opacity: 0; transform: translateY(24px);
-    transition: opacity .8s cubic-bezier(.2,.8,.2,1), transform .8s cubic-bezier(.2,.8,.2,1);
+  .fk-card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 8px;
+    position: relative; color: inherit;
   }
-  .rc-js .rc-reveal.is-in { opacity: 1; transform: none; }
+  details.fk-card > summary { list-style: none; cursor: pointer; display: block; padding: 14px 16px; }
+  details.fk-card > summary::-webkit-details-marker { display: none; }
+  details.fk-card > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .fk-title { margin: 0 0 4px; font-size: 16px; }
+  .fk-stat { margin: 0; font-size: 13.5px; color: var(--accent); font-weight: 700; }
+  .fk-general { max-height: 500px; opacity: 1; overflow: hidden; transition: max-height .45s ease, opacity .3s ease; }
+  .fk-role { margin: 9px 0 3px; color: var(--muted); font-size: 12.5px; }
+  .fk-sum { margin: 0; font-size: 13.5px; color: var(--ink); line-height: 1.5; }
+  .fk-cue { margin: 10px 0 0; font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: var(--accent); font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
+  .fk-cue svg { width: 11px; height: 11px; display: block; }
+  details.fk-card[open] .fk-cue { display: none; }
+  .fk-card .detail { padding: 4px 16px 18px; border-top: 1px solid var(--line); }
 
-  /* Cinematic mode: JS present and motion allowed. A pinned zoom-out of the tile grid. */
-  .rc-js.rc-motion .rc-track { height: var(--rc-track-h, 200vh); }
-  .rc-js.rc-motion .rc-pin {
+  /* ---- Motion layer: JS present and motion allowed. Truck pins, cards fly to parts. ---- */
+  .fk-js.fk-motion .fk-track { height: 340vh; }
+  .fk-js.fk-motion .fk-pin {
     position: sticky; top: 0; height: 100vh; overflow: hidden;
-    display: grid; place-items: center;
   }
-  .rc-js.rc-motion .rc-window { position: relative; width: 100%; height: 100%; overflow: hidden; }
-  .rc-js.rc-motion .rc-mosaic {
-    position: absolute; top: 50%; left: 50%; margin: 0; gap: 12px;
-    width: var(--rc-w, 300%);
-    translate: -50% -50%; transform-origin: center center; will-change: transform;
-    grid-template-columns: repeat(3, 1fr);
+  .fk-js.fk-motion .fk-stage { position: relative; width: 100%; height: 100vh; }
+  .fk-js.fk-motion .fk-truck {
+    position: absolute; left: 50%; top: 50%; margin: 0;
+    width: auto; height: 420px;
+    transform: translate(-50%, -50%) scale(var(--fk-s, 1));
+    transform-origin: center center; opacity: var(--fk-o, 1);
+    will-change: transform, opacity;
   }
-  .rc-js.rc-motion .rc-tile {
-    opacity: var(--rc-op, 1); transition: opacity .12s linear;
+  .fk-js.fk-motion .fk-leaders {
+    display: block; position: absolute; inset: 0; width: 100%; height: 100%;
+    pointer-events: none; overflow: visible;
   }
-  .rc-js.rc-motion .rc-tile.is-lead { opacity: 1; }
-  /* parallax rides on the summary so the tile itself stays untransformed (keeps the
-     open detail's position:fixed relative to the viewport, not to a transformed ancestor) */
-  .rc-js.rc-motion .rc-tile > summary { transform: translateY(var(--rc-dy, 0)); will-change: transform; }
+  .fk-js.fk-motion .fk-leaders line { stroke: var(--accent); stroke-width: 1.4; opacity: 0; }
+  .fk-js.fk-motion .fk-leaders circle { fill: var(--accent); opacity: 0; }
+  .fk-js.fk-motion .fk-cards { display: block; margin: 0; }
+  .fk-js.fk-motion .fk-card {
+    position: absolute; width: 214px; margin: 0;
+    left: var(--cx); top: var(--cy);
+    transform: translate(-50%, -50%) translate(var(--tx, 0px), var(--ty, 0px));
+    opacity: var(--op, 0);
+    will-change: transform, opacity;
+    box-shadow: 0 3px 16px rgba(0, 0, 0, .09);
+  }
+  @media (max-width: 1080px) { .fk-js.fk-motion .fk-card { width: 188px; } }
+  .fk-js.fk-motion .fk-general { max-height: 0; opacity: 0; }
+  .fk-js.fk-motion[data-fkstage="3"] .fk-general { max-height: 220px; opacity: 1; }
+  .fk-js.fk-motion .fk-cue { opacity: 0; }
+  .fk-js.fk-motion[data-fkstage="4"] .fk-cue { opacity: 1; }
+  .fk-js.fk-motion[data-fkstage="4"] .fk-cue svg { animation: fk-pulse .6s ease 2; }
+  @keyframes fk-pulse { 0% { transform: translateX(0); } 50% { transform: translateX(3px); } 100% { transform: translateX(0); } }
 
-  /* Open state: flatten everything (no transformed ancestor) and show the detail as a
-     fixed reading panel over the page. */
-  .rc-js.rc-motion.rc-open .rc-track { height: auto; }
-  .rc-js.rc-motion.rc-open .rc-pin { position: static; height: auto; overflow: visible; display: block; }
-  .rc-js.rc-motion.rc-open .rc-window { height: auto; overflow: visible; }
-  .rc-js.rc-motion.rc-open .rc-mosaic {
-    position: static; translate: none; transform: none !important; width: 100% !important;
-    will-change: auto; /* clear the containing block so the fixed detail is viewport-relative */
+  /* Open a card: flatten the pin (no transformed ancestor) so the detail is a fixed
+     reading panel over the page, matching the reading panel used elsewhere. */
+  .fk-js.fk-motion.fk-open .fk-track { height: auto; }
+  .fk-js.fk-motion.fk-open .fk-pin { position: static; height: auto; overflow: visible; }
+  .fk-js.fk-motion.fk-open .fk-stage { position: static; height: auto; }
+  .fk-js.fk-motion.fk-open .fk-truck,
+  .fk-js.fk-motion.fk-open .fk-leaders { display: none; }
+  .fk-js.fk-motion.fk-open .fk-cards { display: block; }
+  .fk-js.fk-motion.fk-open .fk-card {
+    position: static; opacity: 1 !important; transform: none !important; width: auto; box-shadow: none;
   }
-  .rc-js.rc-motion.rc-open .rc-tile { opacity: 1 !important; }
-  .rc-js.rc-motion.rc-open .rc-tile > summary { transform: none; will-change: auto; }
-
-  .rc-js.rc-motion .rc-tile[open] > .detail {
+  .fk-js.fk-motion.fk-open .fk-card:not([open]) { display: none; }
+  .fk-js.fk-motion .fk-card[open] > .detail {
     position: fixed; inset: 0; z-index: 200; background: #fff; overflow: auto;
     padding: 66px max(22px, calc(50% - 470px)) 56px; border-top: none;
   }
-  .rc-close {
+  .fk-close {
     position: fixed; top: 14px; right: 16px; z-index: 210;
     font: 600 13px/1 inherit; letter-spacing: 0.02em;
     color: #fff; background: var(--ink); border: none; border-radius: 6px;
     padding: 9px 15px; cursor: pointer;
   }
-  .rc-close:hover { background: var(--accent); }
+  .fk-close:hover { background: var(--accent); }
+
+  /* ===== BorgWarner variable cam timing phaser (oil actuated). Plays once in view. ===== */
+  .vct-wrap { display: flex; gap: 28px; align-items: center; flex-wrap: wrap; margin: 16px 0 10px; }
+  .vct-fig { flex: 0 0 300px; max-width: 300px; }
+  .vct-svg { width: 100%; height: auto; display: block; }
+  .vct-note { flex: 1 1 320px; min-width: 260px; font-size: 14.5px; color: var(--muted); max-width: 52ch; }
+  .vct-note b { color: var(--ink); }
+  .vct-phases { display: flex; gap: 8px; margin: 14px 0 0; flex-wrap: wrap; }
+  .vct-phase { font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: var(--accent); font-weight: 700; opacity: .3; transition: opacity .25s ease; }
+  .vct-phase::before { content: "\2192"; margin-right: 5px; color: var(--muted); }
+  .vct-phase:first-child::before { content: none; }
+
+  #vct-rotor { transform-box: fill-box; transform-origin: center; }
+  #vct-pin { transform-box: fill-box; transform-origin: center; }
+  .vct-adv { opacity: 0; }
+  .vct-ret { opacity: .8; }
+
+  .vct-wrap.is-run #vct-rotor { animation: vct-rotate 4s cubic-bezier(.4, 0, .2, 1) forwards; }
+  .vct-wrap.is-run .vct-adv { animation: vct-adv-in 4s ease forwards; }
+  .vct-wrap.is-run .vct-ret { animation: vct-ret-out 4s ease forwards; }
+  .vct-wrap.is-run .vct-gallery { animation: vct-flow 4s ease forwards; }
+  .vct-wrap.is-run #vct-pin { animation: vct-pin 4s ease forwards; }
+  .vct-wrap.is-run .vct-l1 { animation: vct-l1 4s linear forwards; }
+  .vct-wrap.is-run .vct-l2 { animation: vct-l2 4s linear forwards; }
+  .vct-wrap.is-run .vct-l3 { animation: vct-l3 4s linear forwards; }
+
+  @keyframes vct-rotate { 0%, 28% { transform: rotate(0); } 68% { transform: rotate(27deg); } 84%, 100% { transform: rotate(25deg); } }
+  @keyframes vct-adv-in { 0% { opacity: 0; } 40% { opacity: .85; } 100% { opacity: .85; } }
+  @keyframes vct-ret-out { 0% { opacity: .8; } 40% { opacity: .08; } 100% { opacity: .08; } }
+  @keyframes vct-flow { 0% { stroke-dashoffset: 64; } 40% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 0; } }
+  @keyframes vct-pin { 0%, 70% { transform: translateY(0); } 88% { transform: translateY(15px); } 94% { transform: translateY(11px); } 100% { transform: translateY(13px); } }
+  @keyframes vct-l1 { 0% { opacity: .3; } 8% { opacity: 1; } 38% { opacity: 1; } 50% { opacity: .3; } 100% { opacity: .3; } }
+  @keyframes vct-l2 { 0%, 30% { opacity: .3; } 42% { opacity: 1; } 66% { opacity: 1; } 78% { opacity: .3; } 100% { opacity: .3; } }
+  @keyframes vct-l3 { 0%, 66% { opacity: .3; } 82% { opacity: 1; } 100% { opacity: 1; } }
+
+  /* Reduced motion: hold the final state, no playback. */
+  .vct-wrap.is-final #vct-rotor { transform: rotate(25deg); }
+  .vct-wrap.is-final .vct-adv { opacity: .85; }
+  .vct-wrap.is-final .vct-ret { opacity: .08; }
+  .vct-wrap.is-final .vct-gallery { stroke-dashoffset: 0; }
+  .vct-wrap.is-final #vct-pin { transform: translateY(13px); }
+  .vct-wrap.is-final .vct-l3 { opacity: 1; }
+  @media (max-width: 620px) { .vct-wrap { gap: 16px; } .vct-fig { flex-basis: 240px; } }
 </style>
 </head>
 <body>
@@ -276,7 +347,8 @@
    </div>
 
    <nav class="anchors">
-     <a href="#work">Work</a>
+     <a href="#work">Raymond</a>
+     <a href="#experience">Experience</a>
      <a href="#projects">Projects</a>
      <a href="#websites">Websites</a>
      <a href="#education">Education and awards</a>
@@ -284,328 +356,412 @@
   </header>
 
   <!-- ============================ WORK ============================ -->
-  <h2 class="section" id="work">Work <span class="count">Raymond Corporation, BorgWarner, Boston Beer</span></h2>
+  <h2 class="section" id="work">The Raymond Corporation <span class="count">2024 to present</span></h2>
+  <p class="section-lead fk-lead">
+    Industrial vehicle systems. Most of this work ships on production trucks, so several cards use a plain note where
+    the hardware or the plot is proprietary rather than a picture I can post. Scroll to bring each system in against
+    the truck it runs on, then click any card for the full Designed, Analyzed, Built, Proved breakdown.
+  </p>
 
-  <div class="rc-lead rc-reveal">
-    <h3 class="subhead">The Raymond Corporation, 2024 to present</h3>
-    <p class="section-lead">
-      Industrial vehicle systems. Most of this work ships on production trucks, so several cards use a plain panel and
-      an honest note where the hardware or the plot is proprietary rather than a picture I can post.
-    </p>
-  </div>
+  <div class="fk-track" id="fk-track">
+   <div class="fk-pin">
+    <div class="fk-stage">
 
-  <div class="rc-track" id="rc-track">
-   <div class="rc-pin">
-    <div class="rc-window">
-     <div class="rc-mosaic" id="rc-mosaic">
+     <!-- Placeholder line-art forklift (Raymond stand-up reach truck). This whole <svg> is one
+          block and is meant to be swapped for a 3D model later; the ids below are the anchor
+          points the cards point to (mast, forks, drive-tire, operator-station, sensor-head, chassis). -->
+     <svg class="fk-truck" id="fk-truck" viewBox="0 0 380 440" fill="none" stroke="#15607a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Line drawing of a Raymond stand-up reach truck">
+       <g id="overhead-guard">
+         <line x1="198" y1="96" x2="338" y2="96"/>
+         <line x1="206" y1="96" x2="206" y2="300"/>
+         <line x1="238" y1="96" x2="238" y2="120"/>
+         <line x1="304" y1="96" x2="304" y2="120"/>
+       </g>
+       <g id="operator-station">
+         <line x1="332" y1="110" x2="332" y2="300"/>
+         <rect x="314" y="206" width="20" height="12" rx="2"/>
+         <circle cx="252" cy="248" r="14"/>
+         <line x1="252" y1="262" x2="252" y2="300"/>
+       </g>
+       <rect id="chassis" x="190" y="300" width="150" height="76" rx="10"/>
+       <line x1="205" y1="336" x2="325" y2="336"/>
+       <path d="M188,314 L168,300 M188,300 L168,318"/>
+       <g id="drive-tire">
+         <circle cx="300" cy="392" r="36"/>
+         <circle cx="300" cy="392" r="13"/>
+       </g>
+       <g id="caster">
+         <circle cx="150" cy="398" r="17"/>
+         <circle cx="150" cy="398" r="6"/>
+       </g>
+       <g id="mast">
+         <line x1="150" y1="110" x2="150" y2="362"/>
+         <line x1="168" y1="110" x2="168" y2="362"/>
+         <line x1="150" y1="150" x2="168" y2="150"/>
+         <line x1="150" y1="250" x2="168" y2="250"/>
+         <circle cx="159" cy="110" r="6"/>
+         <rect x="146" y="300" width="26" height="30" rx="3"/>
+       </g>
+       <g id="forks">
+         <line x1="150" y1="330" x2="150" y2="384"/>
+         <line x1="150" y1="384" x2="64" y2="384"/>
+         <line x1="64" y1="384" x2="58" y2="377"/>
+         <line x1="150" y1="376" x2="72" y2="376"/>
+       </g>
+       <g id="sensor-head">
+         <rect x="134" y="76" width="36" height="22" rx="3"/>
+         <circle cx="144" cy="87" r="4"/>
+         <circle cx="160" cy="87" r="4"/>
+       </g>
+     </svg>
 
-    <!-- Performance Stability -->
-    <details class="card rc-tile">
-      <summary>
-        <div class="face panel">
-          <div class="panel-text">+14% performance, -10% battery draw<small>Performance Stability System</small></div>
-          <div class="overlay">
-          <h3>Performance Stability System</h3>
-          <p>A control system that holds a heavy vehicle steady under an unbalanced or shifting load, without pulling performance back when it's safe to push. The whole job was finding the line between spilling a load and over-limiting an operator who needs the speed.</p>
-        </div>
-        </div>
-        <div class="card-meta">
-          <h3 class="card-title">Performance Stability System</h3>
-          <p class="ctx">Lead engineer, stability and controls. 2024.</p>
-          <p class="desc-touch">A control system that holds a heavy vehicle steady under a shifting load, without pulling performance back when it's safe to push.</p>
-          <p class="more">Designed / Analyzed / Built / Proved</p>
-        </div>
-      </summary>
-      <div class="detail">
-        <div class="step">
-          <div class="step-label">Designed</div>
-          <div class="step-body">
-            <p>I mapped the two failure zones first: the operator who can't feel a tip coming, and the safety logic so conservative it removes speed the operator actually needs. The controller sits between them, reading load state off the CAN bus and deciding moment by moment how much performance to allow.</p>
+     <svg class="fk-leaders" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+       <line/><line/><line/><line/><line/><line/>
+       <circle/><circle/><circle/><circle/><circle/><circle/>
+     </svg>
+
+     <div class="fk-cards">
+
+      <!-- SEnS+ -> sensor head -->
+      <details class="fk-card" data-part="sensor-head" data-cx="16%" data-cy="22%" data-fromx="-560" data-fromy="-70">
+        <summary>
+          <h3 class="fk-title">Smart Environment Sensor Plus</h3>
+          <p class="fk-stat">Stereo camera tied to regen braking</p>
+          <div class="fk-general">
+            <p class="fk-role">Lead engineer, machine vision and braking. 2022.</p>
+            <p class="fk-sum">Stereoscopic camera detection for pedestrians and obstacles, wired into regenerative braking. The perception is a braking action inside the safety stack, not a beep on a screen.</p>
           </div>
-        </div>
-        <div class="step">
-          <div class="step-label">Analyzed</div>
-          <div class="step-body">
-            <p>I ran PID tuning across the electric and hydraulic subsystems, lift and drive and steering, to cut lag and keep the response stable as the load changed. A static stability tool I wrote forecasts the outcome of the ANSI/ITSDF B56.1 tip tests, so we could evaluate a design before building it.</p>
+          <span class="fk-cue">Click for the full breakdown <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h9M8 4l4 4-4 4"/></svg></span>
+        </summary>
+        <div class="detail">
+          <div class="step">
+            <div class="step-label">Designed</div>
+            <div class="step-body">
+              <p>I designed the sensing chain around a stereo camera pair, dynamic zoning that changes the alert region with vehicle speed and path, and control logic that turns a detection into a brake demand. The hard part was telling a person from a stack of pallets, because a false positive costs throughput and a false negative costs a life.</p>
+            </div>
           </div>
-        </div>
-        <div class="step">
-          <div class="step-label">Built</div>
-          <div class="step-body">
-            <p>The logic runs on the production vehicle controller and talks to the drivetrain over CAN.</p>
-            <div class="media">
-              <figure>
-                <video controls preload="none" poster="assets/raymond-poster.jpg">
-                  <source src="assets/raymond.mp4" type="video/mp4" />
-                  Your browser does not support embedded video.
-                </video>
-                <figcaption>The vehicle class this runs on. Brand animation, After Effects loop.</figcaption>
-              </figure>
+          <div class="step">
+            <div class="step-label">Analyzed</div>
+            <div class="step-body">
+              <p>Pedestrian perception is solved in passenger cars and much rougher in a warehouse, so the analysis was about where the vision model fails and how to zone around it. I tuned the detection zones against the vehicle's stopping behavior so the brake assist triggers with room to stop.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-label">Built</div>
+            <div class="step-body">
+              <p>The sensor and its logic went into a shipping product.</p>
+              <div class="media">
+                <figure>
+                  <img loading="lazy" src="assets/sens-plus-flyer.jpg" alt="Smart Environment Sensor Plus product flyer showing the stereoscopic camera sensor" />
+                  <figcaption>SEnS+ product sheet. The stereo sensor unit as shipped.</figcaption>
+                </figure>
+              </div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-label">Proved</div>
+            <div class="step-body">
+              <p>Detection drives regenerative braking automatically, so an operator who misses a pedestrian still gets the stop.</p>
+              <p class="gap">Detection-rate and stopping-distance figures stay in-house. I can walk through them in an interview.</p>
             </div>
           </div>
         </div>
-        <div class="step">
-          <div class="step-label">Proved</div>
-          <div class="step-body">
-            <p>Measured against the prior baseline, the system delivered 14% better performance and 10% less battery draw.</p>
-            <p class="gap">No field plot to post. The number is the deliverable, and it's on the resume.</p>
-          </div>
-        </div>
-      </div>
-    </details>
+      </details>
 
-    <!-- SEnS+ -->
-    <details class="card rc-tile">
-      <summary>
-        <div class="face">
-          <img loading="lazy" src="assets/sens-plus-flyer.jpg" alt="Smart Environment Sensor Plus product flyer showing the stereoscopic camera sensor mounted on a vehicle" />
-          <div class="overlay">
-            <h3>Smart Environment Sensor Plus</h3>
-            <p>Stereoscopic camera detection for pedestrians and obstacles, wired straight into regenerative braking. The perception isn't a beep on a screen. It's a braking action inside the vehicle safety stack.</p>
+      <!-- Performance Stability -> operator station -->
+      <details class="fk-card" data-part="operator-station" data-cx="84%" data-cy="22%" data-fromx="560" data-fromy="-70">
+        <summary>
+          <h3 class="fk-title">Performance Stability System</h3>
+          <p class="fk-stat">+14% performance, -10% battery draw</p>
+          <div class="fk-general">
+            <p class="fk-role">Lead engineer, stability and controls. 2024.</p>
+            <p class="fk-sum">A control system that holds a heavy vehicle steady under a shifting load, without pulling performance back when it's safe to push.</p>
           </div>
-        </div>
-        <div class="card-meta">
-          <h3 class="card-title">Smart Environment Sensor Plus (SEnS+)</h3>
-          <p class="ctx">Lead engineer, machine vision and braking. 2022.</p>
-          <p class="desc-touch">Stereoscopic camera detection for pedestrians, wired straight into regenerative braking. Not a beep on a screen, a braking action.</p>
-          <p class="more">Designed / Analyzed / Built / Proved</p>
-        </div>
-      </summary>
-      <div class="detail">
-        <div class="step">
-          <div class="step-label">Designed</div>
-          <div class="step-body">
-            <p>I designed the sensing chain around a stereo camera pair, dynamic zoning that changes the alert region with vehicle speed and path, and control logic that turns a detection into a brake demand. The hard part was telling a person from a stack of pallets, because a false positive costs throughput and a false negative costs a life.</p>
+          <span class="fk-cue">Click for the full breakdown <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h9M8 4l4 4-4 4"/></svg></span>
+        </summary>
+        <div class="detail">
+          <div class="step">
+            <div class="step-label">Designed</div>
+            <div class="step-body">
+              <p>I mapped the two failure zones first: the operator who can't feel a tip coming, and the safety logic so conservative it removes speed the operator actually needs. The controller sits between them, reading load state off the CAN bus and deciding moment by moment how much performance to allow.</p>
+            </div>
           </div>
-        </div>
-        <div class="step">
-          <div class="step-label">Analyzed</div>
-          <div class="step-body">
-            <p>Pedestrian perception is solved in passenger cars and much rougher in a warehouse, so the analysis was about where the vision model fails and how to zone around it. I tuned the detection zones against the vehicle's stopping behavior so the brake assist triggers with room to stop.</p>
+          <div class="step">
+            <div class="step-label">Analyzed</div>
+            <div class="step-body">
+              <p>I ran PID tuning across the electric and hydraulic subsystems, lift and drive and steering, to cut lag and keep the response stable as the load changed. A static stability tool I wrote forecasts the outcome of the ANSI/ITSDF B56.1 tip tests, so we could evaluate a design before building it.</p>
+            </div>
           </div>
-        </div>
-        <div class="step">
-          <div class="step-label">Built</div>
-          <div class="step-body">
-            <p>The sensor and its logic went into a shipping product.</p>
-            <div class="media">
-              <figure>
-                <img loading="lazy" src="assets/sens-plus-flyer.jpg" alt="Smart Environment Sensor Plus product flyer showing the stereoscopic camera sensor" />
-                <figcaption>SEnS+ product sheet. The stereo sensor unit as shipped.</figcaption>
-              </figure>
+          <div class="step">
+            <div class="step-label">Built</div>
+            <div class="step-body">
+              <p>The logic runs on the production vehicle controller and talks to the drivetrain over CAN.</p>
+              <div class="media">
+                <figure>
+                  <video controls preload="none" poster="assets/raymond-poster.jpg">
+                    <source src="assets/raymond.mp4" type="video/mp4" />
+                    Your browser does not support embedded video.
+                  </video>
+                  <figcaption>The vehicle class this runs on. Brand animation, After Effects loop.</figcaption>
+                </figure>
+              </div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-label">Proved</div>
+            <div class="step-body">
+              <p>Measured against the prior baseline, the system delivered 14% better performance and 10% less battery draw.</p>
+              <p class="gap">No field plot to post. The number is the deliverable, and it's on the resume.</p>
             </div>
           </div>
         </div>
-        <div class="step">
-          <div class="step-label">Proved</div>
-          <div class="step-body">
-            <p>Detection drives regenerative braking automatically, so an operator who misses a pedestrian still gets the stop.</p>
-            <p class="gap">Detection-rate and stopping-distance figures are internal. I can walk through them in an interview.</p>
-          </div>
-        </div>
-      </div>
-    </details>
+      </details>
 
-    <!-- Hydraulic Weight Sensing -->
-    <details class="card rc-tile">
-      <summary>
-        <div class="face panel">
-          <div class="panel-text">The truck weighs its own load<small>Hydraulic Weight Sensing</small></div>
-          <div class="overlay">
-          <h3>Hydraulic Weight Sensing</h3>
-          <p>The vehicle weighs its own load. Pressure transducers built into the hydraulic manifold read the lift pressure, and signal processing turns that into a live weight on the operator display.</p>
-        </div>
-        </div>
-        <div class="card-meta">
-          <h3 class="card-title">Hydraulic Weight Sensing</h3>
-          <p class="ctx">Lead engineer, hydraulics and signal processing. 2023.</p>
-          <p class="desc-touch">Pressure transducers in the hydraulic manifold read lift pressure, and signal processing turns it into a live weight on the display.</p>
-          <p class="more">Designed / Analyzed / Built / Proved</p>
-        </div>
-      </summary>
-      <div class="detail">
-        <div class="step">
-          <div class="step-label">Designed</div>
-          <div class="step-body">
-            <p>Instead of a separate scale or a known stop, I put the sensing where the force already is: transducers inline in the hydraulic manifold. Weighing then happens continuously off hardware the vehicle already carries.</p>
+      <!-- Hydraulic Weight Sensing -> mast / hydraulics -->
+      <details class="fk-card" data-part="mast" data-cx="13%" data-cy="50%" data-fromx="-620" data-fromy="0">
+        <summary>
+          <h3 class="fk-title">Hydraulic Weight Sensing</h3>
+          <p class="fk-stat">The truck weighs its own load</p>
+          <div class="fk-general">
+            <p class="fk-role">Lead engineer, hydraulics and signal processing. 2023.</p>
+            <p class="fk-sum">Pressure transducers in the hydraulic manifold read lift pressure, and signal processing turns it into a live weight on the operator display.</p>
+          </div>
+          <span class="fk-cue">Click for the full breakdown <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h9M8 4l4 4-4 4"/></svg></span>
+        </summary>
+        <div class="detail">
+          <div class="step">
+            <div class="step-label">Designed</div>
+            <div class="step-body">
+              <p>Instead of a separate scale or a known stop, I put the sensing where the force already is: transducers inline in the hydraulic manifold. Weighing then happens continuously off hardware the vehicle already carries.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-label">Analyzed</div>
+            <div class="step-body">
+              <p>I wrote the signal processing that converts manifold pressure into load weight, filtering out the noise from lift motion and hydraulic transients so the reading settles instead of jumping.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-label">Built</div>
+            <div class="step-body">
+              <p class="gap">No photo. The transducers sit inside the manifold on production hydraulics.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-label">Proved</div>
+            <div class="step-body">
+              <p>The weight feeds the operator display, and once a load crosses the rated envelope the system reduces speed on its own. Overloading is a top cause of preventable damage to product, machine, and operator, and this catches it before the lift.</p>
+            </div>
           </div>
         </div>
-        <div class="step">
-          <div class="step-label">Analyzed</div>
-          <div class="step-body">
-            <p>I wrote the signal processing that converts manifold pressure into load weight, filtering out the noise from lift motion and hydraulic transients so the reading settles instead of jumping.</p>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-label">Built</div>
-          <div class="step-body">
-            <p class="gap">No photo. The transducers sit inside the manifold on production hydraulics.</p>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-label">Proved</div>
-          <div class="step-body">
-            <p>The weight feeds the operator display, and once a load crosses the rated envelope the system reduces speed on its own. Overloading is a top cause of preventable damage to product, machine, and operator, and this catches it before the lift.</p>
-          </div>
-        </div>
-      </div>
-    </details>
+      </details>
 
-    <!-- Steer Differentiation -->
-    <details class="card rc-tile">
-      <summary>
-        <div class="face panel">
-          <div class="panel-text">Tighter turns, less tire wear<small>Steer Differentiation System</small></div>
-          <div class="overlay">
-          <h3>Steer Differentiation System</h3>
-          <p>AC steering control logic that lets the drive tires steer at different rates, tightening the turn without making the machine feel twitchy. It cut turning radius and tire wear.</p>
-        </div>
-        </div>
-        <div class="card-meta">
-          <h3 class="card-title">Steer Differentiation System</h3>
-          <p class="ctx">Lead engineer, sensors and geometry. 2024.</p>
-          <p class="desc-touch">AC steering logic that lets the drive tires steer at different rates, tightening the turn without making the machine feel twitchy.</p>
-          <p class="more">Designed / Analyzed / Built / Proved</p>
-        </div>
-      </summary>
-      <div class="detail">
-        <div class="step">
-          <div class="step-label">Designed</div>
-          <div class="step-body">
-            <p>I developed the AC steering control logic for drive-tire steer differentiation, using higher sensor resolution to refine the steering geometry in real time. The design target was a tighter handling envelope that still preserved the operator's feel for the machine.</p>
+      <!-- Interface Logic -> operator station -->
+      <details class="fk-card" data-part="operator-station" data-cx="87%" data-cy="50%" data-fromx="620" data-fromy="0">
+        <summary>
+          <h3 class="fk-title">Interface Logic and Access Control</h3>
+          <p class="fk-stat">Controls gated by who is driving</p>
+          <div class="fk-general">
+            <p class="fk-role">Lead engineer, HMI and safety. 2023.</p>
+            <p class="fk-sum">A rebuild of the vehicle menu around safety classes and access levels, so the interface decides which controls are reachable.</p>
+          </div>
+          <span class="fk-cue">Click for the full breakdown <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h9M8 4l4 4-4 4"/></svg></span>
+        </summary>
+        <div class="detail">
+          <div class="step">
+            <div class="step-label">Designed</div>
+            <div class="step-body">
+              <p>I re-architected the menu as a role-aware state machine. A fleet manager, a technician, and an operator each see a different reachable set, so the right action is obvious and the wrong one is hard to reach.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-label">Analyzed</div>
+            <div class="step-body">
+              <p>Industrial interfaces pile up options over years until the menu becomes its own hazard surface. I worked through which controls an operator should never touch and which ones technicians were having to dig for.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-label">Built</div>
+            <div class="step-body">
+              <p class="gap">The redesigned interface shipped. Screens are proprietary product UI, so no screenshot here.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-label">Proved</div>
+            <div class="step-body">
+              <p>Operators stopped seeing controls they shouldn't touch, and technicians stopped hunting for the ones they need. The access rules also feed the functional safety case for the vehicle.</p>
+            </div>
           </div>
         </div>
-        <div class="step">
-          <div class="step-label">Analyzed</div>
-          <div class="step-body">
-            <p>Industrial steering usually trades resolution for robustness, so the sensors are coarse and the controller smooths over them. That falls apart once you want to fuse steering data into stability or perception systems that need clean inputs, so I worked on lifting the resolution floor.</p>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-label">Built</div>
-          <div class="step-body">
-            <p class="gap">The control logic runs on shipping trucks over CAN. No standalone photo of a control law.</p>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-label">Proved</div>
-          <div class="step-body">
-            <p>Differentiating the steer angle across the drive tires reduced the turning radius and reduced tire wear.</p>
-          </div>
-        </div>
-      </div>
-    </details>
+      </details>
 
-    <!-- Interface Logic -->
-    <details class="card rc-tile">
-      <summary>
-        <div class="face panel">
-          <div class="panel-text">Controls gated by who is driving<small>Interface Logic and Access Control</small></div>
-          <div class="overlay">
-          <h3>Interface Logic and Access Control</h3>
-          <p>A rebuild of the vehicle menu system around safety classes and operator access levels. The interface itself decides which controls are reachable, based on who's driving and what the vehicle is doing.</p>
-        </div>
-        </div>
-        <div class="card-meta">
-          <h3 class="card-title">Interface Logic and Access Control</h3>
-          <p class="ctx">Lead engineer, HMI and safety. 2023.</p>
-          <p class="desc-touch">A rebuild of the vehicle menu around safety classes and access levels. The interface decides which controls are reachable.</p>
-          <p class="more">Designed / Analyzed / Built / Proved</p>
-        </div>
-      </summary>
-      <div class="detail">
-        <div class="step">
-          <div class="step-label">Designed</div>
-          <div class="step-body">
-            <p>I re-architected the menu as a role-aware state machine. A fleet manager, a technician, and an operator each see a different reachable set, so the right action is obvious and the wrong one is hard to reach.</p>
+      <!-- Structural Frame -> chassis -->
+      <details class="fk-card" data-part="chassis" data-cx="16%" data-cy="79%" data-fromx="-560" data-fromy="70">
+        <summary>
+          <h3 class="fk-title">Structural Frame Redesign</h3>
+          <p class="fk-stat">Infinite fatigue life, strain-gauge validated</p>
+          <div class="fk-general">
+            <p class="fk-role">Lead engineer, FEA and fatigue. 2022.</p>
+            <p class="fk-sum">A tractor frame redesigned from the welds up for infinite fatigue life. FEA drove it, strain gauges in the field confirmed it.</p>
+          </div>
+          <span class="fk-cue">Click for the full breakdown <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h9M8 4l4 4-4 4"/></svg></span>
+        </summary>
+        <div class="detail">
+          <div class="step">
+            <div class="step-label">Designed</div>
+            <div class="step-body">
+              <p>Fatigue cracks were showing up late in service, after the warranty window but inside what a customer expects the truck to last. I redesigned the frame so the failure mode was engineered out rather than pushed further down the road, while giving it the look the product team wanted.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-label">Analyzed</div>
+            <div class="step-body">
+              <p>FEA drove the geometry, targeting infinite fatigue life at the weld details where the cracks had been starting. I also ran statistical analysis on how design and control changes affect component longevity and replacement frequency.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-label">Built</div>
+            <div class="step-body">
+              <p class="gap">No photo. The redesigned frame is on production trucks.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-label">Proved</div>
+            <div class="step-body">
+              <p>Strain gauges on the physical frame in the field validated the model, so the fix was confirmed against real loads instead of only in simulation.</p>
+            </div>
           </div>
         </div>
-        <div class="step">
-          <div class="step-label">Analyzed</div>
-          <div class="step-body">
-            <p>Industrial interfaces pile up options over years until the menu becomes its own hazard surface. I worked through which controls an operator should never touch and which ones technicians were having to dig for.</p>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-label">Built</div>
-          <div class="step-body">
-            <p class="gap">The redesigned interface shipped. Screens are internal product UI, so no screenshot here.</p>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-label">Proved</div>
-          <div class="step-body">
-            <p>Operators stopped seeing controls they shouldn't touch, and technicians stopped hunting for the ones they need. The access rules also feed the functional safety case for the vehicle.</p>
-          </div>
-        </div>
-      </div>
-    </details>
+      </details>
 
-    <!-- Structural Frame -->
-    <details class="card rc-tile">
-      <summary>
-        <div class="face panel">
-          <div class="panel-text">Infinite fatigue life, strain-gauge validated<small>Structural Frame Redesign</small></div>
-          <div class="overlay">
-          <h3>Structural Frame Redesign</h3>
-          <p>A tractor frame redesigned from the welds up for infinite fatigue life, and for a distinctive look at the same time. FEA drove it, and strain gauges in the field confirmed it.</p>
-        </div>
-        </div>
-        <div class="card-meta">
-          <h3 class="card-title">Structural Frame Redesign</h3>
-          <p class="ctx">Lead engineer, FEA and fatigue. 2022.</p>
-          <p class="desc-touch">A tractor frame redesigned from the welds up for infinite fatigue life. FEA drove it, strain gauges in the field confirmed it.</p>
-          <p class="more">Designed / Analyzed / Built / Proved</p>
-        </div>
-      </summary>
-      <div class="detail">
-        <div class="step">
-          <div class="step-label">Designed</div>
-          <div class="step-body">
-            <p>Fatigue cracks were showing up late in service, after the warranty window but inside what a customer expects the truck to last. I redesigned the frame so the failure mode was engineered out rather than pushed further down the road, while giving it the look the product team wanted.</p>
+      <!-- Steer Differentiation -> drive tire -->
+      <details class="fk-card" data-part="drive-tire" data-cx="84%" data-cy="79%" data-fromx="560" data-fromy="70">
+        <summary>
+          <h3 class="fk-title">Steer Differentiation System</h3>
+          <p class="fk-stat">Tighter turns, less tire wear</p>
+          <div class="fk-general">
+            <p class="fk-role">Lead engineer, sensors and geometry. 2024.</p>
+            <p class="fk-sum">AC steering logic lets the drive tires steer at different rates, tightening the turn without making the machine feel twitchy. It cut turning radius and tire wear.</p>
+          </div>
+          <span class="fk-cue">Click for the full breakdown <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h9M8 4l4 4-4 4"/></svg></span>
+        </summary>
+        <div class="detail">
+          <div class="step">
+            <div class="step-label">Designed</div>
+            <div class="step-body">
+              <p>I developed the AC steering control logic for drive-tire steer differentiation, using higher sensor resolution to refine the steering geometry in real time. The design target was a tighter handling envelope that still preserved the operator's feel for the machine.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-label">Analyzed</div>
+            <div class="step-body">
+              <p>Industrial steering usually trades resolution for robustness, so the sensors are coarse and the controller smooths over them. That falls apart once you want to fuse steering data into stability or perception systems that need clean inputs, so I worked on lifting the resolution floor.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-label">Built</div>
+            <div class="step-body">
+              <p class="gap">The control logic runs on shipping trucks over CAN. No standalone photo of a control law.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-label">Proved</div>
+            <div class="step-body">
+              <p>Differentiating the steer angle across the drive tires reduced the turning radius and reduced tire wear.</p>
+            </div>
           </div>
         </div>
-        <div class="step">
-          <div class="step-label">Analyzed</div>
-          <div class="step-body">
-            <p>FEA drove the geometry, targeting infinite fatigue life at the weld details where the cracks had been starting. I also ran statistical analysis on how design and control changes affect component longevity and replacement frequency.</p>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-label">Built</div>
-          <div class="step-body">
-            <p class="gap">No photo. The redesigned frame is on production trucks.</p>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-label">Proved</div>
-          <div class="step-body">
-            <p>Strain gauges on the physical frame in the field validated the model, so the fix was confirmed against real loads instead of only in simulation.</p>
-          </div>
-        </div>
-      </div>
-    </details>
+      </details>
 
      </div>
     </div>
    </div>
   </div>
 
+  <!-- ======================= PREVIOUS EXPERIENCE ======================= -->
+  <h2 class="section" id="experience">Previous experience <span class="count">BorgWarner, Boston Beer</span></h2>
+
   <h3 class="subhead">BorgWarner, Ithaca, New York, 2022</h3>
+
+  <!-- Variable cam timing phaser, oil actuated. Cutaway plays once on scroll into view. -->
+  <div class="vct-wrap">
+    <div class="vct-fig">
+      <svg class="vct-svg" viewBox="0 0 300 300" role="img" aria-label="Cutaway animation of an oil-actuated variable cam timing phaser: oil fills the advance chambers, the vane rotor turns, and a lock pin seats.">
+        <g fill="none" stroke="#15607a">
+          <!-- inner chamber wall -->
+          <circle cx="150" cy="150" r="104" stroke-width="3"/>
+          <!-- oil: advance chambers fill, retard chambers drain -->
+          <g stroke="none">
+            <path class="vct-adv" fill="#e0972a" d="M252,150 A102 102 0 0 1 222.1,222.1 L183.9,183.9 A48 48 0 0 0 198,150 Z"/>
+            <path class="vct-adv" fill="#e0972a" d="M150,252 A102 102 0 0 1 77.9,222.1 L116.1,183.9 A48 48 0 0 0 150,198 Z"/>
+            <path class="vct-adv" fill="#e0972a" d="M48,150 A102 102 0 0 1 77.9,77.9 L116.1,116.1 A48 48 0 0 0 102,150 Z"/>
+            <path class="vct-adv" fill="#e0972a" d="M150,48 A102 102 0 0 1 222.1,77.9 L183.9,116.1 A48 48 0 0 0 150,102 Z"/>
+            <path class="vct-ret" fill="#e0972a" d="M222.1,77.9 A102 102 0 0 1 252,150 L198,150 A48 48 0 0 0 183.9,116.1 Z"/>
+            <path class="vct-ret" fill="#e0972a" d="M222.1,222.1 A102 102 0 0 1 150,252 L150,198 A48 48 0 0 0 183.9,183.9 Z"/>
+            <path class="vct-ret" fill="#e0972a" d="M77.9,222.1 A102 102 0 0 1 48,150 L102,150 A48 48 0 0 0 116.1,183.9 Z"/>
+            <path class="vct-ret" fill="#e0972a" d="M77.9,77.9 A102 102 0 0 1 150,48 L150,102 A48 48 0 0 0 116.1,116.1 Z"/>
+          </g>
+          <!-- housing stops (fixed radial walls between chambers) -->
+          <g stroke-width="8" stroke-linecap="round">
+            <line x1="183.9" y1="183.9" x2="222.1" y2="222.1"/>
+            <line x1="116.1" y1="183.9" x2="77.9" y2="222.1"/>
+            <line x1="116.1" y1="116.1" x2="77.9" y2="77.9"/>
+            <line x1="183.9" y1="116.1" x2="222.1" y2="77.9"/>
+          </g>
+          <!-- housing / sprocket -->
+          <circle cx="150" cy="150" r="132" stroke-width="5"/>
+          <circle cx="150" cy="150" r="139" stroke-width="8" stroke-dasharray="5 9" stroke-linecap="butt"/>
+          <!-- galleries: oil feeding the advance side of each chamber -->
+          <g stroke="#e0972a" stroke-width="6" stroke-linecap="round" fill="none">
+            <line class="vct-gallery" x1="168.5" y1="157.7" x2="214.7" y2="176.8" stroke-dasharray="64" stroke-dashoffset="64"/>
+            <line class="vct-gallery" x1="142.3" y1="168.5" x2="123.2" y2="214.7" stroke-dasharray="64" stroke-dashoffset="64"/>
+            <line class="vct-gallery" x1="131.5" y1="142.3" x2="85.3" y2="123.2" stroke-dasharray="64" stroke-dashoffset="64"/>
+            <line class="vct-gallery" x1="157.7" y1="131.5" x2="176.8" y2="85.3" stroke-dasharray="64" stroke-dashoffset="64"/>
+          </g>
+          <!-- vane rotor, keyed to the cam. Rotates about 25 degrees under oil pressure. -->
+          <g id="vct-rotor">
+            <g stroke-width="9" stroke-linecap="round">
+              <line x1="196" y1="150" x2="250" y2="150"/>
+              <line x1="150" y1="196" x2="150" y2="250"/>
+              <line x1="104" y1="150" x2="50" y2="150"/>
+              <line x1="150" y1="104" x2="150" y2="50"/>
+            </g>
+            <circle cx="150" cy="150" r="46" fill="#fff" stroke-width="4"/>
+            <circle cx="150" cy="150" r="19" fill="none" stroke-width="4"/>
+            <rect x="144" y="131" width="12" height="12" fill="#15607a" stroke="none"/>
+          </g>
+          <!-- lock pin and its seat, at the top -->
+          <rect x="142" y="112" width="16" height="14" fill="none" stroke-width="3"/>
+          <rect id="vct-pin" x="144" y="92" width="12" height="20" rx="2" fill="#15607a" stroke="none"/>
+        </g>
+      </svg>
+      <div class="vct-phases">
+        <span class="vct-phase vct-l1">Oil in</span>
+        <span class="vct-phase vct-l2">Rotor advances</span>
+        <span class="vct-phase vct-l3">Pin locks</span>
+      </div>
+    </div>
+    <p class="vct-note">
+      An oil-actuated cam phaser advances valve timing. Oil pressure fills the <b>advance</b> chambers, the vane rotor
+      keyed to the cam turns about 25 degrees against the housing, and a <b>lock pin</b> drops into its seat to hold the
+      phase. This is a schematic of the kind of unit I prototyped and tested.
+    </p>
+  </div>
+
   <div class="grid">
     <!-- BorgWarner -->
     <details class="card">
       <summary>
         <div class="face panel">
-          <div class="panel-text">Teardown reports for Cummins, Harley-Davidson, Ford<small>Variable Camshaft Timing co-op</small></div>
+          <div class="panel-text">Teardown reports for Cummins, Harley-Davidson, Ford<small>Variable Camshaft Timing, product engineering</small></div>
           <div class="overlay">
-          <h3>Variable Camshaft Timing Co-op</h3>
-          <p>A product engineering co-op on variable camshaft timing units. I worked prototypes from analysis through end-of-line testing, and wrote the tool that turned teardown measurements into the reports customers read.</p>
+          <h3>Variable Camshaft Timing</h3>
+          <p>A product engineering role on variable camshaft timing units. I worked prototypes from analysis through end-of-line testing, and wrote the tool that turned teardown measurements into the reports customers read.</p>
         </div>
         </div>
         <div class="card-meta">
-          <h3 class="card-title">Variable Camshaft Timing (VCT) Co-op</h3>
-          <p class="ctx">Product engineering co-op. June to December 2022.</p>
+          <h3 class="card-title">Variable Camshaft Timing (VCT)</h3>
+          <p class="ctx">Product engineering, variable cam timing. June to December 2022.</p>
           <p class="desc-touch">Prototypes from analysis through end-of-line testing, plus the MATLAB tool that turned teardown measurements into customer reports.</p>
           <p class="more">Designed / Analyzed / Built / Proved</p>
         </div>
@@ -646,16 +802,16 @@
     <details class="card">
       <summary>
         <div class="face panel">
-          <div class="panel-text">+7% Overall Equipment Effectiveness<small>Packaging line sorting system</small></div>
+          <div class="panel-text">+7% Overall Equipment Effectiveness<small>Non-alcoholic line sorting system</small></div>
           <div class="overlay">
           <h3>Packaging Line Sorting System</h3>
-          <p>A new sorting system for the packaging line, from spotting where the line was losing time to prototyping the fix. The point was throughput the plant could measure.</p>
+          <p>A new sorting system for the non-alcoholic drinks packaging line, from spotting where the line was losing time to prototyping the fix. The point was throughput the plant could measure.</p>
         </div>
         </div>
         <div class="card-meta">
           <h3 class="card-title">Packaging Line Sorting System</h3>
-          <p class="ctx">Packaging reliability intern. July 2021 to January 2022.</p>
-          <p class="desc-touch">A new sorting system for the packaging line, from spotting where the line lost time to prototyping the fix. It lifted OEE 7%.</p>
+          <p class="ctx">Packaging reliability engineer, non-alcoholic drinks line. July 2021 to January 2022.</p>
+          <p class="desc-touch">A new sorting system for the non-alcoholic drinks line, from spotting where the line lost time to prototyping the fix. It lifted OEE 7%.</p>
           <p class="more">Designed / Analyzed / Built / Proved</p>
         </div>
       </summary>
@@ -676,7 +832,7 @@
           <div class="step-label">Built</div>
           <div class="step-body">
             <p>I prototyped the sorting system on the line.</p>
-            <p class="gap">No photo. The prototype ran on Boston Beer's Allentown packaging line.</p>
+            <p class="gap">No photo. The prototype ran on Boston Beer's Allentown non-alcoholic drinks line.</p>
           </div>
         </div>
         <div class="step">
@@ -1331,117 +1487,174 @@
 </div>
 
 <script>
-/* Raymond scroll mosaic: a pinned zoom-out reveal modeled on pleurat.com section #8.
-   Progressive enhancement only. No JS -> plain card grid. Reduced motion -> static grid. */
+/* Raymond forklift hero: the truck pins, the six cards fly in one by one to the part each
+   relates to, open together to general info, then collapse to compact cards with a click cue.
+   Progressive enhancement only. No JS -> plain grid of native <details>. Reduced motion or a
+   narrow screen -> the same static layout. Transform and opacity only in the scroll loop. */
 (function () {
   var root = document.documentElement;
-  var track = document.getElementById('rc-track');
-  var mosaic = document.getElementById('rc-mosaic');
-  if (!track || !mosaic) return;
-  root.classList.add('rc-js');
+  var track = document.getElementById('fk-track');
+  if (!track) return;
+  var stage = track.querySelector('.fk-stage');
+  var truck = document.getElementById('fk-truck');
+  var leaders = track.querySelector('.fk-leaders');
+  var cards = Array.prototype.slice.call(track.querySelectorAll('.fk-card'));
+  root.classList.add('fk-js');
 
-  var tiles = Array.prototype.slice.call(mosaic.querySelectorAll('.rc-tile'));
-  var LEAD = 1; /* top-center tile is the zoom anchor (SEnS+, which has a photo) */
-  if (tiles[LEAD]) tiles[LEAD].classList.add('is-lead');
-
+  function clamp(v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var lines = leaders ? Array.prototype.slice.call(leaders.querySelectorAll('line')) : [];
+  var dots = leaders ? Array.prototype.slice.call(leaders.querySelectorAll('circle')) : [];
+  var leadersLaid = false;
+  var stageNum = 0;
 
-  /* Lead-in heading reveal */
-  var rev = document.querySelector('.rc-reveal');
-  if (rev) {
-    if (reduce || !('IntersectionObserver' in window)) {
-      rev.classList.add('is-in');
-    } else {
-      var io = new IntersectionObserver(function (es) {
-        es.forEach(function (e) { if (e.isIntersecting) { rev.classList.add('is-in'); io.disconnect(); } });
-      }, { threshold: 0.2 });
-      io.observe(rev);
-    }
+  /* The cinematic layer runs only on a wide viewport with motion allowed. On a narrow
+     screen (or reduced motion) the page stays a static grid, and the switch is live so a
+     resize across the breakpoint flips cleanly either way. */
+  function motionOK() { return !reduce && window.innerWidth >= 760; }
+  function motionOn() { return root.classList.contains('fk-motion'); }
+
+  function setStage(n) { if (n !== stageNum) { stageNum = n; root.setAttribute('data-fkstage', String(n)); } }
+
+  function enableMotion() {
+    if (motionOn()) return;
+    root.classList.add('fk-motion');
+    cards.forEach(function (card) {
+      card.style.setProperty('--cx', card.getAttribute('data-cx'));
+      card.style.setProperty('--cy', card.getAttribute('data-cy'));
+    });
+    leadersLaid = false;
+    update();
+  }
+  function disableMotion() {
+    if (!motionOn()) return;
+    root.classList.remove('fk-motion', 'fk-open');
+    root.removeAttribute('data-fkstage');
+    stageNum = 0;
+    document.body.style.overflow = '';
+    truck.style.removeProperty('--fk-o'); truck.style.removeProperty('--fk-s');
+    cards.forEach(function (card) {
+      ['--cx', '--cy', '--tx', '--ty', '--op'].forEach(function (v) { card.style.removeProperty(v); });
+    });
+    lines.forEach(function (l) { l.style.opacity = ''; });
+    dots.forEach(function (d) { d.style.opacity = ''; });
   }
 
-  /* Small screens and reduced motion: plain stacked grid, native inline expansion,
-     every tile full color. The cinematic zoom needs room to read. */
-  if (reduce || window.innerWidth < 760) return;
-  root.classList.add('rc-motion');
+  function addClose(t) {
+    var d = t.querySelector('.detail');
+    if (d && !d.querySelector('.fk-close')) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'fk-close'; b.textContent = 'Close';
+      b.addEventListener('click', function () { t.open = false; });
+      d.insertBefore(b, d.firstChild);
+    }
+  }
+  function anyOpen() { return cards.some(function (o) { return o.open; }); }
+  cards.forEach(function (t) {
+    t.addEventListener('toggle', function () {
+      if (t.open) {
+        cards.forEach(function (o) { if (o !== t) o.open = false; });
+        if (motionOn()) {
+          root.classList.add('fk-open');
+          document.body.style.overflow = 'hidden';
+          addClose(t);
+          var d = t.querySelector('.detail'); if (d) d.scrollTop = 0;
+        }
+      } else if (!anyOpen() && motionOn()) {
+        root.classList.remove('fk-open');
+        document.body.style.overflow = '';
+        leadersLaid = false;
+        update();
+      }
+    });
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && anyOpen()) cards.forEach(function (o) { o.open = false; });
+  });
 
-  var winEl = mosaic.parentElement; /* .rc-window */
-  var W = 0, gridW = 0, scaleFit = 0.33, leadDX = 0, leadDY = 0;
-
-  function measure() {
-    W = winEl.clientWidth || track.clientWidth;
-    var gap = 12;
-    gridW = 3 * W + 2 * gap;
-    mosaic.style.width = gridW + 'px';
-    /* offsets are layout coordinates, unaffected by the transform */
-    scaleFit = Math.min(0.9, W / gridW);
-    var lead = tiles[LEAD] || tiles[0];
-    var lcx = lead.offsetLeft + lead.offsetWidth / 2;
-    var lcy = lead.offsetTop + lead.offsetHeight / 2;
-    leadDX = mosaic.offsetWidth / 2 - lcx;
-    leadDY = mosaic.offsetHeight / 2 - lcy;
+  function layoutLeaders() {
+    if (!leaders) return;
+    var sb = stage.getBoundingClientRect();
+    if (!sb.width) return;
+    leaders.setAttribute('viewBox', '0 0 ' + sb.width.toFixed(1) + ' ' + sb.height.toFixed(1));
+    var midX = sb.left + sb.width / 2;
+    cards.forEach(function (card, i) {
+      var part = document.getElementById(card.getAttribute('data-part'));
+      var ln = lines[i];
+      if (!part || !ln) return;
+      /* card base center from its declared position, not its flown-in transform */
+      var cx = (parseFloat(card.getAttribute('data-cx')) / 100) * sb.width;
+      var cy = (parseFloat(card.getAttribute('data-cy')) / 100) * sb.height;
+      var cw = card.offsetWidth, ch = card.offsetHeight;
+      var absCx = sb.left + cx;
+      var ax = (absCx < midX) ? (absCx + cw / 2) : (absCx - cw / 2);
+      var ay = sb.top + cy;
+      var pb = part.getBoundingClientRect();
+      var px = pb.left + pb.width / 2, py = pb.top + pb.height / 2;
+      ln.setAttribute('x1', (ax - sb.left).toFixed(1));
+      ln.setAttribute('y1', (ay - sb.top).toFixed(1));
+      ln.setAttribute('x2', (px - sb.left).toFixed(1));
+      ln.setAttribute('y2', (py - sb.top).toFixed(1));
+      if (dots[i]) { dots[i].setAttribute('cx', (px - sb.left).toFixed(1)); dots[i].setAttribute('cy', (py - sb.top).toFixed(1)); dots[i].setAttribute('r', '3.2'); }
+    });
   }
 
   function update() {
-    if (root.classList.contains('rc-open')) return;
+    if (!motionOn() || root.classList.contains('fk-open')) return;
     var rect = track.getBoundingClientRect();
-    var vh = window.innerHeight;
-    var span = track.offsetHeight - vh;
+    var span = track.offsetHeight - window.innerHeight;
     var p = span > 0 ? (-rect.top) / span : 0;
-    p = p < 0 ? 0 : (p > 1 ? 1 : p);
-    var s = scaleFit + (1 - scaleFit) * Math.pow(1 - p, 2.2); /* 1 -> scaleFit, ease-out (measured k=2.2) */
-    var tx = leadDX * s, ty = leadDY * s;
-    mosaic.style.transform = 'translate(' + tx.toFixed(1) + 'px,' + ty.toFixed(1) + 'px) scale(' + s.toFixed(4) + ')';
-    var op = Math.max(0, Math.min(1, (p - 0.2) / 0.6)) * 0.55 + 0.45; /* non-lead tiles 0.45 -> 1 */
-    mosaic.style.setProperty('--rc-op', op.toFixed(3));
-    for (var i = 0; i < tiles.length; i++) {
-      if (i === LEAD) continue;
-      var col = i % 3;
-      var dy = (col - 1) * 16 * (1 - p); /* mild per-column parallax, converges by p=1 */
-      var sm = tiles[i].querySelector('summary');
-      if (sm) sm.style.setProperty('--rc-dy', dy.toFixed(1) + 'px');
+    p = clamp(p);
+
+    /* stage 1 (0 - 0.2): truck draws in (fade + slight scale). */
+    var s1 = clamp(p / 0.2);
+    truck.style.setProperty('--fk-o', s1.toFixed(3));
+    truck.style.setProperty('--fk-s', (0.9 + 0.1 * s1).toFixed(3));
+
+    /* stage 2 (0.2 - 0.5): cards fly in one by one from the edges. */
+    var t2 = clamp((p - 0.2) / 0.3);
+    var n = cards.length;
+    for (var i = 0; i < n; i++) {
+      var card = cards[i];
+      var startFrac = (i / n) * 0.72;      /* staggered start, overlapping */
+      var cp = clamp((t2 - startFrac) / 0.4);
+      cp = 1 - Math.pow(1 - cp, 3);        /* ease-out */
+      var fx = parseFloat(card.getAttribute('data-fromx')) || 0;
+      var fy = parseFloat(card.getAttribute('data-fromy')) || 0;
+      card.style.setProperty('--tx', (fx * (1 - cp)).toFixed(1) + 'px');
+      card.style.setProperty('--ty', (fy * (1 - cp)).toFixed(1) + 'px');
+      card.style.setProperty('--op', cp.toFixed(3));
+      if (lines[i]) lines[i].style.opacity = (cp * 0.85).toFixed(3);
+      if (dots[i]) dots[i].style.opacity = (cp * 0.85).toFixed(3);
     }
+
+    if (p >= 0.2 && !leadersLaid) { layoutLeaders(); leadersLaid = true; }
+
+    setStage(p < 0.2 ? 1 : (p < 0.5 ? 2 : (p < 0.75 ? 3 : 4)));
   }
 
   var ticking = false;
   function onScroll() {
     if (!ticking) { ticking = true; requestAnimationFrame(function () { update(); ticking = false; }); }
   }
+  function applyMode() { if (motionOK()) enableMotion(); else disableMotion(); }
+
   window.addEventListener('scroll', onScroll, { passive: true });
-  window.addEventListener('resize', function () { measure(); update(); });
+  window.addEventListener('resize', function () { applyMode(); leadersLaid = false; update(); });
+  applyMode();
+  window.addEventListener('load', function () { leadersLaid = false; update(); });
+})();
 
-  /* Open a tile -> flatten (no transformed ancestor) + show its detail as a fixed panel */
-  function addClose(t) {
-    var d = t.querySelector('.detail');
-    if (d && !d.querySelector('.rc-close')) {
-      var b = document.createElement('button');
-      b.type = 'button'; b.className = 'rc-close'; b.textContent = 'Close';
-      b.addEventListener('click', function () { t.open = false; });
-      d.insertBefore(b, d.firstChild);
-    }
-  }
-  function anyOpen() { return tiles.some(function (o) { return o.open; }); }
-  tiles.forEach(function (t) {
-    t.addEventListener('toggle', function () {
-      if (t.open) {
-        tiles.forEach(function (o) { if (o !== t) o.open = false; });
-        root.classList.add('rc-open');
-        document.body.style.overflow = 'hidden';
-        addClose(t);
-        t.querySelector('.detail').scrollTop = 0;
-      } else if (!anyOpen()) {
-        root.classList.remove('rc-open');
-        document.body.style.overflow = '';
-        measure(); update();
-      }
-    });
-  });
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && anyOpen()) tiles.forEach(function (o) { o.open = false; });
-  });
-
-  measure();
-  update();
-  window.addEventListener('load', function () { measure(); update(); });
+/* BorgWarner cam phaser: play the cutaway once when it scrolls into view. */
+(function () {
+  var wrap = document.querySelector('.vct-wrap');
+  if (!wrap) return;
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce || !('IntersectionObserver' in window)) { wrap.classList.add('is-final'); return; }
+  var io = new IntersectionObserver(function (es) {
+    es.forEach(function (e) { if (e.isIntersecting) { wrap.classList.add('is-run'); io.disconnect(); } });
+  }, { threshold: 0.4 });
+  io.observe(wrap);
 })();
 </script>
 </body>
