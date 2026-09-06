@@ -48,6 +48,17 @@ const TUMBLE_Y = 0.0022;
 const PARALLAX_LERP = 0.06;
 const PARALLAX_MAX = 0.05;    // rad (kept small so the sorted cluster stays put)
 
+// ---- motion engine (round 3, spec 8.1) ----
+// Positions change ONLY by integration (pos += vel*dt). Sections set targets; a critically
+// damped spring moves the cube; repulsion + lane avoidance are soft forces added to velocity.
+const OMEGA = 2.2, ZETA = 1.0;       // critically damped spring (settles, never overshoots)
+const DT_MAX = 0.05;                 // clamp dt so a stall never launches a cube
+const MAX_PX_FRAME = 14;             // no cube's projected centre moves > 14 px per 1/60 s
+const CUBE_SHRINK = 0.68;            // inscribed footprint (matches verify_all.py)
+const REPULSE_GAIN = 8.0;            // cube-cube soft repulsion (1/s)
+const LANE_GAIN = 12.0;             // lane / shape avoidance (1/s)
+const LANE_PAD = 40, SHAPE_PAD = 34; // screen px pad around soft lanes / hard shape rects
+
 // cube -> faces, soft label, target section. Each cube shows ONLY its own project's
 // images so the parked cube in a chapter is that project. Face order is [px,nx,py,ny,pz,nz].
 const CUBES = [
@@ -121,7 +132,12 @@ export function createCubeHero({ onCubeClick } = {}) {
   const meshes = [];
   const gridLocal = [];   // sorted slot, relative to the group centre
   const scatter = [];     // seeded scatter slot (world, group centre is origin at rest)
-  const base = [];        // current interpolated local position
+  const base = [];        // drift home (group-local), set from the unravel
+  const vel = [];         // group-local velocity (units/s); positions integrate from this
+  const angVel = [];      // {x,y} angular velocity (rad/s), damped toward a slow tumble or 0
+  const tgt = [];         // group-local spring target this frame
+  const scaleTarget = new Array(CUBES.length).fill(1);
+  const override = new Array(CUBES.length).fill(null);   // exit()/setTargets() overrides
 
   const MOBILE = window.innerWidth < 820;   // 4x2 in the top band, tighter spacing to fit
   const SP = MOBILE ? 1.7 : SPACING;        // grid spacing used for layout
@@ -131,6 +147,9 @@ export function createCubeHero({ onCubeClick } = {}) {
     gridLocal.push(new THREE.Vector3((col - 1.5) * SP, (0.5 - row) * RSP, 0));
     scatter.push(new THREE.Vector3());
     base.push(gridLocal[i].clone());
+    vel.push(new THREE.Vector3());
+    angVel.push({ x: TUMBLE_X * 60, y: TUMBLE_Y * 60 });
+    tgt.push(new THREE.Vector3());
 
     const faces = [];
     const faceLoads = [];
@@ -418,10 +437,10 @@ export function createCubeHero({ onCubeClick } = {}) {
   // other cube recedes to the background (z back, opacity 0.35) so the parked cube is the
   // only sharp object. Driven by chapterPark(i, side, t) scrubbed by the chapter's
   // ScrollTrigger; t in [0,1].
-  const PARK_Z = 1.5, PARK_SCALE = 1.9, PARK_START_Z = -5, RECEDE_Z = 6;
+  const PARK_Z = 1.5, PARK_SCALE = 1.9, PARK_START_Z = -5;
   // parkTargets[i] = { axvw, ayvh, scale, tumble, t } for each currently parked cube.
   const parkTargets = {};
-  let dimAllT = 0, cloudDim = 0, mobileHide = false, forceHidden = false;
+  let mobileHide = false, forceHidden = false;
   const _anchor = new THREE.Vector3();
 
   function anchorLocalXY(axvw, ayvh) {
@@ -461,29 +480,20 @@ export function createCubeHero({ onCubeClick } = {}) {
   let shapeRects = [];
   function setShapeRects(rects) { shapeRects = rects || []; }
   function shapeRectsNow() { return shapeRects; }
-  const _ex = new THREE.Vector3();
-  function partAroundText(wx, wy, wz) {
-    if (!excludeRects.length) return wx;
-    const vw = window.innerWidth, vh = window.innerHeight;
-    _ex.set(wx, wy, wz).add(group.position).project(camera);
-    const sx = (_ex.x * 0.5 + 0.5) * vw, sy = (-_ex.y * 0.5 + 0.5) * vh;
-    _ex.set(wx + 0.5, wy, wz).add(group.position).project(camera);
-    const halfPx = Math.max(1, Math.abs((_ex.x * 0.5 + 0.5) * vw - sx));
-    const PAD = 20;
-    let shiftPx = 0;
-    for (const r of excludeRects) {
-      const vOverlap = sy + halfPx > r.y - PAD && sy - halfPx < r.y + r.h + PAD;
-      const hOverlap = sx + halfPx > r.x - PAD && sx - halfPx < r.x + r.w + PAD;
-      if (vOverlap && hOverlap) shiftPx = Math.max(shiftPx, r.x + r.w + PAD + halfPx - sx);
-    }
-    return shiftPx > 0 ? wx + shiftPx * (0.5 / halfPx) : wx;
+  // generic soft lanes (adapter): text blocks the drifting cloud steers around
+  function setLanes(rects) { excludeRects = rects || []; }
+  // section target API (spec 8.1 item 4): world-unit targets, exit, recall
+  function setTargets(list) {
+    for (let i = 0; i < override.length; i++) override[i] = (list && list[i]) || null;
   }
+  function exit(i) { override[i] = { exit: true }; }
+  function recall(i) { override[i] = null; }
 
   const anyParked = () => Object.keys(parkTargets).length > 0 || trackList.length > 0;
-  // recede the whole cloud (used by the origin chapter, which parks no project cube)
-  function chapterDim(t) { dimAllT = Math.min(1, Math.max(0, t)); }
-  // persistent background dim: non-parked cubes stay <=0.35 while chapter text is on screen
-  function setCloudDim(t) { cloudDim = Math.min(1, Math.max(0, t)); }
+  // opacity is never used to hide cubes now (spec 8.1): these stay as exported no-ops that
+  // main.js still calls this wave; they will be removed from main.js next wave.
+  function chapterDim(_t) {}
+  function setCloudDim(_t) {}
   // mobile: hide every non-featured cube (used between the hero grid and the contact grid)
   function setMobileHide(b) { mobileHide = !!b; }
   // debug/shape verification: hide every cube so only the particle morph is on screen
@@ -631,6 +641,8 @@ export function createCubeHero({ onCubeClick } = {}) {
 
   window.addEventListener('resize', resize);
   resize();
+  // initial spawn: the ONLY direct position write. Every later change is integration.
+  for (let i = 0; i < meshes.length; i++) { meshes[i].position.copy(base[i]); tgt[i].copy(base[i]); }
 
   // ---- cube-cube overlap resolution ----
   // After all cubes are positioned, push any overlapping pair apart so no two projected
@@ -641,10 +653,6 @@ export function createCubeHero({ onCubeClick } = {}) {
   const _c0 = new THREE.Vector3(), _c1 = new THREE.Vector3();
   const _sc = new Array(CUBES.length).fill(null);
   const OVERLAP_MARGIN = 8;
-  // A tilted cube's axis-aligned projected box is much larger than its visible silhouette
-  // (empty corners), so overlap is judged on the inscribed footprint. The checker uses the
-  // same factor.
-  const OVERLAP_SHRINK = 0.68;
   function gatherBoxes() {
     const w = window.innerWidth, h = window.innerHeight;
     let n = 0;
@@ -672,78 +680,70 @@ export function createCubeHero({ onCubeClick } = {}) {
     }
     return n;
   }
-  function resolveOverlaps() {
-    // The settled projects/contact grids are laid out to not overlap; skip the pairwise
-    // push there so cubes stay exactly on their slots (their tilt-inflated AABBs would
-    // otherwise cascade the grid apart). Repulsion still runs for the drifting cloud.
-    const inGrid = projT > 0.5 || contactT > 0.5;
-    // Resolve cube-cube separation AND the hard shape exclusion together, iterated so the
-    // two never fight (pushing a cube out of a shape does not leave it overlapping another).
-    for (let pass = 0; pass < 4 && !inGrid; pass++) {
-      const n = gatherBoxes();
-      if (n < 1) break;
-      let any = false;
-      for (let iter = 0; iter < 12; iter++) {
-        let moved = false;
-        // push each cube fully out of every active shape box (hard exclusion)
-        for (let i = 0; i < meshes.length; i++) {
-          const S = _sc[i]; if (!S) continue;
-          const hxS = S.hx * OVERLAP_SHRINK, hyS = S.hy * OVERLAP_SHRINK;
-          for (const r of shapeRects) {
-            const L = S.cx - (r.x - hxS), R = (r.x + r.w + hxS) - S.cx;
-            const T = S.cy - (r.y - hyS), B = (r.y + r.h + hyS) - S.cy;
-            if (L > 0 && R > 0 && T > 0 && B > 0) {
-              const mn = Math.min(L, R, T, B);
-              if (mn === L) S.cx = r.x - hxS; else if (mn === R) S.cx = r.x + r.w + hxS;
-              else if (mn === T) S.cy = r.y - hyS; else S.cy = r.y + r.h + hyS;
-              moved = true; any = true;
-            }
-          }
-        }
-        // separate overlapping cube pairs
-        for (let a = 0; a < meshes.length; a++) {
-          const A = _sc[a]; if (!A) continue;
-          for (let b = a + 1; b < meshes.length; b++) {
-            const B = _sc[b]; if (!B) continue;
-            const dx = B.cx - A.cx, dy = B.cy - A.cy;
-            const ox = ((A.hx + B.hx) * OVERLAP_SHRINK + OVERLAP_MARGIN) - Math.abs(dx);
-            const oy = ((A.hy + B.hy) * OVERLAP_SHRINK + OVERLAP_MARGIN) - Math.abs(dy);
-            if (ox <= 0 || oy <= 0) continue;
-            const wa = A.wz >= B.wz ? 0.32 : 0.68, wb = 1 - wa;
-            if (ox < oy) { const s = (dx < 0 ? -1 : 1) * ox; A.cx -= s * wa; B.cx += s * wb; }
-            else { const s = (dy < 0 ? -1 : 1) * oy; A.cy -= s * wa; B.cy += s * wb; }
-            moved = true; any = true;
-          }
-        }
-        if (!moved) break;
+  // Soft forces: add cube-cube repulsion and lane/shape avoidance to VELOCITY (never a
+  // position write). Called each frame before integration. Only drifting cubes (forceable)
+  // receive a push; grid/park/track cubes keep their authoritative spring targets but still
+  // act as repulsors so drifters part around them. Settled grids are non-overlapping targets
+  // so forces are skipped there (they would fight the exact slots).
+  function computeForces(dtc, forceable) {
+    if (projT > 0.5 || contactT > 0.5) return;
+    const n = gatherBoxes();
+    if (n < 1) return;
+    for (let a = 0; a < meshes.length; a++) {
+      const A = _sc[a]; if (!A || !forceable[a]) continue;
+      // cube-cube repulsion on the inscribed footprint, with a smooth (linear) falloff
+      for (let b = 0; b < meshes.length; b++) {
+        if (b === a) continue;
+        const B = _sc[b]; if (!B) continue;
+        const dx = A.cx - B.cx, dy = A.cy - B.cy;
+        const ox = (A.hx + B.hx) * CUBE_SHRINK + OVERLAP_MARGIN - Math.abs(dx);
+        const oy = (A.hy + B.hy) * CUBE_SHRINK + OVERLAP_MARGIN - Math.abs(dy);
+        if (ox <= 0 || oy <= 0) continue;              // no footprint overlap -> no force
+        // push A along the axis of least penetration, away from B
+        if (ox < oy) vel[a].x += ((dx >= 0 ? ox : -ox) / A.ppu) * REPULSE_GAIN * dtc;
+        else         vel[a].y += (-(dy >= 0 ? oy : -oy) / A.ppu) * REPULSE_GAIN * dtc;
       }
-      for (let i = 0; i < meshes.length; i++) {
-        const S = _sc[i]; if (!S) continue;
-        meshes[i].position.x += (S.cx - S.ix) / S.ppu;
-        meshes[i].position.y += -(S.cy - S.iy) / S.ppu;
+      // lane avoidance: text columns are soft lanes (steer sideways to the nearest free
+      // side); morph shapes are hard lanes with a larger pad and full MTV push-out.
+      const hxS = A.hx * CUBE_SHRINK, hyS = A.hy * CUBE_SHRINK;
+      const softLanes = excludeRects.length ? excludeRects : textRects;
+      for (const r of softLanes) {
+        const L = A.cx - (r.x - hxS - LANE_PAD), R = (r.x + r.w + hxS + LANE_PAD) - A.cx;
+        const T = A.cy - (r.y - hyS - LANE_PAD), Bp = (r.y + r.h + hyS + LANE_PAD) - A.cy;
+        if (L <= 0 || R <= 0 || T <= 0 || Bp <= 0) continue;   // not over the column
+        const shift = L < R ? -L : R;                          // out the nearer side
+        vel[a].x += (shift / A.ppu) * LANE_GAIN * dtc;
       }
-      if (!any) break;
-    }
-    // fade any cube whose (resolved) box overlaps a visible text rect, so text stays clear
-    if (textRects.length) {
-      gatherBoxes();                            // fresh boxes at the final positions
-      const PAD = 40;
-      for (let i = 0; i < meshes.length; i++) {
-        const S = _sc[i]; if (!S) continue;
-        const ax = S.cx - S.hx, ay = S.cy - S.hy, aw = S.hx * 2, ah = S.hy * 2;
-        let onText = false;
-        for (const r of textRects) {
-          if (!(ax + aw < r.x - PAD || r.x + r.w + PAD < ax || ay + ah < r.y - PAD || r.y + r.h + PAD < ay)) { onText = true; break; }
-        }
-        if (onText) { const m = meshes[i]; for (const mat of m.material) mat.opacity = Math.min(mat.opacity, 0.28); }
+      for (const r of shapeRects) {
+        const L = A.cx - (r.x - hxS - SHAPE_PAD), R = (r.x + r.w + hxS + SHAPE_PAD) - A.cx;
+        const T = A.cy - (r.y - hyS - SHAPE_PAD), Bp = (r.y + r.h + hyS + SHAPE_PAD) - A.cy;
+        if (L <= 0 || R <= 0 || T <= 0 || Bp <= 0) continue;
+        const mn = Math.min(L, R, T, Bp);
+        if (mn === L)       vel[a].x += (-L / A.ppu) * LANE_GAIN * dtc;
+        else if (mn === R)  vel[a].x += (R / A.ppu) * LANE_GAIN * dtc;
+        else if (mn === T)  vel[a].y += (T / A.ppu) * LANE_GAIN * dtc;   // screen up = +local y
+        else                vel[a].y += (-Bp / A.ppu) * LANE_GAIN * dtc;
       }
     }
   }
 
-  const _tmp = new THREE.Vector3();
+  // a target 1.3x past the nearest horizontal viewport edge (an exit lane the cube drifts
+  // out to and holds, so a hidden cube leaves by position, never by opacity)
+  function exitTargetLocal(i) {
+    meshes[i].getWorldPosition(_c0); _c0.project(camera);
+    const ndcX = _c0.x >= 0 ? 1.3 : -1.3;
+    const z = base[i].z;
+    const halfW = (camera.position.z - z) * tanHalf() * camera.aspect;
+    return { x: ndcX * halfW - group.position.x, y: base[i].y, z };
+  }
+
+  const _tmp = new THREE.Vector3(), _acc = new THREE.Vector3(), _delta = new THREE.Vector3();
+  const _opArr = new Array(CUBES.length).fill(1);
+  const _forceable = new Array(CUBES.length).fill(true);
   function frame(now, dt, moving) {
     const t = now / 1000;
     const fs = Math.min(3, dt * 60);
+    const dtc = Math.min(DT_MAX, dt || 0.0166);
     // parallax fades out as the grid unravels so scatter stays put
     const pAmt = (1 - unravel) * (anyParked() ? 0 : 1);
     rotTarget.x = -pointerY * PARALLAX_MAX * pAmt;
@@ -752,7 +752,6 @@ export function createCubeHero({ onCubeClick } = {}) {
     group.rotation.y += (rotTarget.y - group.rotation.y) * PARALLAX_LERP;
 
     const ease = (x) => (x < 0.5 ? 2 * x * x : 1 - (-2 * x + 2) * (-2 * x + 2) * 0.5);
-    const dimE = ease(dimAllT);
     // resolve tracked anchors to screen positions (only while on screen)
     for (const k in _tr) delete _tr[k];
     const vw = window.innerWidth, vh = window.innerHeight;
@@ -762,106 +761,121 @@ export function createCubeHero({ onCubeClick } = {}) {
         _tr[tk.i] = { cx: ((r.left + r.width / 2) / vw) * 100, cy: ((r.top + r.height / 2) / vh) * 100, scale: tk.scale || 1.2 };
       }
     }
-    const parked = anyParked();
 
     // the projects and contact grids settle the whole cloud; ease parallax out
     if (projT > 0.01 || contactT > 0.01) { group.rotation.x *= 0.88; group.rotation.y *= 0.88; }
 
+    // ---- pass A: every section sets a spring TARGET (group-local), scale, and rotation.
+    // No position writes here; positions are integrated in pass B.
     for (let i = 0; i < meshes.length; i++) {
       const m = meshes[i];
-      let tumbleScale = 1, targetScale = 1, op = 1;
+      let tumbleScale = 1;
+      _opArr[i] = 1; _forceable[i] = false;
       const bob = Math.sin(t * 0.6 + i) * BOB_AMP;
       const pt = parkTargets[i];
       const tr = _tr[i];
+      const ov = override[i];
       if (projT > 0.01) {
-        // 4x2 centred grid; open cube hides (its unfold rig shows), the rest fade back
+        // 4x2 centred grid; open cube hides (its unfold rig shows), the rest hold at 0.06
         const e = ease(projT);
         _tmp.copy(projWorld[i]).sub(group.position);
-        const px = base[i].x + (_tmp.x - base[i].x) * e;
-        const py = base[i].y + (_tmp.y - base[i].y) * e;
-        const pz = base[i].z + (_tmp.z - base[i].z) * e;
         const lift = (i === hoverIndex && openIndex < 0) ? 0.15 : 0;
-        m.position.set(px, py + bob * 0.15, pz + lift);
-        targetScale = 1 + (PROJ_SCALE - 1) * e;
+        tgt[i].set(base[i].x + (_tmp.x - base[i].x) * e,
+                   base[i].y + (_tmp.y - base[i].y) * e + bob * 0.15,
+                   base[i].z + (_tmp.z - base[i].z) * e + lift);
+        scaleTarget[i] = 1 + (PROJ_SCALE - 1) * e;
         tumbleScale = (i === hoverIndex || projT > 0.5) ? 0 : 0.6;
         if (projT > 0.4 && openIndex < 0) {
-          // settle nearer face-on (small 3D tilt) so each cube reads at its ~180px
-          // footprint and a label fits cleanly under it between the two rows
           m.rotation.x += (0.1 - m.rotation.x) * 0.12;
           m.rotation.y += (0.14 - m.rotation.y) * 0.12;
-        }
-        op = openIndex >= 0 ? (i === openIndex ? 0 : 0.06) : 1;
-        if (moving && tumbleScale > 0) { m.rotation.x += TUMBLE_X * fs * tumbleScale; m.rotation.y += TUMBLE_Y * fs * tumbleScale; }
-        m.scale.setScalar(targetScale);
-        cubeReveal[i] += (revealTargets[i] - cubeReveal[i]) * Math.min(1, 0.12 * fs);
-        setCubeOpacity(m, op * cubeReveal[i]);
-        continue;
-      }
-      if (contactT > 0.01) {
-        // settle into the SAME centred 4x2 grid as projects; tumble damped to 0, no bob or
-        // drift, so once settled nothing moves.
+        } else if (moving && tumbleScale > 0) { m.rotation.x += TUMBLE_X * fs * tumbleScale; m.rotation.y += TUMBLE_Y * fs * tumbleScale; }
+        _opArr[i] = openIndex >= 0 ? (i === openIndex ? 0 : 0.06) : 1;   // projects scrim exception
+      } else if (contactT > 0.01) {
+        // settle into the SAME centred 4x2 grid as projects
         const e = ease(contactT);
         _tmp.copy(projWorld[i]).sub(group.position);
-        m.position.set(base[i].x + (_tmp.x - base[i].x) * e,
-          base[i].y + (_tmp.y - base[i].y) * e,
-          base[i].z + (_tmp.z - base[i].z) * e);
-        // flatten to a front-facing tilt quickly so the grid settles clean
+        tgt[i].set(base[i].x + (_tmp.x - base[i].x) * e,
+                   base[i].y + (_tmp.y - base[i].y) * e,
+                   base[i].z + (_tmp.z - base[i].z) * e);
         m.rotation.x += (0.06 - m.rotation.x) * 0.2;
         m.rotation.y += (0.08 - m.rotation.y) * 0.2;
-        m.scale.setScalar(1 + (PROJ_SCALE - 1) * e);
-        cubeReveal[i] += (revealTargets[i] - cubeReveal[i]) * Math.min(1, 0.12 * fs);
-        setCubeOpacity(m, cubeReveal[i]);
-        continue;
-      }
-      if (tr) {
-        // follow the DOM anchor (scrolls with the content); tumble frozen so the box
-        // stays face-on and clears the column titles
+        scaleTarget[i] = 1 + (PROJ_SCALE - 1) * e;
+      } else if (tr) {
+        // follow the DOM anchor (scrolls with the content); face-on
         const anchor = anchorLocalXY(tr.cx, tr.cy);
-        m.position.set(anchor.x, anchor.y + bob * 0.3, anchor.z);
-        m.rotation.set(0.35, 0.5, 0);
-        targetScale = tr.scale;
-        tumbleScale = 0;
-        op = 1;
+        tgt[i].set(anchor.x, anchor.y + bob * 0.3, anchor.z);
+        m.rotation.x += (0.35 - m.rotation.x) * 0.2;
+        m.rotation.y += (0.5 - m.rotation.y) * 0.2;
+        scaleTarget[i] = tr.scale;
       } else if (pt) {
         const e = ease(pt.t);
-        // emerge from the background ON the park side (fixed x/y, moving in z) so the
-        // bright cube never crosses to the text side during its travel
+        // emerge from the background ON the park side (fixed x/y, target z travels)
         const anchor = anchorLocalXY(pt.axvw, pt.ayvh);
-        const z = PARK_START_Z + (PARK_Z - PARK_START_Z) * e;
-        m.position.set(anchor.x, anchor.y + bob * (1 - e), z);
-        targetScale = 0.8 + (pt.scale - 0.8) * e;
-        tumbleScale = pt.tumble * (1 - 0.7 * e);   // slows to 0.3x (0 for Raymond)
-        op = 1;
-      } else if (mobileHide || forceHidden) {
-        // mobile chapters / shape-debug: every non-featured cube is fully hidden and out of ray range
-        m.position.set(base[i].x, base[i].y, base[i].z - 40);
-        op = 0;
+        tgt[i].set(anchor.x, anchor.y + bob * (1 - e), PARK_START_Z + (PARK_Z - PARK_START_Z) * e);
+        scaleTarget[i] = 0.8 + (pt.scale - 0.8) * e;
+        tumbleScale = pt.tumble * (1 - 0.7 * e);
+        if (moving) { m.rotation.x += TUMBLE_X * fs * tumbleScale; m.rotation.y += TUMBLE_Y * fs * tumbleScale; }
+      } else if (mobileHide || forceHidden || (ov && ov.exit)) {
+        // hidden / exited: drift out past the nearest edge and hold there (opacity stays 1)
+        const ex = exitTargetLocal(i);
+        tgt[i].set(ex.x, ex.y, ex.z);
+        scaleTarget[i] = 1;
+        if (moving) { m.rotation.x += TUMBLE_X * fs; m.rotation.y += TUMBLE_Y * fs; }
+      } else if (ov) {
+        // explicit setTargets() override (world units)
+        tgt[i].set(ov.x - group.position.x, ov.y - group.position.y, ov.z);
+        scaleTarget[i] = ov.scale || 1;
+        _forceable[i] = !ov.parked;
+        if (moving && !ov.parked) { m.rotation.x += TUMBLE_X * fs; m.rotation.y += TUMBLE_Y * fs; }
       } else {
-        const recede = Math.max(parked ? 1 : 0, dimE, cloudDim);
-        // slow continuous drift so the cloud is always alive across the page
+        // free drift: slow sine wander around the unravel home; a slow tumble via angVel
         const dx = Math.sin(t * 0.07 + i * 1.3) * 0.7;
         const dy = Math.cos(t * 0.05 + i) * 0.5;
-        const wz = base[i].z - recede * RECEDE_Z;
-        const wy = base[i].y + bob + dy;
-        const wx = partAroundText(base[i].x + dx, wy, wz);
-        m.position.set(wx, wy, wz);
-        op = 1 - 0.4 * recede;       // never fainter than 0.6 (cubes stay visible)
+        tgt[i].set(base[i].x + dx, base[i].y + bob + dy, base[i].z);
+        scaleTarget[i] = 1;
+        _forceable[i] = true;
+        const damp = Math.min(1, 4 * dtc);
+        angVel[i].x += (TUMBLE_X * 60 - angVel[i].x) * damp;
+        angVel[i].y += (TUMBLE_Y * 60 - angVel[i].y) * damp;
+        if (moving) { m.rotation.x += angVel[i].x * dtc; m.rotation.y += angVel[i].y * dtc; }
       }
-      if (moving) { m.rotation.x += TUMBLE_X * fs * tumbleScale; m.rotation.y += TUMBLE_Y * fs * tumbleScale; }
-      m.scale.setScalar(targetScale);
-      // fade the cube in once its own textures have arrived
-      cubeReveal[i] += (revealTargets[i] - cubeReveal[i]) * Math.min(1, 0.12 * fs);
-      setCubeOpacity(m, op * cubeReveal[i]);
     }
 
-    resolveOverlaps();
+    // ---- soft forces (repulsion + lanes) added to velocity, never position ----
+    computeForces(dtc, _forceable);
+
+    // ---- pass B: critically damped spring integrates every cube toward its target ----
+    const w = window.innerWidth;
+    for (let i = 0; i < meshes.length; i++) {
+      const m = meshes[i];
+      // a = -2*zeta*omega*vel - omega^2*(pos - target); semi-implicit Euler
+      _acc.copy(m.position).sub(tgt[i]).multiplyScalar(-OMEGA * OMEGA);
+      _acc.addScaledVector(vel[i], -2 * ZETA * OMEGA);
+      vel[i].addScaledVector(_acc, dtc);
+      // px per group-local x-unit at this cube's depth, for the screen speed cap
+      m.getWorldPosition(_c0); _c1.copy(_c0); _c1.x += 1;
+      _c0.project(camera); _c1.project(camera);
+      const ppu = Math.max(1, Math.abs((_c1.x - _c0.x) * 0.5 * w));
+      const maxVel = (MAX_PX_FRAME * 60) / ppu;         // <= 14 px per 1/60 s
+      const sp = vel[i].length();
+      if (sp > maxVel) vel[i].multiplyScalar(maxVel / sp);
+      _delta.copy(vel[i]).multiplyScalar(dtc);
+      const stepPx = Math.hypot(_delta.x, _delta.y) * ppu;   // hard per-frame safety clamp
+      if (stepPx > MAX_PX_FRAME) _delta.multiplyScalar(MAX_PX_FRAME / stepPx);
+      m.position.add(_delta);
+      // scale eased (no scale pop), opacity = reveal fade * scrim (1.0 otherwise)
+      m.scale.setScalar(m.scale.x + (scaleTarget[i] - m.scale.x) * Math.min(1, 0.15 * fs));
+      cubeReveal[i] += (revealTargets[i] - cubeReveal[i]) * Math.min(1, 0.12 * fs);
+      setCubeOpacity(m, _opArr[i] * cubeReveal[i]);
+    }
+
     renderer.render(scene, camera);
     updateLabels();
   }
 
   return {
     frame, setUnravel, setState, focus, raycast, setPointer, ready,
-    cubeBoxes, labelBoxes, chapterPark, setTrack, setExclude, setTextRects, setShapeRects, chapterDim, setCloudDim, setMobileHide, setForceHidden, meshBox,
+    cubeBoxes, labelBoxes, chapterPark, setTrack, setExclude, setTextRects, setShapeRects, setLanes, setTargets, exit, recall, chapterDim, setCloudDim, setMobileHide, setForceHidden, meshBox,
     setProjects, setContact, gridSlots, cubeCenters, shapeRectsNow, setHover, openProject, closeProject, projectOpenIndex, faceAnchors, setProjectHandlers,
     projectsActive: () => projActive,
     labelFor: (i) => (CUBES[i] ? CUBES[i].label : ''),
