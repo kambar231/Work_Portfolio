@@ -283,6 +283,8 @@ def main():
         panel_scroll_info = run_panel_scroll_test(pg)
         panel_scroll_fail = None if panel_scroll_info.get("ok") else panel_scroll_info
         raymond = run_raymond_test(pg)
+        visibility = run_visibility_test(pg)
+        realclick = run_real_click_test(pg)
         seam_report = run_seam_test(pg)
         if click_fail:
             failures.append(("click-test", click_fail, 0))
@@ -302,6 +304,12 @@ def main():
             failures.append(("panel-scroll", panel_scroll_fail, 0))
         if raymond["status"] == "FAIL":
             failures.append(("raymond", raymond["fails"], 0))
+        if visibility["status"] == "FAIL":
+            failures.append(("visibility", visibility["fails"], 0))
+        if realclick["mismatches"]:
+            failures.append(("real-click", realclick["mismatches"], 0))
+        if realclick["overlay"]:
+            failures.append(("no-overlay", realclick["overlay"], 0))
         seam_flagged = sum(s["flagged"] for s in seam_report)
         if seam_flagged > 0:
             failures.append(("seam-crops", [s for s in seam_report if s["flagged"]], seam_flagged))
@@ -347,6 +355,16 @@ def main():
     else:
         _row("RAYMOND", raymond["status"] == "OK",
              f"unfold={raymond['unfold']} fails={len(raymond['fails'])} {raymond['fails'] if raymond['fails'] else ''}")
+    if visibility["status"] == "SKIP":
+        print(f"{'VISIBILITY':<16} {'SKIP':>7}  {visibility.get('reason')}")
+    else:
+        _row("VISIBILITY", visibility["status"] == "OK",
+             f"fails={len(visibility['fails'])} {visibility['fails'] if visibility['fails'] else ''}")
+    _row("REAL-CLICK", not realclick["mismatches"],
+         "all 8 open the clicked cube" if not realclick["mismatches"] else str(realclick["mismatches"]))
+    _row("NO-OVERLAY", not realclick["overlay"],
+         (f"closed cube hidden after open (rigPose hook={'yes' if realclick['has_rig_hook'] else 'no, crops for review'})"
+          if not realclick["overlay"] else str(realclick["overlay"])))
     seam_flagged = sum(s["flagged"] for s in seam_report)
     _row("SEAM-CROPS", seam_flagged == 0,
          "  ".join(f"cube{s['cube']}:{s['flagged']}/{s['faces']}" for s in seam_report))
@@ -663,6 +681,114 @@ def run_click_test(pg):
         if not ok:
             fails.append({"cube": i, **chk, "after": after, "dscroll": round(y1 - y0, 1)})
     return fails
+
+
+def _section_mid_y(pg, sel, frac=0.5, fallback_offset=-135):
+    # scroll target for the middle of a section's pinned ScrollTrigger range, or its offsetTop
+    # if the section is not a pinned trigger.
+    rng = pg.evaluate(f"() => window.__v2.triggerRange('{sel}')")
+    if rng:
+        return rng["start"] + frac * (rng["end"] - rng["start"])
+    ot = pg.evaluate(f"() => {{ const e = document.querySelector('{sel}'); return e ? e.offsetTop : null; }}")
+    return (ot + fallback_offset) if ot is not None else None
+
+
+def run_visibility_test(pg):
+    # visible-set gate: at y=0 no cube box is in the viewport; inside #experience only cube 4;
+    # inside #slicer only cube 3; inside #projects all eight, each below the projects heading.
+    # SKIP until main.js wires setVisibleSet (no hook -> the section-visibility rig isn't live).
+    has = pg.evaluate("""() => (typeof window.__v2.setVisibleSet === 'function')
+        || (typeof window.__v2.visibleSet !== 'undefined')
+        || (typeof window.__v2.sectionVisible === 'function')""")
+    if not has:
+        return {"status": "SKIP", "reason": "setVisibleSet / visibleSet not wired in main.js yet"}
+
+    def inside_set(y):
+        pg.evaluate(f"() => window.__v2.scrollToY({y})")
+        pg.wait_for_timeout(700)
+        return pg.evaluate("""() => {
+          const vw = innerWidth, vh = innerHeight, ins = [];
+          window.__v2.allCubes().forEach((c, i) => { const b = c.box;
+            if (b.w > 0 && b.x < vw && b.x + b.w > 0 && b.y < vh && b.y + b.h > 0) ins.push(i); });
+          return ins;
+        }""")
+
+    fails = []
+    z = inside_set(0)
+    if z:
+        fails.append({"at": "y=0", "expected": [], "inside": z})
+    ey = _section_mid_y(pg, "#experience")
+    if ey is not None and set(inside_set(ey)) != {4}:
+        fails.append({"at": "experience", "expected": [4], "inside": inside_set(ey)})
+    sy = _section_mid_y(pg, "#slicer")
+    if sy is not None and set(inside_set(sy)) != {3}:
+        fails.append({"at": "slicer", "expected": [3], "inside": inside_set(sy)})
+    py = _section_mid_y(pg, "#projects")
+    if py is not None:
+        pg.evaluate(f"() => window.__v2.scrollToY({py})")
+        pg.wait_for_timeout(700)
+        info = pg.evaluate("""() => {
+          const vw = innerWidth, vh = innerHeight;
+          const head = document.querySelector('.projects-head');
+          const hr = head ? head.getBoundingClientRect() : null;
+          const ins = [], below = [];
+          window.__v2.allCubes().forEach((c, i) => { const b = c.box;
+            if (b.w > 0 && b.x < vw && b.x + b.w > 0 && b.y < vh && b.y + b.h > 0) ins.push(i);
+            if (hr && b.y >= hr.bottom) below.push(i); });
+          return { inside: ins, below, hbottom: hr ? +hr.bottom.toFixed(0) : null };
+        }""")
+        if len(info["inside"]) != 8:
+            fails.append({"at": "projects", "expected": "8 inside viewport", "inside": info["inside"]})
+        if info["hbottom"] is not None and len(info["below"]) != 8:
+            fails.append({"at": "projects", "expected": "8 below heading", "below": info["below"]})
+    return {"status": "FAIL" if fails else "OK", "fails": fails}
+
+
+def run_real_click_test(pg):
+    # click the ACTUAL pixel centre of each cube's projected box (not the openProject API) and
+    # confirm the right project opens; 0.35 s later crop the slot and confirm the closed cube is
+    # gone (rig up). Returns click mismatches and any closed-cube-still-visible overlays.
+    projTop = pg.evaluate("() => document.getElementById('projects').offsetTop")
+    Y = projTop - 135
+    pg.evaluate(f"() => window.__v2.scrollToY({Y})")
+    pg.wait_for_timeout(700)
+    open_dir = OUT_DIR / "open"
+    open_dir.mkdir(parents=True, exist_ok=True)
+    for old in open_dir.glob("*.png"):
+        old.unlink()
+    has_rig = pg.evaluate("() => typeof window.__v2.rigPose === 'function'")
+    mismatches = []
+    overlay = []
+    for i in range(8):
+        if pg.evaluate("() => window.__v2.projectOpen()") >= 0:
+            pg.keyboard.press("Escape")
+            pg.wait_for_timeout(900)
+        box = pg.evaluate(f"() => window.__v2.allCubes()[{i}].box")
+        cx, cy = box["x"] + box["w"] / 2, box["y"] + box["h"] / 2
+        pg.mouse.click(cx, cy)
+        opened = -1
+        for _ in range(12):  # up to 1.2 s
+            pg.wait_for_timeout(100)
+            opened = pg.evaluate("() => window.__v2.projectOpen()")
+            if opened == i:
+                break
+        if opened != i:
+            mismatches.append({"clicked": i, "opened": opened})
+        pg.wait_for_timeout(350)
+        png = pg.screenshot()
+        img = Image.open(io.BytesIO(png)).convert("RGB")
+        W, H = img.size
+        left = max(0, min(W - 500, int(cx - 250)))
+        top = max(0, min(H - 500, int(cy - 250)))
+        img.crop((left, top, left + 500, top + 500)).save(str(open_dir / f"cube{i}_t035.png"))
+        closed_op = pg.evaluate(f"() => window.__v2.allCubes()[{i}].op")
+        rig_up = pg.evaluate("() => (typeof window.__v2.rigPose === 'function') ? window.__v2.rigPose() : null")
+        # closed cube must be hidden (op ~0) once the rig is visible
+        if opened == i and closed_op > 0.05:
+            overlay.append({"cube": i, "closed_op": round(closed_op, 3), "rigPose": rig_up})
+        pg.keyboard.press("Escape")
+        pg.wait_for_timeout(900)
+    return {"mismatches": mismatches, "overlay": overlay, "has_rig_hook": has_rig}
 
 
 def run_contact_test(pg, sh, vh):
