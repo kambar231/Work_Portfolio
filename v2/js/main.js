@@ -383,6 +383,10 @@ window.__v2.state = () => cubes.getState();
 window.__v2.openProject = (i) => cubes.openProject(i);
 window.__v2.projectOpen = () => cubes.projectOpenIndex();
 window.__v2.faceAnchors = () => cubes.faceAnchors();
+// read-only pass-throughs the checker reads (engine owns the implementations)
+window.__v2.unfoldFaceRects = (i) => cubes.unfoldFaceRects(i);
+window.__v2.hitTest = (x, y) => cubes.hitTest(x, y);
+window.__v2.cubeOpacity = (i) => cubes.cubeOpacity(i);
 window.__v2.gridSlots = () => cubes.gridSlots();
 window.__v2.shapeRects = () => cubes.shapeRectsNow();
 window.__v2.cubesCanvasOpacity = () => parseFloat(getComputedStyle(document.getElementById('cubes-canvas')).opacity || '1');
