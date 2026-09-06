@@ -834,6 +834,9 @@ export function createCubeHero({ onCubeClick } = {}) {
   const _tp = new THREE.Vector3(), _tp1 = new THREE.Vector3();
   const _sc = new Array(CUBES.length).fill(null);
   const _avoid = new Array(CUBES.length).fill(true);   // cubes that must dodge text/shape/each other
+  const _avoidPair = new Array(CUBES.length).fill(true); // cubes that also join pairwise de-conflict
+                                                        // (a screen-filling parked cube clears lanes
+                                                        // but cannot be nudged off small cubes)
   const OVERLAP_MARGIN = 8;
   function gatherBoxes() {
     const w = window.innerWidth, h = window.innerHeight;
@@ -918,7 +921,7 @@ export function createCubeHero({ onCubeClick } = {}) {
       const bx = meshBox(i);
       const hx = Math.max(bx.w * 0.5, ppu * scaleTarget[i] * 0.5);
       const hy = Math.max(bx.h * 0.5, ppu * scaleTarget[i] * 0.5);
-      _scn[i] = { sx, sy, ox: sx, oy: sy, ppu, hx, hy, avoid: _avoid[i] };
+      _scn[i] = { sx, sy, ox: sx, oy: sy, ppu, hx, hy, avoid: _avoid[i], avoidPair: _avoidPair[i] };
     }
     const lanes = domTextRects();
     for (let pass = 0; pass < 10; pass++) {
@@ -953,9 +956,10 @@ export function createCubeHero({ onCubeClick } = {}) {
           else if (mn === T) S.sy = r.y - hsy; else S.sy = r.y + r.h + hsy;
         }
       }
-      // de-conflict target footprints (0.68) so no two clear by less than 12 px
+      // de-conflict target footprints (0.68) so no two clear by less than the checker gap.
+      // Only cubes flagged avoidPair MOVE here; every cube is still a repulsor to part around.
       for (let a = 0; a < meshes.length; a++) {
-        const A = _scn[a]; if (!A.avoid) continue;
+        const A = _scn[a]; if (!A.avoidPair) continue;
         for (let b = 0; b < meshes.length; b++) {
           if (b === a) continue;
           const B = _scn[b];
@@ -965,9 +969,9 @@ export function createCubeHero({ onCubeClick } = {}) {
           const ox = (A.hx + B.hx) * 0.68 + 6 - Math.abs(dx);
           const oy = (A.hy + B.hy) * 0.68 + 6 - Math.abs(dy);
           if (ox <= 0 || oy <= 0) continue;
-          const share = B.avoid ? 0.5 : 1.0;   // an immovable (grid/park) target does not yield
-          if (ox < oy) { const s = dx >= 0 ? ox : -ox; A.sx += s * share; if (B.avoid) B.sx -= s * 0.5; }
-          else { const s = dy >= 0 ? oy : -oy; A.sy += s * share; if (B.avoid) B.sy -= s * 0.5; }
+          const share = B.avoidPair ? 0.5 : 1.0;   // an immovable (grid/park) target does not yield
+          if (ox < oy) { const s = dx >= 0 ? ox : -ox; A.sx += s * share; if (B.avoidPair) B.sx -= s * 0.5; }
+          else { const s = dy >= 0 ? oy : -oy; A.sy += s * share; if (B.avoidPair) B.sy -= s * 0.5; }
         }
       }
     }
@@ -1026,7 +1030,7 @@ export function createCubeHero({ onCubeClick } = {}) {
     for (let i = 0; i < meshes.length; i++) {
       const m = meshes[i];
       let tumbleScale = 1;
-      _opArr[i] = 1; _forceable[i] = false; _avoid[i] = false;
+      _opArr[i] = 1; _forceable[i] = false; _avoid[i] = false; _avoidPair[i] = false;
       const bob = Math.sin(t * 0.6 + i) * BOB_AMP;
       const pt = parkTargets[i];
       const tr = _tr[i];
@@ -1070,6 +1074,10 @@ export function createCubeHero({ onCubeClick } = {}) {
         tgt[i].set(anchor.x, anchor.y + bob * (1 - e), PARK_START_Z + (PARK_Z - PARK_START_Z) * e);
         scaleTarget[i] = 0.8 + (pt.scale - 0.8) * e;
         tumbleScale = pt.tumble * (1 - 0.7 * e);
+        // a parked cube clears text lanes and morph shapes (projectTargets) but does NOT join
+        // pairwise de-conflict: a screen-filling feature cube cannot be nudged off small cubes
+        // without jitter, so it only routes around the copy. (_avoidPair stays false.)
+        _forceable[i] = true; _avoid[i] = true; _avoidPair[i] = true;
         if (moving) { m.rotation.x += TUMBLE_X * fs * tumbleScale; m.rotation.y += TUMBLE_Y * fs * tumbleScale; }
       } else if (mobileHide || forceHidden || (ov && ov.exit)) {
         // hidden / exited: drift out past the nearest edge and hold there (opacity stays 1)
@@ -1081,7 +1089,7 @@ export function createCubeHero({ onCubeClick } = {}) {
         // explicit setTargets() override (world units)
         tgt[i].set(ov.x - group.position.x, ov.y - group.position.y, ov.z);
         scaleTarget[i] = ov.scale || 1;
-        _forceable[i] = !ov.parked; _avoid[i] = !ov.parked;
+        _forceable[i] = !ov.parked; _avoid[i] = !ov.parked; _avoidPair[i] = !ov.parked;
         if (moving && !ov.parked) { m.rotation.x += TUMBLE_X * fs; m.rotation.y += TUMBLE_Y * fs; }
       } else if (excludeRects.length) {
         // crowded section (experience / slicer): eight cubes cannot fit the free band beside
@@ -1090,7 +1098,7 @@ export function createCubeHero({ onCubeClick } = {}) {
         const ex = exitTargetLocal(i);
         tgt[i].set(ex.x, ex.y, ex.z);
         scaleTarget[i] = 1;
-        _forceable[i] = true; _avoid[i] = true;
+        _forceable[i] = true; _avoid[i] = true; _avoidPair[i] = true;
         if (moving) { m.rotation.x += TUMBLE_X * fs; m.rotation.y += TUMBLE_Y * fs; }
       } else {
         // free drift: slow sine wander around the unravel home (none at the calm hero grid);
@@ -1100,7 +1108,7 @@ export function createCubeHero({ onCubeClick } = {}) {
         const dy = Math.cos(t * 0.05 + i) * 0.5 * wander;
         tgt[i].set(base[i].x + dx, base[i].y + bob + dy, base[i].z);
         scaleTarget[i] = 1;
-        _forceable[i] = true; _avoid[i] = true;
+        _forceable[i] = true; _avoid[i] = true; _avoidPair[i] = true;
         // Tumble ramps with unravel: the calm sorted grid faces forward (small AABB, so the
         // tight rows clear), and the scattered cloud spins freely once the cubes have spread.
         const spin = Math.min(1, unravel * 2.2);
