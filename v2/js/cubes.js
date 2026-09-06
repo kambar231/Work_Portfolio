@@ -679,11 +679,12 @@ export function createCubeHero({ onCubeClick } = {}) {
     // cube's overhang above its cell, so the padded box never touches the padded header rect.
     const gridTop = headBottom + 88;
     const minEdge = 0.07 * vw, GAPF = 0.14;
-    // the vertical gap must also hold a row's label, so the top row's label sits in the gap and
-    // not on the bottom cubes
-    const gapYof = (e) => Math.max(e * GAPF, 50);
+    // A grid cube's tilted (projected) AABB is ~1.6x its face-on edge, so slots must be spaced
+    // by that box, not the edge, or adjacent rows/cols overlap. Rows also hold a label.
+    const gapXof = (e) => e * 0.16 + 8;                  // small col gap; near-face-on boxes clear
+    const gapYof = (e) => Math.max(e * 0.16, 50);        // row gap holds the label; tilt is small now
     const fits = (e) => {
-      const gapX = e * GAPF, gapY = gapYof(e), gw = 4 * e + 3 * gapX, gh = 2 * e + gapY;
+      const gapX = gapXof(e), gapY = gapYof(e), gw = 4 * e + 3 * gapX, gh = 2 * e + gapY;
       if (gridTop + gh + e * 0.15 > vh - 12) return false;   // must sit fully inside the viewport
       // pad the block the way the checker pads text (+40) plus the tilt overhang, so a "fits"
       // result really is on-text-free
@@ -697,7 +698,7 @@ export function createCubeHero({ onCubeClick } = {}) {
     while (edge > minEdge && !fits(edge)) edge -= 4;
     edge = Math.max(edge, minEdge);
     gridEdgePx = edge;
-    const gapX = edge * GAPF, gapY = gapYof(edge), cx = vw / 2;
+    const gapX = gapXof(edge), gapY = gapYof(edge), cx = vw / 2;
     for (let i = 0; i < CUBES.length; i++) {
       const col = i % 4, row = Math.floor(i / 4);
       const px = cx + (col - 1.5) * (edge + gapX);
@@ -1251,8 +1252,10 @@ export function createCubeHero({ onCubeClick } = {}) {
         scaleTarget[i] = 1 + (gridScale - 1) * e;
         tumbleScale = (i === hoverIndex || projT > 0.5) ? 0 : 0.6;
         if (projT > 0.4 && openIndex < 0) {
-          m.rotation.x += (0.1 - m.rotation.x) * 0.12;
-          m.rotation.y += (0.14 - m.rotation.y) * 0.12;
+          // nearly face-on so the projected box stays close to the face size (keeps the grid
+          // compact enough to fit and to space rows without the tilt inflating the AABB)
+          m.rotation.x += (0.04 - m.rotation.x) * 0.12;
+          m.rotation.y += (0.05 - m.rotation.y) * 0.12;
         } else if (moving && tumbleScale > 0) { m.rotation.x += TUMBLE_X * fs * tumbleScale; m.rotation.y += TUMBLE_Y * fs * tumbleScale; }
         _opArr[i] = openIndex >= 0 ? (i === openIndex ? 0 : 0.06) : 1;   // projects scrim exception
       } else if (contactT > 0.01) {
