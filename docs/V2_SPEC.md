@@ -102,10 +102,29 @@ four-column strip under the story paragraph (small caps labels), not four blocks
 - Never: overlays outside their container, transforms on ancestors of fixed panels, fades from
   opacity 0 at the very top of the page (first paint must show the hero).
 
-## 5. Palette and type (fill from studies; defaults if studies disagree)
-Background warm off-white (Codex paper #f4f1e9), ink #182b2b, one accent (Codex teal #17685d)
-and one warm accent for the cubes (Codex rust #ac482c) used sparingly. Cubes: 3 tints of the
-paper plus one accent cube per chapter. Type: nirnor's pairing or General Sans + IBM Plex Mono.
+## 5. Palette, type, and measured parameters (from docs/NIRNOR_STUDY.md, binding)
+- Background #ffffff. Ink #1a1a1a. Greys #3c3c3c (secondary text), #7e7e7e (labels), #d9d9d9 and
+  #eaeaea (particles, hairlines). Dark band #1a1a1a with #ffffff text. NO accent colour in the UI;
+  colour comes only from cube photo textures. (Codex palette dropped by Kambar's instruction.)
+- Type: Roboto (weights 100 to 900, Google Fonts) for everything Latin; Ibarra Real Nova italic for
+  the one serif quote line. Fluid sizes: display min(150px, 10.4vw) weight 300; category words
+  min(96px, 6.6vw) weight 300 lowercase; body 16 to 18 px weight 400 line-height 1.7; labels 12 px
+  uppercase tracking 0.12em weight 500. Column max-width 1248 px.
+- Cube scene: Three.js r163 (module build from jsdelivr, pinned). PerspectiveCamera fov 90 for the
+  cube canvas; cubes = BoxGeometry with a different photo per face (MeshStandardMaterial,
+  roughness 0.85, metalness 0), one DirectionalLight (intensity 1.2, from upper left) + AmbientLight
+  0.6, no shadows, no fog, no outlines. Continuous tumble: rotation.x += 0.0025, rotation.y += 0.004
+  per frame, bob = sin(t*0.6)*0.08. Texture maps: assets downscaled to 512 px square, mipmapped.
+- Background particle field: separate fixed canvas behind everything (z-index -1), THREE.Points,
+  PointsMaterial size 1.6 sizeAttenuation true colour #d9d9d9 opacity 0.85, 40k points at desktop
+  (12k mobile), positions stepped each frame by a strange-attractor step (Clifford or de Jong,
+  a,b,c,d tuned by eye to give smoke ribbons; dt 0.004) plus a slow global drift; density scales
+  with scroll progress: 30 percent of points visible at hero, 100 percent by the closing section.
+  Cursor: negligible (parallax 0.01).
+- Signature text reveal ("blink"): each glyph wrapped in a span, keyframes over 0.3 s with
+  step-end: opacity 0 -> .5 -> .2 -> .7 -> 0 -> 1, stagger 18 ms per glyph, triggered on
+  scroll-in once. Hairlines grow width 0 -> 100 percent over 0.3 s ease. Sections slide/fade 24 px.
+- Smooth scroll: Lenis 1.1, lerp 0.1. GSAP ScrollTrigger scrub 0.6 for cube travel.
 
 ## 6. Build phases (one implementer, one commit per phase, film each)
 P1 Scaffold + cube scene: hero with sorted grid, float, cursor parallax, unravel on first scroll,
