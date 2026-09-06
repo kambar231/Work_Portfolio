@@ -870,9 +870,11 @@ def run_real_click_test(pg):
 
 def run_contact_test(pg, sh, vh):
     # scroll to the very bottom and let the settle finish, then assert every cube sits on
-    # its grid slot (< 6 px) and no two boxes overlap.
+    # its grid slot (< 6 px) and no two boxes overlap. A direct jump to the bottom takes ~5 s
+    # for the grid springs to fully converge, so settle with a generous cap before measuring.
     pg.evaluate(f"() => window.__v2.scrollToY({sh})")
-    pg.wait_for_timeout(2600)
+    pg.wait_for_timeout(600)
+    settle(pg, timeout_ms=7000, step_ms=150)
     data = pg.evaluate("""() => {
       const slots = window.__v2.gridSlots(); const centers = window.__v2.cubeCenters();
       const boxes = window.__v2.allCubes();
