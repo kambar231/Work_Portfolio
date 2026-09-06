@@ -18,6 +18,43 @@ settle back into order. Thesis line adapted from nirnor's: "A more organized wor
 "Order, from parts that move." Subline: "I design things, prove them on paper, build them, then
 test them until the number is real."
 
+## 1b. What nirnor.jp actually does (lead's read of the 60-frame film, docs/nirnor-study/lead-film)
+- Pure white page. Background = a slow-drifting field of fine grey PARTICLES drawn along flowing
+  curves (looks like pencil-dust threads and a smoke plume near About). It is subtle: 10 to 15 percent
+  grey, never competes with text. It drifts continuously and shifts with scroll.
+- Cubes: photo-textured cubes (each face a different work photo), 1 to 2 on screen at a time,
+  tumbling slowly as they travel with scroll, entering from one edge and leaving by another. They
+  are the only colour on the page. Perspective camera, no shadows, no outlines, crisp textures.
+- Type: one thin geometric sans (Roboto-light-like), used at three scales: huge lowercase category
+  words (art direction, digital content, movie, graphic, logo) ~90 px, small lists of sub-items
+  ~16 px, and a giant bold "VIEW ALL WORKS" CTA with a count superscript. Nav is three tiny
+  uppercase links top-right. Logo top-left. Enormous whitespace; each viewport holds one idea.
+- Text reveals: headlines scramble/wipe in letter by letter as they enter (frames show partially
+  drawn letters "al cont nt"), lists fade in staggered.
+- Sequence: hero (logo, tagline, tiny address) -> WORKS index -> per-category viewports with one
+  cube each -> VIEW ALL WORKS -> ABOUT (italic serif quote "eloquently expressed silence" on a soft
+  grey smoke plume) -> a full-bleed DARK BAND with the manifesto rotated vertical ("A more organised
+  world, more design that touches your heart") next to a ribbed monochrome 3D form -> Member list ->
+  Company -> Topics -> Contact button. Total scroll ~13,300 px at 1440x900.
+- Feel: monochrome, thin, quiet, slow. Colour only from the cube photos.
+
+## 1c. Kambar's tailoring (decided)
+- Cubes = his work. Faces textured with REAL photos from assets/: CNC machine, wound motor, cast
+  nozzle shell, slicer UI, polymer render, forklift SVG rendered to a texture, pendulum rig, cannon.
+  One cube per chapter, 8 cubes total.
+- Hero = all 8 cubes hovering in a SORTED 4x2 grid ("an organised world"), gently floating, slight
+  cursor parallax. Tagline: "Order, from parts that move." Below it, tiny: Kambar Mangibayev,
+  Mechanical Systems Engineer, Rochester NY.
+- Unravel: the first scroll breaks the grid; cubes drift into a loose cloud; from then on one cube
+  at a time travels with its chapter (nirnor's tumble) and parks beside the chapter text. Category
+  words at nirnor scale: simulate / make / build / software / deploy. Clicking a cube in the hero
+  jumps to its chapter (that is the "people can select" idea).
+- Dark band = Kambar's manifesto, rotated vertical, beside the ribbed form replaced by the F-1 nozzle
+  wireframe or a rotating cube stack: "Sense. Decide. Respond. Then measure it."
+- Closing: cubes glide back into the sorted grid behind the contact line.
+- Background particle threads: reproduce (points along 3 to 4 slowly evolving Bezier curves,
+  additive grey, drifting). This is the single most important atmosphere element after the cubes.
+
 ## 2. Stack (answering "what framework")
 No React, no build step (GitHub Pages serves static files). Real libraries, pinned, ES modules from
 jsdelivr:
