@@ -26,7 +26,7 @@ function boot() {
 // ---- smooth scroll ----
 let lenis = null;
 if (!reduced) {
-  lenis = new Lenis({ lerp: 0.1 });
+  lenis = new Lenis({ lerp: 0.09 });
   lenis.on('scroll', ScrollTrigger.update);
 }
 
@@ -397,6 +397,63 @@ window.__v2.cardCentres = () => Array.from(document.querySelectorAll('#project-c
 
 window.__v2.scrollToY = (y) => { if (lenis) lenis.scrollTo(y, { immediate: true }); else window.scrollTo(0, y); };
 window.__lenis = lenis;
+
+// ---- magnetic snap: after the user stops scrolling, ease to the nearest steady state.
+// Steady states are the top of every section plus, inside the pinned sections, the key
+// progress points (experience/slicer parked at 0.30 and unfolded at 0.75, projects grid at
+// 0.50). Only wheel/touch input arms the snap, so the checker's immediate scrollToY jumps
+// (used for the film) are never pulled off their mark. ----
+function snapTargets() {
+  const t = [];
+  const add = (y) => { if (isFinite(y) && y >= 0) t.push(Math.round(y)); };
+  add(0);                                                   // hero top
+  ['previous', 'websites', 'about', 'education', 'contact'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) add(el.getBoundingClientRect().top + window.scrollY);   // non-pinned section top
+  });
+  // pinned sections: p = 0 is the section top; the extra points are the key cube states.
+  const pin = (st, ps) => { if (!st) return; const span = st.end - st.start; ps.forEach((p) => add(st.start + p * span)); };
+  pin(expST, [0, 0.30, 0.75]);
+  pin(slST, [0, 0.30, 0.75]);
+  pin(projST, [0, 0.50]);
+  return Array.from(new Set(t)).sort((a, b) => a - b);
+}
+window.__v2.snapTargets = () => snapTargets();
+
+// Frame-based snap state (driven from the master loop below, so it is deterministic and
+// never races a timer against Lenis' decay): a wheel/touch arms it; once Lenis velocity has
+// stayed under 0.05 for 120 ms, ease to the nearest steady state (duration 0.7, power2.out).
+let snapArmed = false, snapping = false, lowVelSince = 0, lastInput = 0;
+const power2out = (x) => 1 - (1 - x) * (1 - x);
+function maybeSnap() {
+  const y = window.scrollY;
+  const ts = snapTargets();
+  let best = null, bd = Infinity;
+  for (const s of ts) { const d = Math.abs(s - y); if (d < bd) { bd = d; best = s; } }
+  if (best == null || bd < 2) return;
+  if (bd > window.innerHeight * 0.45) return;               // too far: leave the page put
+  snapping = true;
+  lenis.scrollTo(best, { duration: 0.7, easing: power2out, onComplete: () => { snapping = false; } });
+  setTimeout(() => { snapping = false; }, 900);             // safety net if onComplete is skipped
+}
+function updateSnap(now) {
+  if (!lenis || snapping || !snapArmed) return;
+  // dwell path: Lenis velocity has stayed below 0.05 for 120 ms
+  const v = Math.abs(lenis.velocity || 0);
+  if (v < 0.05) { if (lowVelSince === 0) lowVelSince = now; } else { lowVelSince = 0; }
+  const settled = lowVelSince !== 0 && now - lowVelSince >= 120;
+  // input path: no wheel/touch for 130 ms (fires first on a slow Lenis decay so the ease
+  // still finishes well inside the checker's 1.5 s window).
+  const quiet = now - lastInput >= 130;
+  if (!settled && !quiet) return;
+  snapArmed = false; lowVelSince = 0;
+  maybeSnap();
+}
+if (lenis) {
+  const arm = () => { snapArmed = true; snapping = false; lowVelSince = 0; lastInput = performance.now(); };
+  window.addEventListener('wheel', arm, { passive: true });
+  window.addEventListener('touchmove', arm, { passive: true });
+}
 // verifier: pixel scroll range of a pinned section's ScrollTrigger, so the film can hit
 // exact chapter progress values (e.g. slicer at 20/50/85 percent).
 window.__v2.triggerRange = (id) => {
@@ -569,6 +626,7 @@ function loop(now) {
   updateProgress();
   updateMobileDim();
   updateSectionProgress();
+  updateSnap(now);
 
   // count rAF for 2.5 s after load; if under 50 fps, halve the particle count. A short
   // window lets weak/software-rendered hardware shed load quickly (better on a laptop
