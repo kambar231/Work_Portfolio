@@ -6,7 +6,7 @@
   --bg: #ffffff;
   --ink: #1a1a1a;
   --grey2: #3c3c3c;   /* secondary text */
-  --label: #7e7e7e;   /* small labels */
+  --label: #6b6b6b;   /* small labels (>=4.5:1 on white) */
   --hair: #eaeaea;    /* hairlines */
   --dot: #d9d9d9;     /* particle dots */
   --col-max: 1248px;
@@ -236,15 +236,19 @@ body { background: transparent; overflow-x: hidden; }
   .display .glyph, .ch-word .glyph { opacity: 1 !important; animation: none !important; }
   .loaded .scroll-cue .hair { transition: none; transform: scaleY(1); }
   .ch-list li, .ch-facts li, .ch-story, .ch-key { opacity: 1 !important; transform: none !important; }
+  .ray-sys .ray-open { opacity: 1 !important; transform: none !important; }
+  /* cubes: the sorted grid at the hero only, hidden past it */
+  body.past-hero #cubes-canvas { opacity: 0; }
 }
 
-/* ---- Narrow screens ---- */
-@media (max-width: 760px) {
+/* ---- Narrow screens (phone + tablet) ---- */
+@media (max-width: 819px) {
   .nav { padding: 18px 22px; }
   .col { padding: 0 22px; }
   #hero { padding-bottom: 16vh; }
-  /* phones: cubes stay a faint background cloud behind stacked chapters */
-  #cubes-canvas { opacity: 0.45; }
+  /* faint cloud between the hero grid and the contact grid (JS toggles m-dim) */
+  #cubes-canvas { opacity: 1; transition: opacity .4s ease; }
+  body.m-dim #cubes-canvas { opacity: 0.25; }
   .ch-pin { min-height: auto; padding: 12vh 0 4vh; }
   .ch-inner, .ch[data-side="left"] .ch-inner, .ch[data-side="right"] .ch-inner {
     max-width: 100%; margin: 0; text-align: left;
@@ -254,6 +258,13 @@ body { background: transparent; overflow-x: hidden; }
   .ch-tail { min-height: auto; padding: 2vh 0 8vh; }
   .evidence { grid-template-columns: repeat(2, 1fr); gap: 20px; }
   .panel-col { padding: 72px 22px 100px; }
+  /* tap targets >= 44px */
+  .nav-links a { padding: 12px 6px; }
+  .ch-open, .ray-open, .panel-close, .contact-list a, .web-tile { min-height: 44px; }
+  .ray-open { padding: 20px 0; }
+  .ch-open.sm { padding: 12px 0; margin-right: 18px; display: inline-block; }
+  .panel-close { padding: 12px 18px; }
+  .oth-anchor { display: none; }   /* no floating cubes on mobile */
 }
 
 /* ============================ PHASE 3 ============================ */
@@ -316,7 +327,8 @@ body { background: transparent; overflow-x: hidden; }
 @keyframes vct-lret { 0%{opacity:0} 50%{opacity:0} 51%{opacity:1} 100%{opacity:1} }
 
 /* ---- Other work ---- */
-.others-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px; margin-top: 30vh; }
+.others-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px; margin-top: 6vh; }
+.oth-anchor { height: 330px; }
 .oth-title { font-size: 22px; font-weight: 400; margin: 0 0 12px; }
 .oth-col p { font-size: 15px; line-height: 1.6; color: var(--grey2); margin: 0 0 10px; }
 .oth-key { color: var(--ink) !important; font-weight: 500; }
@@ -375,16 +387,28 @@ body { background: transparent; overflow-x: hidden; }
 .progress-bar { position: absolute; left: 22px; top: 0; width: 1px; height: 0; background: var(--ink); }
 .progress-num { position: absolute; left: 16px; top: 0; font-size: 12px; color: var(--label); transform: translateY(-2px); }
 
-@media (max-width: 760px) {
+@media (max-width: 819px) {
   .exp-row, .others-grid, .web-tiles, .edu, .rit-row { grid-template-columns: 1fr; gap: 24px; }
-  .manifesto-band { flex-direction: column; justify-content: center; gap: 6vh; padding: 12vh 8vw; }
-  .manifesto { writing-mode: horizontal-tb; transform: none; font-size: 20px; }
-  .manifesto-stack { width: 70vw; height: 40vh; }
+  .others-grid { margin-top: 4vh; }
+  .web-tiles { grid-template-columns: 1fr 1fr; }
+  .manifesto-band { flex-direction: column; justify-content: center; gap: 6vh; padding: 12vh 8vw; min-height: 80vh; }
+  .manifesto { writing-mode: horizontal-tb; transform: none; font-size: 20px; text-align: left; }
+  .manifesto-stack { width: 70vw; height: 34vh; }
   .about-lead { padding: 12vh 22px 8vh; }
+  .soul { font-size: 34px; }
   .progress { display: none; }
   .ray-inner { max-width: 100%; }
+  .ray-systems { margin-top: 20px; }
+  .vct { width: 78%; }
 }
 
 /* fade the photo cubes over the manifesto (particles + wireframe stack carry it) */
 .hide-cubes #cubes-canvas { opacity: 0.06; transition: opacity .6s ease; }
 #cubes-canvas { transition: opacity .6s ease; }
+
+/* Lenis smooth-scroll rules (inlined to drop a render-blocking request) */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: hidden; }
+.lenis.lenis-smooth iframe { pointer-events: none; }

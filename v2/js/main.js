@@ -16,7 +16,12 @@ window.gsap = gsap;                       // let cubes.js use GSAP for setState/
 gsap.registerPlugin(ScrollTrigger);
 
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const mobile = window.innerWidth < 820;
 const moving = !reduced;
+
+// Boot the WebGL scenes AFTER the first paint so the headline and text render
+// immediately (fast FCP/LCP); the heavy particle burn-in then runs off the critical path.
+function boot() {
 
 // ---- smooth scroll ----
 let lenis = null;
@@ -26,7 +31,7 @@ if (!reduced) {
 }
 
 // ---- scenes ----
-const particles = createParticles();
+const particles = createParticles(reduced ? { staticDensity: 0.4 } : {});
 const cubes = createCubeHero({
   onCubeClick: (i) => scrollToSection(cubes.sectionFor(i)),
 });
@@ -77,6 +82,13 @@ if (!reduced) {
 // ---- chapters (phase 2 + 3) ----
 initChapters({ gsap, ScrollTrigger, cubes, lenis, reduced, initManifestoStack });
 
+// reduced motion: cubes are the static sorted grid at the hero only, hidden past it
+if (reduced) {
+  const setHero = () => document.body.classList.toggle('past-hero', window.scrollY > window.innerHeight * 0.85);
+  window.addEventListener('scroll', setHero, { passive: true });
+  setHero();
+}
+
 // ---- nav + in-page anchors use smooth Lenis scroll ----
 document.querySelectorAll('a[href^="#"]').forEach((a) => {
   a.addEventListener('click', (e) => {
@@ -109,10 +121,10 @@ function updateProgress() {
 // Persistent cloud dim: while any chapter text (origin..websites) is on screen the
 // non-parked cubes stay <=0.35 opacity so they never compete with the text. Off in the
 // hero (bright unravel) and from the manifesto on (dark band + contact reassembly).
-if (!reduced) {
+if (!reduced && !mobile) {
   ScrollTrigger.create({ trigger: '#origin', start: 'top 85%',
     onEnter: () => cubes.setCloudDim(1), onLeaveBack: () => cubes.setCloudDim(0) });
-  ScrollTrigger.create({ trigger: '#contact', start: 'top 75%',
+  ScrollTrigger.create({ trigger: '#contact', start: 'top 30%',
     onEnter: () => cubes.setCloudDim(0), onLeaveBack: () => cubes.setCloudDim(1) });
 }
 
@@ -155,6 +167,16 @@ function scrollProgress() {
   return max > 0 ? window.scrollY / max : 0;
 }
 
+// ---- mobile: keep the cubes a faint cloud between the hero grid and the contact grid ----
+const cubesCanvasEl = document.getElementById('cubes-canvas');
+const contactEl = document.getElementById('contact');
+function updateMobileDim() {
+  if (!mobile || reduced || !cubesCanvasEl) return;
+  const y = window.scrollY, vh = window.innerHeight;
+  // bright sorted grid at the hero; a faint ghost cloud/grid everywhere after it
+  cubesCanvasEl.style.opacity = y > vh * 1.0 ? '0.28' : '1';
+}
+
 // ---- master loop + FPS guard ----
 let last = performance.now();
 let fpsStart = last, fpsFrames = 0, fpsChecked = false;
@@ -166,6 +188,7 @@ function loop(now) {
   particles.frame(now, dt, scrollProgress(), moving);
   cubes.frame(now, dt, moving);
   updateProgress();
+  updateMobileDim();
 
   // count rAF for 5 s after load; if under 50 fps, halve the particle count
   if (!fpsChecked) {
@@ -175,7 +198,9 @@ function loop(now) {
       console.log('[v2] measured fps over 5s:', fps.toFixed(1), '| particles:', particles.getCount());
       if (fps < 50) {
         particles.halveCount();
-        console.log('[v2] fps under 50, halved particle count to', particles.getCount());
+        particles.capDpr();
+        cubes.capDpr();
+        console.log('[v2] fps under 50: halved particles to', particles.getCount(), 'and capped DPR to 1.5');
       }
       fpsChecked = true;
     }
@@ -188,6 +213,7 @@ function splitGlyphs() {
   const el = document.querySelector('.display');
   if (!el) return;
   const text = el.textContent;
+  el.setAttribute('aria-label', text);      // read as a sentence, not letter by letter
   el.textContent = '';
   let d = 0;
   const words = text.split(' ');
@@ -195,6 +221,7 @@ function splitGlyphs() {
     // each word is a nowrap unit so lines only ever break at spaces, never inside a word
     const wspan = document.createElement('span');
     wspan.className = 'word';
+    wspan.setAttribute('aria-hidden', 'true');
     for (const ch of word) {
       const g = document.createElement('span');
       g.className = 'glyph';
@@ -224,3 +251,8 @@ window.addEventListener('load', () => ScrollTrigger.refresh());
 ScrollTrigger.refresh();
 
 requestAnimationFrame(loop);
+
+}  // end boot
+
+// paint the DOM first, then start the WebGL scenes
+requestAnimationFrame(() => requestAnimationFrame(boot));

@@ -60,7 +60,7 @@ const CUBES = [
   { label: 'software', section: '#slicer',
     photos: ['slicer-software', 'slicer-stl-viewer', 'slicer-stl-detail', 'slicer-layer-plot', 'slicer-software', 'slicer-stl-viewer'] },
   { label: 'deploy', section: '#raymond',
-    photos: ['raymond-forklift.png', 'sens-plus-flyer', 'raymond-forklift.png', 'sens-plus-flyer', 'raymond-forklift.png', 'sens-plus-flyer'] },
+    photos: ['raymond-forklift.png', 'sens-plus-flyer', 'raymond-forklift.png', 'raymond-forklift.png', 'raymond-forklift.png', 'raymond-forklift.png'] },
   { label: 'print', section: '#others',
     photos: ['motor-stator', 'motor-wound-pair', 'motor-desk', 'motor-exploded', 'motor-shaft', 'motor-stator'] },
   { label: 'dynamics', section: '#others',
@@ -113,16 +113,20 @@ export function createCubeHero({ onCubeClick } = {}) {
   const scatter = [];     // seeded scatter slot (world, group centre is origin at rest)
   const base = [];        // current interpolated local position
 
+  const MOBILE = window.innerWidth < 820;   // portrait: a 2x4 grid fits better than 4x2
   for (let i = 0; i < CUBES.length; i++) {
-    const col = i % 4, row = Math.floor(i / 4);
-    gridLocal.push(new THREE.Vector3((col - 1.5) * SPACING, (0.5 - row) * ROW_SPACING, 0));
+    const col = MOBILE ? i % 2 : i % 4;
+    const row = MOBILE ? Math.floor(i / 2) : Math.floor(i / 4);
+    const cx = MOBILE ? (col - 0.5) * SPACING : (col - 1.5) * SPACING;
+    const cy = MOBILE ? (1.5 - row) * ROW_SPACING : (0.5 - row) * ROW_SPACING;
+    gridLocal.push(new THREE.Vector3(cx, cy, 0));
     scatter.push(new THREE.Vector3());
     base.push(gridLocal[i].clone());
 
     const faces = [];
     for (let f = 0; f < 6; f++) {
       const name = CUBES[i].photos[f % CUBES[i].photos.length];
-      const file = name.endsWith('.png') ? name : name + '.jpg';
+      const file = (name.endsWith('.png') ? name.slice(0, -4) : name) + '.webp';   // WebP for smaller payload
       const mat = new THREE.MeshStandardMaterial({ color: 0xbfbfbf, roughness: 0.7, metalness: 0, transparent: true, opacity: 1 });
       loads.push(new Promise((res) => {
         loader.load('assets/cubes/' + file, (tex) => {
@@ -152,11 +156,14 @@ export function createCubeHero({ onCubeClick } = {}) {
     // narrow screens: centre the grid and pull back so all four columns fit (desktop
     // path is left exactly as verified at 1280/1440/1920)
     if (camera.aspect < 1.2) {
-      regionX = 0; regionY = 0.55;
-      const gridHalfW = 1.5 * SPACING + 0.6;
-      for (let g = 0; g < 40; g++) {
-        if (D * tanHalf() * camera.aspect * 0.9 >= gridHalfW) break;
-        D *= 1.08;
+      regionX = 0; regionY = 0;
+      // 2x4 on mobile, 4x2 otherwise; pull back until both fit with margin
+      const gridHalfW = (MOBILE ? 0.5 * SPACING : 1.5 * SPACING) + 0.6;
+      const gridHalfH = (MOBILE ? 1.5 * ROW_SPACING : 0.5 * ROW_SPACING) + 0.6;
+      for (let g = 0; g < 60; g++) {
+        const hh = D * tanHalf();
+        if (hh * camera.aspect * 0.9 >= gridHalfW && hh * 0.82 >= gridHalfH) break;
+        D *= 1.06;
       }
     }
     camera.position.set(0, 0, D);
@@ -406,15 +413,14 @@ export function createCubeHero({ onCubeClick } = {}) {
     parkTargets[i] = { axvw: side === 'left' ? 24 : 76, ayvh: 48,
       scale: (opts && opts.scale) || PARK_SCALE, tumble: (opts && opts.tumble != null) ? opts.tumble : 1, t };
   }
-  // park several cubes at once (Other Projects); list = [{ i, axvw, ayvh, scale }]
-  function parkTrio(list, t) {
-    t = Math.min(1, Math.max(0, t));
-    for (const p of list) {
-      if (t <= 0.001) delete parkTargets[p.i];
-      else parkTargets[p.i] = { axvw: p.axvw, ayvh: p.ayvh, scale: p.scale || 1.2, tumble: p.tumble != null ? p.tumble : 1, t };
-    }
-  }
-  const anyParked = () => Object.keys(parkTargets).length > 0;
+  // Track DOM anchors (Other Projects): each listed cube follows its anchor element's
+  // screen rect every frame, so the cubes scroll WITH the columns and stay in the
+  // reserved band above each title. list = [{ i, el, scale }].
+  let trackList = [];
+  const _tr = {};   // index -> {el, scale} for on-screen anchors this frame
+  function setTrack(list) { trackList = list || []; }
+
+  const anyParked = () => Object.keys(parkTargets).length > 0 || trackList.length > 0;
   // recede the whole cloud (used by the origin chapter, which parks no project cube)
   function chapterDim(t) { dimAllT = Math.min(1, Math.max(0, t)); }
   // persistent background dim: non-parked cubes stay <=0.35 while chapter text is on screen
@@ -436,6 +442,15 @@ export function createCubeHero({ onCubeClick } = {}) {
 
     const ease = (x) => (x < 0.5 ? 2 * x * x : 1 - (-2 * x + 2) * (-2 * x + 2) * 0.5);
     const dimE = ease(dimAllT);
+    // resolve tracked anchors to screen positions (only while on screen)
+    for (const k in _tr) delete _tr[k];
+    const vw = window.innerWidth, vh = window.innerHeight;
+    for (const tk of trackList) {
+      const r = tk.el.getBoundingClientRect();
+      if (r.bottom > 0 && r.top < vh && r.width > 0) {
+        _tr[tk.i] = { cx: ((r.left + r.width / 2) / vw) * 100, cy: ((r.top + r.height / 2) / vh) * 100, scale: tk.scale || 1.2 };
+      }
+    }
     const parked = anyParked();
 
     for (let i = 0; i < meshes.length; i++) {
@@ -443,7 +458,17 @@ export function createCubeHero({ onCubeClick } = {}) {
       let tumbleScale = 1, targetScale = 1, op = 1;
       const bob = Math.sin(t * 0.6 + i) * BOB_AMP;
       const pt = parkTargets[i];
-      if (pt) {
+      const tr = _tr[i];
+      if (tr) {
+        // follow the DOM anchor (scrolls with the content); tumble frozen so the box
+        // stays face-on and clears the column titles
+        const anchor = anchorLocalXY(tr.cx, tr.cy);
+        m.position.set(anchor.x, anchor.y + bob * 0.3, anchor.z);
+        m.rotation.set(0.35, 0.5, 0);
+        targetScale = tr.scale;
+        tumbleScale = 0;
+        op = 1;
+      } else if (pt) {
         const e = ease(pt.t);
         // emerge from the background ON the park side (fixed x/y, moving in z) so the
         // bright cube never crosses to the text side during its travel
@@ -469,9 +494,10 @@ export function createCubeHero({ onCubeClick } = {}) {
 
   return {
     frame, setUnravel, setState, focus, raycast, setPointer, ready,
-    cubeBoxes, labelBoxes, chapterPark, parkTrio, chapterDim, setCloudDim, meshBox,
+    cubeBoxes, labelBoxes, chapterPark, setTrack, chapterDim, setCloudDim, meshBox,
     cubeOpacity: (i) => meshes[i].material[0].opacity,
     getState: () => ({ unravel, parked: Object.keys(parkTargets).map(Number) }),
+    capDpr() { renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5)); resize(); },
     halveCount() {},
     sectionFor: (i) => (CUBES[i] ? CUBES[i].section : null),
     get count() { return meshes.length; },

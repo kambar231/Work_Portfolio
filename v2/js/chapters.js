@@ -10,11 +10,13 @@
 
 function splitWord(el) {
   const text = el.textContent;
+  el.setAttribute('aria-label', text);   // read as a word, not letter by letter
   el.textContent = '';
   let d = 0;
   for (const ch of text) {
     const g = document.createElement('span');
     g.className = 'glyph';
+    g.setAttribute('aria-hidden', 'true');
     g.textContent = ch;
     g.style.animationDelay = (d * 18) + 'ms';
     el.appendChild(g);
@@ -24,7 +26,7 @@ function splitWord(el) {
 
 export function initChapters({ gsap, ScrollTrigger, cubes, lenis, reduced, initManifestoStack }) {
   const sections = Array.from(document.querySelectorAll('.ch'));
-  const mobile = window.innerWidth < 760;   // on phones: no pin, cubes stay a faint cloud
+  const mobile = window.innerWidth < 820;   // phone/tablet: no pins, cubes stay a faint cloud
 
   sections.forEach((section) => {
     const word = section.querySelector('.ch-word');
@@ -76,21 +78,17 @@ export function initChapters({ gsap, ScrollTrigger, cubes, lenis, reduced, initM
     });
   });
 
-  // ---- Other work: cubes 5,6,7 park small above the three columns ----
+  // ---- Other work: cubes 5,6,7 follow the DOM anchors above the three columns ----
   const others = document.getElementById('others');
   if (others && !reduced && !mobile) {
-    const trio = [
-      { i: 5, axvw: 22, ayvh: 19, scale: 1.2 },
-      { i: 6, axvw: 50, ayvh: 19, scale: 1.2 },
-      { i: 7, axvw: 78, ayvh: 19, scale: 1.2 },
-    ];
-    // park only while the columns are the main thing on screen (clear of experience above)
+    const trio = Array.from(others.querySelectorAll('.oth-anchor'))
+      .map((el) => ({ i: parseInt(el.dataset.cube, 10), el, scale: 0.95 }));
     ScrollTrigger.create({
-      trigger: others, start: 'top 38%', end: 'bottom 62%',
-      onEnter: () => cubes.parkTrio(trio, 1),
-      onEnterBack: () => cubes.parkTrio(trio, 1),
-      onLeave: () => cubes.parkTrio(trio, 0),
-      onLeaveBack: () => cubes.parkTrio(trio, 0),
+      trigger: others, start: 'top bottom', end: 'bottom top',
+      onEnter: () => cubes.setTrack(trio),
+      onEnterBack: () => cubes.setTrack(trio),
+      onLeave: () => cubes.setTrack([]),
+      onLeaveBack: () => cubes.setTrack([]),
     });
   }
 
@@ -105,11 +103,20 @@ export function initChapters({ gsap, ScrollTrigger, cubes, lenis, reduced, initM
 
   // ---- Contact: cubes glide back into the sorted grid as contact enters ----
   const contact = document.getElementById('contact');
-  if (contact && !reduced && !mobile) {
+  if (contact && !reduced) {
     gsap.to({ p: 1 }, {
       p: 0, ease: 'none',
       scrollTrigger: { trigger: contact, start: 'top 85%', end: 'bottom bottom', scrub: 0.6 },
       onUpdate: function () { cubes.setUnravel(this.targets()[0].p); },
+    });
+  }
+
+  // ---- Mobile: fade the cube canvas to a faint cloud between the hero grid and the
+  // contact grid (opacity .25), so stacked chapter text stays readable ----
+  if (mobile && !reduced) {
+    ScrollTrigger.create({
+      trigger: '#origin', start: 'top 80%', endTrigger: '#contact', end: 'top 60%',
+      onToggle: (self) => document.body.classList.toggle('m-dim', self.isActive),
     });
   }
 
@@ -121,13 +128,14 @@ export function initChapters({ gsap, ScrollTrigger, cubes, lenis, reduced, initM
   const panels = document.getElementById('panels');
   let savedScroll = 0;
   let openPanel = null;
+  let lastTrigger = null;
 
   function open(name) {
     const panel = document.getElementById('panel-' + name);
     if (!panel) return;
+    lastTrigger = document.activeElement;
     savedScroll = window.scrollY;
     panel.hidden = false;
-    // next frame so the transition runs
     requestAnimationFrame(() => panel.classList.add('open'));
     panel.querySelector('.panel-scroll').scrollTop = 0;
     if (lenis) lenis.stop();
@@ -148,7 +156,18 @@ export function initChapters({ gsap, ScrollTrigger, cubes, lenis, reduced, initM
     setTimeout(() => { panel.hidden = true; }, 360);
     openPanel = null;
     panels.setAttribute('aria-hidden', 'true');
+    if (lastTrigger && lastTrigger.focus) lastTrigger.focus();   // return focus to opener
   }
+
+  // trap Tab within the open dialog
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Tab' || !openPanel) return;
+    const f = openPanel.querySelectorAll('button, a[href], [tabindex]:not([tabindex="-1"])');
+    if (!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
 
   document.querySelectorAll('.ch-open, .ray-open').forEach((btn) => {
     btn.addEventListener('click', () => open(btn.dataset.panel));

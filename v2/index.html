@@ -3,19 +3,21 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Kambar Mangibayev, Ordered</title>
-  <meta name="description" content="Kambar Mangibayev, Mechanical Systems Engineer. Order, from parts that move." />
+  <title>Kambar Mangibayev</title>
+  <meta name="description" content="I design mechanical and control systems, prove them on paper, build them, then test them until the number is real. Mechanical Systems Engineer at The Raymond Corporation." />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Ibarra+Real+Nova:ital,wght@1,400..700&family=Roboto:wght@100;300;400;500;700;900&display=swap" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.css" rel="stylesheet" />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ibarra+Real+Nova:ital,wght@1,400..700&family=Roboto:wght@100;300;400;500;700;900&display=swap" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ibarra+Real+Nova:ital,wght@1,400..700&family=Roboto:wght@100;300;400;500;700;900&display=swap" /></noscript>
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.min.js" />
   <link href="css/site.css" rel="stylesheet" />
 
   <script type="importmap">
   {
     "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.js",
+      "three": "https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.min.js",
       "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.163.0/examples/jsm/",
       "gsap": "https://cdn.jsdelivr.net/npm/gsap@3.12.5/index.js",
       "gsap/ScrollTrigger": "https://cdn.jsdelivr.net/npm/gsap@3.12.5/ScrollTrigger.js",
@@ -79,10 +81,10 @@
         <button class="ch-open" type="button" data-panel="polymer">Read the full breakdown</button>
       </div></div>
       <div class="ch-tail"><div class="col evidence">
-        <div class="ev-col"><span class="ev-label">Designed</span><img loading="lazy" src="assets/img/polymer-2.jpg" alt="Diagram of block copolymer morphologies: spheres, lamellae, cylinders, stripes" /><p>The same system settles into holes, spheres, stripes, or lamellae. Which pattern you get is the whole design space.</p></div>
-        <div class="ev-col"><span class="ev-label">Analyzed</span><img loading="lazy" src="assets/img/polymer-phase-sep.jpg" alt="Molecular dynamics render of two phase-separated block types" /><p>About 100 lines of molecular dynamics, WCA potential, run in LAMMPS on the RIT cluster across thousands of cases.</p></div>
+        <div class="ev-col"><span class="ev-label">Designed</span><img loading="lazy" decoding="async" src="assets/img/polymer-2.jpg" alt="Diagram of block copolymer morphologies: spheres, lamellae, cylinders, stripes" /><p>The same system settles into holes, spheres, stripes, or lamellae. Which pattern you get is the whole design space.</p></div>
+        <div class="ev-col"><span class="ev-label">Analyzed</span><img loading="lazy" decoding="async" src="assets/img/polymer-phase-sep.jpg" alt="Molecular dynamics render of two phase-separated block types" /><p>About 100 lines of molecular dynamics, WCA potential, run in LAMMPS on the RIT cluster across thousands of cases.</p></div>
         <div class="ev-col ev-gap"><span class="ev-label">Built</span><div class="ev-none">no rig</div><p>The build here is the simulation itself. No physical rig.</p></div>
-        <div class="ev-col"><span class="ev-label">Proved</span><img loading="lazy" src="assets/img/polymer-3.jpg" alt="Simulation cell showing a cleanly striped phase separated end state" /><p>The runs reached clean separated end states. The interaction parameter falls with temperature and rises with repulsion, a starting map for the lab.</p></div>
+        <div class="ev-col"><span class="ev-label">Proved</span><img loading="lazy" decoding="async" src="assets/img/polymer-3.jpg" alt="Simulation cell showing a cleanly striped phase separated end state" /><p>The runs reached clean separated end states. The interaction parameter falls with temperature and rises with repulsion, a starting map for the lab.</p></div>
       </div></div>
     </section>
 
@@ -101,10 +103,10 @@
         <button class="ch-open" type="button" data-panel="casting">Read the full breakdown</button>
       </div></div>
       <div class="ch-tail"><div class="col evidence">
-        <div class="ev-col"><span class="ev-label">Designed</span><img loading="lazy" src="assets/img/casting-2.jpg" alt="Cross section of the ceramic mold with cores and a 2 degree tilt" /><p>Negative mold in Fusion 360, cores and a 2 degree tilt for printability.</p></div>
-        <div class="ev-col"><span class="ev-label">Analyzed</span><img loading="lazy" src="assets/img/casting-5.jpg" alt="Transient CFD half-model mesh of the metal fill" /><p>Transient CFD with air and liquid aluminium at 1273 K, checking for an early freeze or trapped air.</p></div>
+        <div class="ev-col"><span class="ev-label">Designed</span><img loading="lazy" decoding="async" src="assets/img/casting-2.jpg" alt="Cross section of the ceramic mold with cores and a 2 degree tilt" /><p>Negative mold in Fusion 360, cores and a 2 degree tilt for printability.</p></div>
+        <div class="ev-col"><span class="ev-label">Analyzed</span><img loading="lazy" decoding="async" src="assets/img/casting-5.jpg" alt="Transient CFD half-model mesh of the metal fill" /><p>Transient CFD with air and liquid aluminium at 1273 K, checking for an early freeze or trapped air.</p></div>
         <div class="ev-col ev-gap"><span class="ev-label">Built</span><div class="ev-none">photo pending</div><p>The mold prints and the pour is designed. I don't have a clean photo of the finished cast nozzle yet.</p></div>
-        <div class="ev-col"><span class="ev-label">Proved</span><img loading="lazy" src="assets/img/casting-3.jpg" alt="Truncated octahedron lattice shell generated in nTopology" /><p>The CFD showed a complete fill before any metal was melted. You find the cold shut on the screen, not in a ruined mold.</p></div>
+        <div class="ev-col"><span class="ev-label">Proved</span><img loading="lazy" decoding="async" src="assets/img/casting-3.jpg" alt="Truncated octahedron lattice shell generated in nTopology" /><p>The CFD showed a complete fill before any metal was melted. You find the cold shut on the screen, not in a ruined mold.</p></div>
       </div></div>
     </section>
 
@@ -123,10 +125,10 @@
         <button class="ch-open" type="button" data-panel="cnc">Read the full breakdown</button>
       </div></div>
       <div class="ch-tail"><div class="col evidence">
-        <div class="ev-col"><span class="ev-label">Designed</span><img loading="lazy" src="assets/img/cnc-render.jpg" alt="PrintNC reference CAD render of the router" /><p>Worked from the PrintNC reference in Fusion 360, sized for the cut area I wanted.</p></div>
-        <div class="ev-col"><span class="ev-label">Analyzed</span><img loading="lazy" src="assets/img/cnc-build.jpg" alt="Welded steel frame and assembled gantry" /><p>Rigidity is in the steel. The spindle and its VFD needed an EMI filter, shielding, and a star ground away from the logic.</p></div>
-        <div class="ev-col"><span class="ev-label">Built</span><img loading="lazy" src="assets/img/cnc-machine.jpg" alt="The finished PrintNC router on the bench" /><p>Welded steel frame, assembled gantry, water-cooled spindle, wired and running.</p></div>
-        <div class="ev-col"><span class="ev-label">Proved</span><img loading="lazy" src="assets/img/cnc-cut-clean.jpg" alt="Clean second-pass cut with vertical walls" /><p>It cuts. The first pass was rough, the second came out with clean vertical walls, and it now cuts parts for other projects.</p></div>
+        <div class="ev-col"><span class="ev-label">Designed</span><img loading="lazy" decoding="async" src="assets/img/cnc-render.jpg" alt="PrintNC reference CAD render of the router" /><p>Worked from the PrintNC reference in Fusion 360, sized for the cut area I wanted.</p></div>
+        <div class="ev-col"><span class="ev-label">Analyzed</span><img loading="lazy" decoding="async" src="assets/img/cnc-build.jpg" alt="Welded steel frame and assembled gantry" /><p>Rigidity is in the steel. The spindle and its VFD needed an EMI filter, shielding, and a star ground away from the logic.</p></div>
+        <div class="ev-col"><span class="ev-label">Built</span><img loading="lazy" decoding="async" src="assets/img/cnc-machine.jpg" alt="The finished PrintNC router on the bench" /><p>Welded steel frame, assembled gantry, water-cooled spindle, wired and running.</p></div>
+        <div class="ev-col"><span class="ev-label">Proved</span><img loading="lazy" decoding="async" src="assets/img/cnc-cut-clean.jpg" alt="Clean second-pass cut with vertical walls" /><p>It cuts. The first pass was rough, the second came out with clean vertical walls, and it now cuts parts for other projects.</p></div>
       </div></div>
     </section>
 
@@ -145,10 +147,10 @@
         <button class="ch-open" type="button" data-panel="slicer">Read the full breakdown</button>
       </div></div>
       <div class="ch-tail"><div class="col evidence">
-        <div class="ev-col"><span class="ev-label">Designed</span><img loading="lazy" src="assets/img/slicer-software.jpg" alt="The custom Python slicer interface built in PyQt" /><p>A small pipeline that exposes every stage. Load an STL, set layer height and resolution, slice, generate.</p></div>
-        <div class="ev-col"><span class="ev-label">Analyzed</span><img loading="lazy" src="assets/img/slicer-layer-plot.jpg" alt="Slicer layer outlines with current and next walls overlaid" /><p>Every layer is computed and drawn, so I can see the wall paths and check geometry at each height.</p></div>
-        <div class="ev-col"><span class="ev-label">Built</span><img loading="lazy" src="assets/img/slicer-stl-viewer.jpg" alt="Custom STL viewer with a model on the build plate" /><p>The working program slices a real STL and writes G-code end to end.</p></div>
-        <div class="ev-col"><span class="ev-label">Proved</span><img loading="lazy" src="assets/img/slicer-stl-detail.jpg" alt="Slicer viewer close up at 0.2 mm layer height" /><p>It generates usable G-code from an arbitrary STL. It's the base for research on tilted and curved slicing planes, which is why I wrote it.</p></div>
+        <div class="ev-col"><span class="ev-label">Designed</span><img loading="lazy" decoding="async" src="assets/img/slicer-software.jpg" alt="The custom Python slicer interface built in PyQt" /><p>A small pipeline that exposes every stage. Load an STL, set layer height and resolution, slice, generate.</p></div>
+        <div class="ev-col"><span class="ev-label">Analyzed</span><img loading="lazy" decoding="async" src="assets/img/slicer-layer-plot.jpg" alt="Slicer layer outlines with current and next walls overlaid" /><p>Every layer is computed and drawn, so I can see the wall paths and check geometry at each height.</p></div>
+        <div class="ev-col"><span class="ev-label">Built</span><img loading="lazy" decoding="async" src="assets/img/slicer-stl-viewer.jpg" alt="Custom STL viewer with a model on the build plate" /><p>The working program slices a real STL and writes G-code end to end.</p></div>
+        <div class="ev-col"><span class="ev-label">Proved</span><img loading="lazy" decoding="async" src="assets/img/slicer-stl-detail.jpg" alt="Slicer viewer close up at 0.2 mm layer height" /><p>It generates usable G-code from an arbitrary STL. It's the base for research on tilted and curved slicing planes, which is why I wrote it.</p></div>
       </div></div>
     </section>
     <!-- Chapter 6: The Raymond Corporation (biggest chapter) -->
@@ -230,12 +232,14 @@
         <h2 class="flat-head">other work</h2>
         <div class="others-grid">
           <div class="oth-col">
+            <div class="oth-anchor" data-cube="5" aria-hidden="true"></div>
             <h3 class="oth-title">3D Printing and Fabrication</h3>
             <p>A hand-wound electric motor with a printed stator and rotor. It spins, and it overheats, because the load-bearing parts are PLA that softens under heat. The fix is PETG or PA-CF, and that's the finding.</p>
             <p class="oth-key">The MagSafe stand costs about 4 dollars of PLA against a 69 dollar store version.</p>
             <button type="button" class="ch-open sm" data-panel="printing">Read</button>
           </div>
           <div class="oth-col">
+            <div class="oth-anchor" data-cube="6" aria-hidden="true"></div>
             <h3 class="oth-title">Dynamics experiments</h3>
             <p>A double pendulum, model against rig, and a vacuum cannon, prediction against measured. Both are about where and when the model stops matching the real thing.</p>
             <p class="oth-key">Pendulum agrees for about 1.5 seconds. Cannon: 10 runs at 2 and 8 kPa.</p>
@@ -243,6 +247,7 @@
             <button type="button" class="ch-open sm" data-panel="cannon">Vacuum cannon</button>
           </div>
           <div class="oth-col">
+            <div class="oth-anchor" data-cube="7" aria-hidden="true"></div>
             <h3 class="oth-title">Flight and structures</h3>
             <p>A quaternion flight-dynamics model run against real flight-test data across nine aircraft, and a Saturn V F-1 nozzle FEA that is still in progress.</p>
             <p class="oth-key">Nine aircraft through the same step inputs. Saturn V: writeup pending.</p>
@@ -264,9 +269,9 @@
         <h2 class="flat-head sm-head">websites</h2>
         <p class="web-lead">I also build sites by hand, one file each, in hours.</p>
         <div class="web-tiles">
-          <a class="web-tile" href="https://kambar231.github.io/WebPort/terra-museum/" target="_blank" rel="noopener"><img loading="lazy" src="assets/web/terra.jpg" alt="TERRA museum concept site" /><span class="wt-name">TERRA</span><span class="wt-desc">Museum concept, WebGL flow-field</span></a>
-          <a class="web-tile" href="https://kambar231.github.io/WebPort/biavola/" target="_blank" rel="noopener"><img loading="lazy" src="assets/web/biavola.jpg" alt="BIAVOLA wood-fired pizza concept site" /><span class="wt-name">BIAVOLA</span><span class="wt-desc">Wood-fired pizza concept</span></a>
-          <a class="web-tile" href="https://kambar231.github.io/WebPort/onda-day/" target="_blank" rel="noopener"><img loading="lazy" src="assets/web/onda.jpg" alt="ONDA fitness band scroll story site" /><span class="wt-name">ONDA</span><span class="wt-desc">Fitness band, scroll story</span></a>
+          <a class="web-tile" href="https://kambar231.github.io/WebPort/terra-museum/" target="_blank" rel="noopener"><img loading="lazy" decoding="async" src="assets/web/terra.jpg" alt="TERRA museum concept site" /><span class="wt-name">TERRA</span><span class="wt-desc">Museum concept, WebGL flow-field</span></a>
+          <a class="web-tile" href="https://kambar231.github.io/WebPort/biavola/" target="_blank" rel="noopener"><img loading="lazy" decoding="async" src="assets/web/biavola.jpg" alt="BIAVOLA wood-fired pizza concept site" /><span class="wt-name">BIAVOLA</span><span class="wt-desc">Wood-fired pizza concept</span></a>
+          <a class="web-tile" href="https://kambar231.github.io/WebPort/onda-day/" target="_blank" rel="noopener"><img loading="lazy" decoding="async" src="assets/web/onda.jpg" alt="ONDA fitness band scroll story site" /><span class="wt-name">ONDA</span><span class="wt-desc">Fitness band, scroll story</span></a>
           <a class="web-tile web-tile-text" href="https://kambar231.github.io/WebPort/numera/" target="_blank" rel="noopener"><span class="wt-numera">NUMERA</span><span class="wt-name">NUMERA</span><span class="wt-desc">AI-accounting concept, tokens and scroll</span></a>
         </div>
       </div>
@@ -321,10 +326,10 @@
         <span class="panel-kicker">02 / simulate</span>
         <h2>Polymer Lithography Simulation</h2>
         <p class="panel-ctx">RIT Honors research, Dr. Padmanabhan, 2020. LAMMPS.</p>
-        <div class="panel-step"><h3>Designed</h3><p>Depending on the block ratio and chemistry, the same system settles into holes, spheres, stripes, or lamellae, and those shapes are what lithography then uses. The design space is which pattern you get.</p><figure><img loading="lazy" src="assets/img/polymer-2.jpg" alt="Block copolymer morphologies" /><figcaption>The target morphologies.</figcaption></figure></div>
-        <div class="panel-step"><h3>Analyzed</h3><p>The model is about 100 lines of molecular dynamics using the Weeks-Chandler-Andersen potential, run in LAMMPS on the RIT research cluster. Temperature, repulsion strength, and atom size each push the outcome chaotically, so we ran thousands of simulations to find where to start experiments instead of running expensive lab runs blind.</p><figure><img loading="lazy" src="assets/img/polymer-1.jpg" alt="Chains before separation" /><figcaption>Chains before separation.</figcaption></figure><figure><img loading="lazy" src="assets/img/polymer-phase-sep.jpg" alt="Two phases separating" /><figcaption>Two phases separating.</figcaption></figure></div>
+        <div class="panel-step"><h3>Designed</h3><p>Depending on the block ratio and chemistry, the same system settles into holes, spheres, stripes, or lamellae, and those shapes are what lithography then uses. The design space is which pattern you get.</p><figure><img loading="lazy" decoding="async" src="assets/img/polymer-2.jpg" alt="Block copolymer morphologies" /><figcaption>The target morphologies.</figcaption></figure></div>
+        <div class="panel-step"><h3>Analyzed</h3><p>The model is about 100 lines of molecular dynamics using the Weeks-Chandler-Andersen potential, run in LAMMPS on the RIT research cluster. Temperature, repulsion strength, and atom size each push the outcome chaotically, so we ran thousands of simulations to find where to start experiments instead of running expensive lab runs blind.</p><figure><img loading="lazy" decoding="async" src="assets/img/polymer-1.jpg" alt="Chains before separation" /><figcaption>Chains before separation.</figcaption></figure><figure><img loading="lazy" decoding="async" src="assets/img/polymer-phase-sep.jpg" alt="Two phases separating" /><figcaption>Two phases separating.</figcaption></figure></div>
         <div class="panel-step"><h3>Built</h3><p>The build here is the simulation itself, the WCA model and its LAMMPS runs. No physical rig.</p></div>
-        <div class="panel-step"><h3>Proved</h3><p>The runs reached clean separated end states, and the results showed the interaction parameter falls with temperature and rises with repulsion strength. That's a starting map for the lab instead of a blind search.</p><figure><img loading="lazy" src="assets/img/polymer-3.jpg" alt="A clean striped end state" /><figcaption>A clean striped end state.</figcaption></figure></div>
+        <div class="panel-step"><h3>Proved</h3><p>The runs reached clean separated end states, and the results showed the interaction parameter falls with temperature and rises with repulsion strength. That's a starting map for the lab instead of a blind search.</p><figure><img loading="lazy" decoding="async" src="assets/img/polymer-3.jpg" alt="A clean striped end state" /><figcaption>A clean striped end state.</figcaption></figure></div>
       </div></div>
     </article>
 
@@ -334,8 +339,8 @@
         <span class="panel-kicker">03 / make</span>
         <h2>Additive Manufacturing and Investment Casting</h2>
         <p class="panel-ctx">RIT, AMPrint Center. Fusion 360, nTopology, CFD.</p>
-        <div class="panel-step"><h3>Designed</h3><p>In Fusion 360 I built the negative mold around the part, pour holes at the top and drainage at the bottom, then rotated the whole mold 2 degrees so a 90 degree overhang section stayed printable. To stop the shell warping in the kiln, I generated a truncated-octahedron lattice in nTopology so most struts run vertical with the print direction.</p><figure><img loading="lazy" src="assets/img/casting-1.jpg" alt="The part: a water nozzle" /><figcaption>The part: a water nozzle.</figcaption></figure><figure><img loading="lazy" src="assets/img/casting-2.jpg" alt="Mold cross section" /><figcaption>Mold cross section, cores and 2 degree tilt.</figcaption></figure><figure><img loading="lazy" src="assets/img/casting-3.jpg" alt="Lattice shell" /><figcaption>Truncated-octahedron lattice shell.</figcaption></figure><figure><img loading="lazy" src="assets/img/casting-4.jpg" alt="Support generation" /><figcaption>Support generation for the shell.</figcaption></figure></div>
-        <div class="panel-step"><h3>Analyzed</h3><p>Before committing metal, I ran a transient CFD simulation with air and liquid aluminium at 1273 K to check whether the pour would fill the geometry without freezing early or trapping air.</p><figure><img loading="lazy" src="assets/img/casting-5.jpg" alt="Transient CFD half model mesh" /><figcaption>Transient CFD, half-model mesh of the fill.</figcaption></figure></div>
+        <div class="panel-step"><h3>Designed</h3><p>In Fusion 360 I built the negative mold around the part, pour holes at the top and drainage at the bottom, then rotated the whole mold 2 degrees so a 90 degree overhang section stayed printable. To stop the shell warping in the kiln, I generated a truncated-octahedron lattice in nTopology so most struts run vertical with the print direction.</p><figure><img loading="lazy" decoding="async" src="assets/img/casting-1.jpg" alt="The part: a water nozzle" /><figcaption>The part: a water nozzle.</figcaption></figure><figure><img loading="lazy" decoding="async" src="assets/img/casting-2.jpg" alt="Mold cross section" /><figcaption>Mold cross section, cores and 2 degree tilt.</figcaption></figure><figure><img loading="lazy" decoding="async" src="assets/img/casting-3.jpg" alt="Lattice shell" /><figcaption>Truncated-octahedron lattice shell.</figcaption></figure><figure><img loading="lazy" decoding="async" src="assets/img/casting-4.jpg" alt="Support generation" /><figcaption>Support generation for the shell.</figcaption></figure></div>
+        <div class="panel-step"><h3>Analyzed</h3><p>Before committing metal, I ran a transient CFD simulation with air and liquid aluminium at 1273 K to check whether the pour would fill the geometry without freezing early or trapping air.</p><figure><img loading="lazy" decoding="async" src="assets/img/casting-5.jpg" alt="Transient CFD half model mesh" /><figcaption>Transient CFD, half-model mesh of the fill.</figcaption></figure></div>
         <div class="panel-step"><h3>Built</h3><p>The mold prints and the pour is designed. I don't have a clean photo of the finished cast nozzle yet.</p></div>
         <div class="panel-step"><h3>Proved</h3><p>The CFD showed a complete fill before any aluminium was melted, which is the whole point of simulating a pour: you find the cold shut or the trapped-air pocket on the screen, not in a ruined mold.</p></div>
       </div></div>
@@ -347,10 +352,10 @@
         <span class="panel-kicker">04 / build</span>
         <h2>PrintNC Build, CNC Router</h2>
         <p class="panel-ctx">Personal, operational. Fusion 360, steel frame, 2.2 kW spindle.</p>
-        <div class="panel-step"><h3>Designed</h3><p>I worked from the PrintNC reference design in Fusion 360, sizing the frame and gantry for the cut area I wanted.</p><figure><img loading="lazy" src="assets/img/cnc-render.jpg" alt="Reference CAD render" /><figcaption>Reference CAD render.</figcaption></figure></div>
+        <div class="panel-step"><h3>Designed</h3><p>I worked from the PrintNC reference design in Fusion 360, sizing the frame and gantry for the cut area I wanted.</p><figure><img loading="lazy" decoding="async" src="assets/img/cnc-render.jpg" alt="Reference CAD render" /><figcaption>Reference CAD render.</figcaption></figure></div>
         <div class="panel-step"><h3>Analyzed</h3><p>Rigidity comes from the steel, so I cut and tapped the members for a stiff frame. The 2.2 kW spindle and its VFD throw a lot of electrical noise, so I planned a dedicated EMI line filter, shielded cabling, and a single star ground to keep that noise out of the logic circuits.</p></div>
-        <div class="panel-step"><h3>Built</h3><p>Welded steel frame, assembled gantry, water-cooled spindle, wired and running.</p><figure><img loading="lazy" src="assets/img/cnc-build.jpg" alt="Frame and gantry assembled" /><figcaption>Frame and gantry assembled.</figcaption></figure><figure><img loading="lazy" src="assets/img/cnc-bed.jpg" alt="The finished machine on the bench" /><figcaption>The finished machine on the bench.</figcaption></figure></div>
-        <div class="panel-step"><h3>Proved</h3><p>It cuts. The first pass was rough, the second came out with clean vertical walls, and the machine now cuts parts for other projects.</p><figure><img loading="lazy" src="assets/img/cnc-cut-rough.jpg" alt="First rough test cut" /><figcaption>First rough test cut.</figcaption></figure><figure><img loading="lazy" src="assets/img/cnc-cut-clean.jpg" alt="Cleaner second pass" /><figcaption>Cleaner second pass, vertical walls.</figcaption></figure><figure><img loading="lazy" src="assets/img/cnc-cut-warm.jpg" alt="The finished cut" /><figcaption>The finished cut.</figcaption></figure></div>
+        <div class="panel-step"><h3>Built</h3><p>Welded steel frame, assembled gantry, water-cooled spindle, wired and running.</p><figure><img loading="lazy" decoding="async" src="assets/img/cnc-build.jpg" alt="Frame and gantry assembled" /><figcaption>Frame and gantry assembled.</figcaption></figure><figure><img loading="lazy" decoding="async" src="assets/img/cnc-bed.jpg" alt="The finished machine on the bench" /><figcaption>The finished machine on the bench.</figcaption></figure></div>
+        <div class="panel-step"><h3>Proved</h3><p>It cuts. The first pass was rough, the second came out with clean vertical walls, and the machine now cuts parts for other projects.</p><figure><img loading="lazy" decoding="async" src="assets/img/cnc-cut-rough.jpg" alt="First rough test cut" /><figcaption>First rough test cut.</figcaption></figure><figure><img loading="lazy" decoding="async" src="assets/img/cnc-cut-clean.jpg" alt="Cleaner second pass" /><figcaption>Cleaner second pass, vertical walls.</figcaption></figure><figure><img loading="lazy" decoding="async" src="assets/img/cnc-cut-warm.jpg" alt="The finished cut" /><figcaption>The finished cut.</figcaption></figure></div>
       </div></div>
     </article>
 
@@ -360,8 +365,8 @@
         <span class="panel-kicker">05 / software</span>
         <h2>3D Slicer and G-code Generator</h2>
         <p class="panel-ctx">Personal, 2025 to 2026. Python, PyQt.</p>
-        <div class="panel-step"><h3>Designed</h3><p>I built a small pipeline that exposes every stage instead of hiding it. You load an STL, set a layer height and resolution, then slice and generate G-code, and each stage shows its own intermediate state.</p><figure><img loading="lazy" src="assets/img/slicer-software.jpg" alt="The slicer UI" /><figcaption>The slicer UI, built in PyQt.</figcaption></figure><figure><img loading="lazy" src="assets/img/slicer-stl-viewer.jpg" alt="Custom STL viewer" /><figcaption>Custom STL viewer, model on the build plate.</figcaption></figure></div>
-        <div class="panel-step"><h3>Analyzed</h3><p>Every layer is computed and drawn, so I can see the wall paths and check the geometry at each height.</p><figure><img loading="lazy" src="assets/img/slicer-layer-plot.jpg" alt="Layer walls overlaid" /><figcaption>Current and next layer walls, overlaid.</figcaption></figure><figure><img loading="lazy" src="assets/img/slicer-stl-detail.jpg" alt="Close up at 0.2 mm layer height" /><figcaption>Close up at 0.2 mm layer height.</figcaption></figure></div>
+        <div class="panel-step"><h3>Designed</h3><p>I built a small pipeline that exposes every stage instead of hiding it. You load an STL, set a layer height and resolution, then slice and generate G-code, and each stage shows its own intermediate state.</p><figure><img loading="lazy" decoding="async" src="assets/img/slicer-software.jpg" alt="The slicer UI" /><figcaption>The slicer UI, built in PyQt.</figcaption></figure><figure><img loading="lazy" decoding="async" src="assets/img/slicer-stl-viewer.jpg" alt="Custom STL viewer" /><figcaption>Custom STL viewer, model on the build plate.</figcaption></figure></div>
+        <div class="panel-step"><h3>Analyzed</h3><p>Every layer is computed and drawn, so I can see the wall paths and check the geometry at each height.</p><figure><img loading="lazy" decoding="async" src="assets/img/slicer-layer-plot.jpg" alt="Layer walls overlaid" /><figcaption>Current and next layer walls, overlaid.</figcaption></figure><figure><img loading="lazy" decoding="async" src="assets/img/slicer-stl-detail.jpg" alt="Close up at 0.2 mm layer height" /><figcaption>Close up at 0.2 mm layer height.</figcaption></figure></div>
         <div class="panel-step"><h3>Built</h3><p>The working program slices a real STL and writes G-code end to end.</p></div>
         <div class="panel-step"><h3>Proved</h3><p>It generates usable G-code from an arbitrary STL. It's the foundation for a research effort on cutting support material with tilted or curved slicing planes, which is the reason I wrote my own in the first place.</p></div>
       </div></div>
@@ -380,7 +385,7 @@
     <article class="panel" id="panel-ray-sensor" role="dialog" aria-modal="true" aria-label="Smart Environment Sensor Plus, full breakdown" hidden>
       <div class="panel-scroll"><div class="panel-col"><button class="panel-close" type="button" aria-label="Close">Close</button>
         <span class="panel-kicker">06 / deploy</span><h2>Smart Environment Sensor Plus</h2><p class="panel-ctx">Lead engineer, machine vision and braking. 2022.</p>
-        <div class="panel-step"><h3>Designed</h3><p>I designed the sensing chain around a stereo camera pair, dynamic zoning that changes the alert region with vehicle speed and path, and control logic that turns a detection into a brake demand. The hard part was telling a person from a stack of pallets, because a false positive costs throughput and a false negative costs a life.</p><figure><img loading="lazy" src="assets/img/sens-plus-flyer.jpg" alt="Smart Environment Sensor Plus flyer" /><figcaption>The sensor product.</figcaption></figure></div>
+        <div class="panel-step"><h3>Designed</h3><p>I designed the sensing chain around a stereo camera pair, dynamic zoning that changes the alert region with vehicle speed and path, and control logic that turns a detection into a brake demand. The hard part was telling a person from a stack of pallets, because a false positive costs throughput and a false negative costs a life.</p><figure><img loading="lazy" decoding="async" src="assets/img/sens-plus-flyer.jpg" alt="Smart Environment Sensor Plus flyer" /><figcaption>The sensor product.</figcaption></figure></div>
         <div class="panel-step"><h3>Analyzed</h3><p>Pedestrian perception is solved in passenger cars and much rougher in a warehouse, so the analysis was about where the vision model fails and how to zone around it. I tuned the detection zones against the vehicle's stopping behavior so the brake assist triggers with room to stop.</p></div>
         <div class="panel-step"><h3>Built</h3><p>The sensor and its logic went into a shipping product. Detection drives regenerative braking automatically, so an operator who misses a pedestrian still gets the stop.</p></div>
         <div class="panel-step"><h3>Proved</h3><p>Detection-rate and stopping-distance figures stay in-house. I can walk through them in an interview.</p></div>
@@ -450,9 +455,9 @@
     <article class="panel" id="panel-printing" role="dialog" aria-modal="true" aria-label="3D Printing and Fabrication, full breakdown" hidden>
       <div class="panel-scroll"><div class="panel-col"><button class="panel-close" type="button" aria-label="Close">Close</button>
         <span class="panel-kicker">08 / more</span><h2>3D Printing and Fabrication</h2><p class="panel-ctx">Personal, ongoing. Started at RIT. FDM, PLA and PETG, CAD.</p>
-        <div class="panel-step"><h3>Designed</h3><p>I designed an electric motor from scratch, inspired by Christoph Laimer, with a printed stator and rotor and copper wound by hand around the teeth.</p><figure><img loading="lazy" src="assets/img/motor-exploded.jpg" alt="Motor parts" /><figcaption>The printed motor, exploded.</figcaption></figure></div>
+        <div class="panel-step"><h3>Designed</h3><p>I designed an electric motor from scratch, inspired by Christoph Laimer, with a printed stator and rotor and copper wound by hand around the teeth.</p><figure><img loading="lazy" decoding="async" src="assets/img/motor-exploded.jpg" alt="Motor parts" /><figcaption>The printed motor, exploded.</figcaption></figure></div>
         <div class="panel-step"><h3>Analyzed</h3><p>The prototype runs but overheats. Several load-bearing parts are PLA, which softens under temperature, so the honest fix is PETG or PA-CF for the structural pieces. That's the finding, not a footnote.</p></div>
-        <div class="panel-step"><h3>Built</h3><p>I wound the stator by hand and assembled the motor on its bearing. The same practice produced a MagSafe stand for my wife and an Iron Man MK7 helmet finished through sanding, filler, and paint.</p><figure><img loading="lazy" src="assets/img/motor-wound-pair.jpg" alt="Hand-wound stator" /><figcaption>Stator wound by hand.</figcaption></figure><figure><img loading="lazy" src="assets/img/magsafe-stand-hero.jpg" alt="Printed MagSafe stand" /><figcaption>The MagSafe stand.</figcaption></figure></div>
+        <div class="panel-step"><h3>Built</h3><p>I wound the stator by hand and assembled the motor on its bearing. The same practice produced a MagSafe stand for my wife and an Iron Man MK7 helmet finished through sanding, filler, and paint.</p><figure><img loading="lazy" decoding="async" src="assets/img/motor-wound-pair.jpg" alt="Hand-wound stator" /><figcaption>Stator wound by hand.</figcaption></figure><figure><img loading="lazy" decoding="async" src="assets/img/magsafe-stand-hero.jpg" alt="Printed MagSafe stand" /><figcaption>The MagSafe stand.</figcaption></figure></div>
         <div class="panel-step"><h3>Proved</h3><p>The motor spins, which proved the geometry and the hand winding work even though the material choice doesn't. The MagSafe stand costs about 4 dollars of PLA against a 69 dollar store version, and it's on my wife's bedside table.</p></div>
       </div></div>
     </article>
@@ -461,8 +466,8 @@
       <div class="panel-scroll"><div class="panel-col"><button class="panel-close" type="button" aria-label="Close">Close</button>
         <span class="panel-kicker">08 / more</span><h2>Double Pendulum Experiment</h2><p class="panel-ctx">RIT coursework, dynamics and validation. MATLAB, Kinovea.</p>
         <div class="panel-step"><h3>Designed</h3><p>I derived a Lagrangian model of the two-arm pendulum and integrated it as a set of ODEs in MATLAB. Chaos means the interesting question isn't whether it matches, it's how long before it stops matching.</p></div>
-        <div class="panel-step"><h3>Analyzed</h3><p>I captured the rig at 120 frames per second, tracked colored dots on each arm in Kinovea, and computed the arm angles to feed back into MATLAB. A Monte Carlo envelope from 1000 runs sets the band on the prediction.</p><figure><img loading="lazy" src="assets/img/pendulum-1.jpg" alt="Pendulum long-exposure trails" /><figcaption>The rig traced over a long exposure.</figcaption></figure></div>
-        <div class="panel-step"><h3>Built</h3><p>Two solid arms on bearings, with the top arm released from 45 degrees against a hard stopper for a repeatable start.</p><figure><img loading="lazy" src="assets/img/pendulum-2.jpg" alt="Pendulum rig diagram" /><figcaption>The labelled rig.</figcaption></figure></div>
+        <div class="panel-step"><h3>Analyzed</h3><p>I captured the rig at 120 frames per second, tracked colored dots on each arm in Kinovea, and computed the arm angles to feed back into MATLAB. A Monte Carlo envelope from 1000 runs sets the band on the prediction.</p><figure><img loading="lazy" decoding="async" src="assets/img/pendulum-1.jpg" alt="Pendulum long-exposure trails" /><figcaption>The rig traced over a long exposure.</figcaption></figure></div>
+        <div class="panel-step"><h3>Built</h3><p>Two solid arms on bearings, with the top arm released from 45 degrees against a hard stopper for a repeatable start.</p><figure><img loading="lazy" decoding="async" src="assets/img/pendulum-2.jpg" alt="Pendulum rig diagram" /><figcaption>The labelled rig.</figcaption></figure></div>
         <div class="panel-step"><h3>Proved</h3><p>Model and rig agree for about a second and a half. What happens after that is the useful part: the disagreement quantifies how much I don't know about the bearing friction and the imperfect release.</p></div>
       </div></div>
     </article>
@@ -480,7 +485,7 @@
     <article class="panel" id="panel-flight" role="dialog" aria-modal="true" aria-label="Flight Dynamics Simulation, full breakdown" hidden>
       <div class="panel-scroll"><div class="panel-col"><button class="panel-close" type="button" aria-label="Close">Close</button>
         <span class="panel-kicker">08 / more</span><h2>Flight Dynamics Simulation</h2><p class="panel-ctx">RIT coursework. Simulink, MATLAB, ode45.</p>
-        <div class="panel-step"><h3>Designed</h3><p>I built a quaternion attitude model rather than Euler angles, because Euler angles hit gimbal lock and integration singularities. Quaternions avoid that, at the cost of being harder to read off the page.</p><figure><img loading="lazy" src="assets/img/flight-dynamics.jpg" alt="Flight dynamics response diagram" /><figcaption>The attitude model.</figcaption></figure></div>
+        <div class="panel-step"><h3>Designed</h3><p>I built a quaternion attitude model rather than Euler angles, because Euler angles hit gimbal lock and integration singularities. Quaternions avoid that, at the cost of being harder to read off the page.</p><figure><img loading="lazy" decoding="async" src="assets/img/flight-dynamics.jpg" alt="Flight dynamics response diagram" /><figcaption>The attitude model.</figcaption></figure></div>
         <div class="panel-step"><h3>Analyzed</h3><p>A run applies a stick, rudder, or aileron step at a fixed time step and logs true velocity, pitch, roll and yaw rates, angle of attack, sideslip, and Euler angles. I ran nine different aircraft through the same conditions.</p></div>
         <div class="panel-step"><h3>Built</h3><p>This one is a model, not hardware. The build is the Simulink and MATLAB code that runs the nine configurations.</p></div>
         <div class="panel-step"><h3>Proved</h3><p>The logged response curves can be compared directly against real flight-test data to check the control behavior.</p></div>

@@ -30,7 +30,8 @@ const ATTR_SPAN = 3.6;
 const ROT_SPEED = 0.02;              // rad/s global rotation
 const HERO_DENSITY = 0.55;
 
-export function createParticles() {
+export function createParticles(opts = {}) {
+  const staticDensity = opts.staticDensity;   // reduced motion: fixed fraction, no scroll ramp
   const canvas = document.createElement('canvas');
   canvas.id = 'particles-canvas';
   document.body.appendChild(canvas);
@@ -117,12 +118,15 @@ export function createParticles() {
       if (shaderRef) shaderRef.uniforms.uTime.value = now / 1000;
       cloud.rotation.z += ROT_SPEED * dt;
     }
-    const frac = HERO_DENSITY + (1 - HERO_DENSITY) * Math.min(1, Math.max(0, scrollProgress));
+    const frac = staticDensity != null
+      ? staticDensity
+      : HERO_DENSITY + (1 - HERO_DENSITY) * Math.min(1, Math.max(0, scrollProgress));
     geom.setDrawRange(0, Math.floor(count * frac));
     renderer.render(scene, camera);
   }
 
   function halveCount() { if (!halved) { halved = true; count = Math.floor(count / 2); } }
+  function capDpr() { renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5)); resize(); }
 
-  return { frame, halveCount, getCount: () => count };
+  return { frame, halveCount, capDpr, getCount: () => count };
 }
