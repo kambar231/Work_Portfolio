@@ -507,8 +507,8 @@ export function createCubeHero({ onCubeClick } = {}) {
         meshes[i].getWorldPosition(_p);
         _p.project(camera);
         x = (_p.x * 0.5 + 0.5) * w;
-        // directly under THIS cube, in the row gap sized to hold it (Part D label fix)
-        y = (-_p.y * 0.5 + 0.5) * h + gEdge * 0.5 + 22;
+        // directly under THIS cube, below its projected box (~0.71*edge half) in the row gap
+        y = (-_p.y * 0.5 + 0.5) * h + gEdge * 0.71 + 16;
         op = mobileHide ? 0 : (_p.z < 1 ? 1 : 0);
       } else {
         meshes[i].getWorldPosition(_p);
@@ -1177,28 +1177,35 @@ export function createCubeHero({ onCubeClick } = {}) {
   }
 
   // 3x2 projects grid sized/placed from the live lanes, shifted up as p passes the hold.
+  // 3x2 grid. `edge` is the rendered cube FACE size; a nearly face-on cube projects to an AABB
+  // ~1.4x that (perspective + slight tilt), so cells are pitched by that box plus a label gap:
+  // pitchX = 1.55*edge, pitchY = 1.5*edge + labelGap. Labels sit in the row's lower gap.
+  const LABEL_GAP = 40;
   function computeGrid6(shiftPx) {
     const vw = window.innerWidth, vh = window.innerHeight;
     const lanes = domTextRects();
-    let headBottom = 0.14 * vh;
-    for (const r of lanes) if (r.y < 0.42 * vh && r.y + r.h > 0) headBottom = Math.max(headBottom, r.y + r.h);
-    const gridTop = headBottom + 72;
-    const minEdge = 0.07 * vw;
-    const gapXof = (e) => Math.max(e * 0.18, 46);         // wide enough to hold the label row apart
-    const gapYof = (e) => Math.max(e * 0.20, 54);
+    let headBottom = 0.13 * vh;
+    for (const r of lanes) if (r.y < 0.40 * vh && r.y + r.h > 0) headBottom = Math.max(headBottom, r.y + r.h);
+    const gridTop = headBottom + 64;
+    const minEdge = 0.055 * vw;
+    const pitchXof = (e) => 1.58 * e;
+    const pitchYof = (e) => 1.5 * e + LABEL_GAP;
+    const box = (e) => 1.42 * e;                          // projected AABB of a face-on cube
     const fits = (e) => {
-      const gx = gapXof(e), gy = gapYof(e), gh = 2 * e + gy;
-      return gridTop + gh + e * 0.15 <= vh - 12;
+      const totH = pitchYof(e) + box(e);                  // two rows: top box + one pitch down + box
+      const totW = 2 * pitchXof(e) + box(e);
+      return (gridTop + totH <= vh - 12) && (totW <= vw * 0.9);
     };
-    let edge = Math.min(0.12 * vw, 0.18 * vh);
-    while (edge > minEdge && !fits(edge)) edge -= 4;
+    let edge = Math.min(0.10 * vw, 0.14 * vh);
+    while (edge > minEdge && !fits(edge)) edge -= 3;
     edge = Math.max(edge, minEdge);
     grid6EdgePx = edge;
-    const gapX = gapXof(edge), gapY = gapYof(edge), cx = vw / 2;
+    const pitchX = pitchXof(edge), pitchY = pitchYof(edge), cx = vw / 2;
+    const topRowCy = gridTop + box(edge) / 2;
     for (let k = 0; k < PROJ6.length; k++) {
       const col = k % 3, row = Math.floor(k / 3);
-      const px = cx + (col - 1) * (edge + gapX);
-      const py = gridTop + edge / 2 + row * (edge + gapY) - (shiftPx || 0);
+      const px = cx + (col - 1) * pitchX;
+      const py = topRowCy + row * pitchY - (shiftPx || 0);
       const wpt = worldAtScreen(px, py, 0);
       grid6World[k].set(wpt.x, wpt.y, 0);
     }
