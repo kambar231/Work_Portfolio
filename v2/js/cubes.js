@@ -491,7 +491,9 @@ export function createCubeHero({ onCubeClick } = {}) {
     // box is hugely inflated by the tumble, so pin the label a fixed pixel offset below the
     // projected cube CENTRE (~half a 180px cube plus margin): clear of this cube, above the
     // next row.
-    const inProjects = (projT > 0.5 || contactT > 0.5) && openIndex < 0;
+    const inScrubProj = scrubOn && secProg.projects > 0.15 && secProg.projects < 0.62;
+    const inProjects = ((projT > 0.5 || contactT > 0.5) || inScrubProj) && openIndex < 0;
+    const gEdge = inScrubProj ? grid6EdgePx : gridEdgePx;
     const rc = raymondCubeIndex();
     for (let i = 0; i < meshes.length; i++) {
       let x, y, op;
@@ -506,7 +508,7 @@ export function createCubeHero({ onCubeClick } = {}) {
         _p.project(camera);
         x = (_p.x * 0.5 + 0.5) * w;
         // directly under THIS cube, in the row gap sized to hold it (Part D label fix)
-        y = (-_p.y * 0.5 + 0.5) * h + gridEdgePx * 0.5 + 22;
+        y = (-_p.y * 0.5 + 0.5) * h + gEdge * 0.5 + 22;
         op = mobileHide ? 0 : (_p.z < 1 ? 1 : 0);
       } else {
         meshes[i].getWorldPosition(_p);
@@ -888,6 +890,10 @@ export function createCubeHero({ onCubeClick } = {}) {
     raymondRig = null; raymondFaceMeshes = [];
   }
   function setRaymondUnfold(t) {
+    // Round 4 thin adapter: the experience cube is unfolded by setSectionProgress('experience')
+    // via the scroll-scrubbed hinge rig. Once that engine is driving, this old 3x2 rig must not
+    // also build (double render). Kept so any legacy caller is a harmless no-op.
+    if (scrubOn) { if (raymondRig) disposeRaymondRig(); raymondT = 0; return; }
     t = Math.min(1, Math.max(0, t));
     raymondT = t;
     if (t <= 0.001) { disposeRaymondRig(); return; }
@@ -963,6 +969,8 @@ export function createCubeHero({ onCubeClick } = {}) {
     if (raymondT > 0.02 && meshes[rc]) setCubeOpacity(meshes[rc], 0);   // hide parked cube behind rig
   }
   function raymondFaceRects() {
+    // round 4: the experience cube unfolds via the scrub hinge rig; prefer it when up.
+    if (srig && srigIndex === raymondCubeIndex()) { const r = scrubFaceRects(); if (r.length === 6) return r; }
     const out = [];
     if (!raymondRig || !raymondFaceMeshes.length) { for (let j = 0; j < 6; j++) out.push(null); return out; }
     const w = window.innerWidth, h = window.innerHeight;
@@ -1012,8 +1020,215 @@ export function createCubeHero({ onCubeClick } = {}) {
     return out;
   }
 
+  // ================= ROUND 4: scroll-scrubbed choreography (spec 9) =================
+  // main.js calls setSectionProgress(section, p) every frame; p is scroll progress 0..1.
+  // The whole scene is a pure function of p, spring-smoothed (omega ~8), so motion follows
+  // scroll exactly and reverses exactly. Cubes never move on their own. Sections:
+  //   experience: cube 4 flies in (0..0.3), hinges open (0.3..0.7), holds (..0.85), folds
+  //               and exits up-left (0.85..1); never returns. Its six baked faces = systems.
+  //   slicer:     cube 3, same schedule, laid out left of the slice stack; exits for good.
+  //   projects:   the other six cubes fly to a 3x2 grid (0..0.4), hold; scroll past translates
+  //               the grid up so they leave the top like page content.
+  let scrubOn = false;
+  const secProg = { experience: 0, slicer: 0, projects: 0 };
+  const PROJ6 = [0, 1, 2, 5, 6, 7];
+  const FEATURE = { experience: 4, slicer: 3 };
+  // each cube is owned by exactly one section, so the three progresses compose without
+  // conflict: cube 4 = experience, cube 3 = slicer, the other six = projects.
+  function ownerOf(i) { return i === 4 ? 'experience' : i === 3 ? 'slicer' : 'projects'; }
+  const grid6World = PROJ6.map(() => new THREE.Vector3());
+  let grid6Scale = 1, grid6EdgePx = 0;
+  function clamp01(x) { return Math.min(1, Math.max(0, x)); }
+  // hinge amount for a feature cube: closed while flying in (<0.3), open 0.3..0.7,
+  // hold 0.7..0.85, fold back 0.85..1 (then the closed cube exits).
+  function hingeAmt(p) {
+    if (p < 0.30) return 0;
+    if (p < 0.70) return (p - 0.30) / 0.40;
+    if (p < 0.85) return 1;
+    return clamp01(1 - (p - 0.85) / 0.15);
+  }
+
+  // Free band for a feature cube: between the section's top/bottom text, left of the morph
+  // shape (forklift for experience, slice stack for slicer). Sets bandCx/bandCy/bandW/bandH (px).
+  // The free band for a feature cube, always an on-screen rectangle. Start from a safe
+  // viewport region, then nudge below an on-screen header, above an on-screen footer, and
+  // left of the on-screen morph shape. Any degenerate result falls back to the viewport
+  // default so the cube (and its unfolded faces) never land below the fold.
+  function scrubBand(section) {
+    const vw = window.innerWidth, vh = window.innerHeight;
+    let top = 0.16 * vh, bottom = 0.84 * vh, left = 0.05 * vw, right = 0.52 * vw;
+    const hb = document.querySelector(section === 'slicer' ? '.slicer-story' : '.exp2-head');
+    const ab = document.querySelector(section === 'slicer' ? '.slicer-key' : '.exp2-ach');
+    const hr = hb ? hb.getBoundingClientRect() : null;
+    const ar = ab ? ab.getBoundingClientRect() : null;
+    const onScreen = (r) => r && r.height > 4 && r.width > 4 && r.bottom > 0 && r.top < vh;
+    if (onScreen(hr) && hr.top < 0.5 * vh && hr.bottom < 0.62 * vh) top = Math.max(top, hr.bottom + 40);
+    if (onScreen(ar) && ar.top > 0.42 * vh) bottom = Math.min(bottom, ar.top - 40);
+    const shape = (shapeRects[0] && shapeRects[0].w > 4) ? shapeRects[0] : null;
+    if (shape && shape.x > 0.2 * vw) right = Math.min(right, shape.x - 28);
+    // slicer: if the left text column is on-screen, keep the band to its right
+    if (section === 'slicer' && onScreen(hr) && hr.right > 0 && hr.right < 0.55 * vw) left = Math.max(left, hr.right + 20);
+    if (bottom - top < 200) { top = 0.16 * vh; bottom = 0.80 * vh; }
+    if (right - left < 200) { left = 0.05 * vw; right = 0.50 * vw; }
+    bandW = right - left; bandH = bottom - top;
+    bandCx = (left + right) / 2; bandCy = (top + bottom) / 2;
+  }
+  function localAtVwVh(vwPct, vhPct) { return anchorLocalXY(vwPct, vhPct).clone(); }
+
+  // ---- scrub hinge rig: the cube's OWN six faces hinge open into a cross net (same mesh),
+  // then glide + scale to fill the free band. Separate from the click-open rig (openProject).
+  let srig = null, srigPivots = null, srigIndex = -1, srigFaces = [];
+  const srigStartPos = new THREE.Vector3(), srigStartQuat = new THREE.Quaternion();
+  function scrubFaceTex(i, idx, raymond) {
+    if (raymond) {
+      const f = raymondFacesList()[idx] || {};
+      return makeRaymondFace({ name: f.name || '', number: f.number || '', line: f.line || '', image: f.image });
+    }
+    const specs = projectFaceSpecs(i);
+    const mats = meshes[i].material;
+    const sp = specs[idx];
+    sp.imageEl = mats[idx] && mats[idx].map && mats[idx].map.image; sp.image = null;
+    return makeBakedFace(sp);
+  }
+  function buildScrubRig(i, raymond) {
+    disposeScrubRig();
+    srigIndex = i;
+    const faceMat = (idx) => new THREE.MeshBasicMaterial({ map: scrubFaceTex(i, idx, raymond),
+      color: 0xffffff, side: THREE.DoubleSide, toneMapped: false, transparent: false });
+    const plane = new THREE.PlaneGeometry(1, 1, 1, 1);
+    srig = new THREE.Group();
+    meshes[i].getWorldPosition(srigStartPos);
+    meshes[i].getWorldQuaternion(srigStartQuat);
+    srig.position.copy(srigStartPos);
+    srig.quaternion.copy(srigStartQuat);
+    srig.scale.setScalar(Math.max(0.1, meshes[i].scale.x));
+    const front = new THREE.Mesh(plane, faceMat(FACE_MAP.front)); srig.add(front);
+    function flap(name, pivotPos, axis, foldSign, parent) {
+      const pv = new THREE.Group(); pv.position.copy(pivotPos);
+      const mesh = new THREE.Mesh(plane, faceMat(FACE_MAP[name]));
+      if (axis === 'y') mesh.position.set(pivotPos.x >= 0 ? 0.5 : -0.5, 0, 0);
+      else mesh.position.set(0, pivotPos.y >= 0 ? 0.5 : -0.5, 0);
+      pv.add(mesh); (parent || srig).add(pv);
+      return { pv, axis, foldSign, mesh };
+    }
+    srigPivots = {
+      right: flap('right', new THREE.Vector3(0.5, 0, 0), 'y', -1),
+      left: flap('left', new THREE.Vector3(-0.5, 0, 0), 'y', 1),
+      top: flap('top', new THREE.Vector3(0, 0.5, 0), 'x', 1),
+      bottom: flap('bottom', new THREE.Vector3(0, -0.5, 0), 'x', -1),
+    };
+    srigPivots.back = flap('back', new THREE.Vector3(1, 0, 0), 'y', -1, srigPivots.right.pv);
+    srigFaces = [front, srigPivots.right.mesh, srigPivots.left.mesh, srigPivots.top.mesh, srigPivots.bottom.mesh, srigPivots.back.mesh];
+    scene.add(srig);
+  }
+  function disposeScrubRig() {
+    if (!srig) return;
+    scene.remove(srig);
+    srig.traverse((c) => { if (c.geometry) c.geometry.dispose(); if (c.material) { if (c.material.map) c.material.map.dispose(); c.material.dispose(); } });
+    srig = null; srigPivots = null; srigIndex = -1; srigFaces = [];
+  }
+  // net spans x[-1.5,2.5] (centre +0.5), y[-1.5,1.5]; fit into the band and centre it there.
+  function updateScrubRig(t, section) {
+    if (!srig) return;
+    scrubBand(section);
+    const vh = window.innerHeight, RZ = 1.0;
+    const ppu = (vh * 0.5) / ((camera.position.z - RZ) * tanHalf());
+    let S = Math.min((bandW - 24) / (4 * ppu), (bandH - 24) / (3 * ppu));
+    S = Math.max(0.2, S);
+    const c = worldAtScreen(bandCx, bandCy, RZ);
+    const p1 = clamp01(t / 0.25);                         // rotate to face-on
+    const p2 = clamp01((t - 0.10) / 0.75);               // hinge flat
+    const e = easeInOut(clamp01(t));                      // glide + scale into the band
+    srig.quaternion.slerpQuaternions(srigStartQuat, _qIdent, easeInOut(p1));
+    srig.position.set(
+      srigStartPos.x + ((c.x - 0.5 * S) - srigStartPos.x) * e,
+      srigStartPos.y + (c.y - srigStartPos.y) * e,
+      srigStartPos.z + (RZ - srigStartPos.z) * e);
+    const s0 = Math.max(0.1, meshes[srigIndex] ? meshes[srigIndex].scale.x : 1);
+    srig.scale.setScalar(s0 + (S - s0) * e);
+    const fold = (1 - easeInOut(p2)) * Math.PI / 2;
+    for (const k in srigPivots) {
+      const f = srigPivots[k];
+      if (f.axis === 'y') f.pv.rotation.set(0, f.foldSign * fold, 0);
+      else f.pv.rotation.set(f.foldSign * fold, 0, 0);
+    }
+  }
+  function scrubFaceRects() {
+    const out = [];
+    if (!srig || !srigFaces.length) return out;
+    const w = window.innerWidth, h = window.innerHeight;
+    srig.updateWorldMatrix(true, true);
+    for (let j = 0; j < 6; j++) {
+      const m = srigFaces[j];
+      let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
+      for (let sx = -1; sx <= 1; sx += 2) for (let sy = -1; sy <= 1; sy += 2) {
+        _rv.set(sx * 0.5, sy * 0.5, 0); m.localToWorld(_rv); _rv.project(camera);
+        const X = (_rv.x * 0.5 + 0.5) * w, Y = (-_rv.y * 0.5 + 0.5) * h;
+        minx = Math.min(minx, X); maxx = Math.max(maxx, X); miny = Math.min(miny, Y); maxy = Math.max(maxy, Y);
+      }
+      out.push({ x: minx, y: miny, w: maxx - minx, h: maxy - miny });
+    }
+    return out;
+  }
+  // six screen rects while cube i is open (scrub hinge or click-open), else [].
+  function unfoldFaceRects(i) {
+    if (srig && srigIndex === i) return scrubFaceRects();
+    return [];
+  }
+
+  // 3x2 projects grid sized/placed from the live lanes, shifted up as p passes the hold.
+  function computeGrid6(shiftPx) {
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const lanes = domTextRects();
+    let headBottom = 0.14 * vh;
+    for (const r of lanes) if (r.y < 0.42 * vh && r.y + r.h > 0) headBottom = Math.max(headBottom, r.y + r.h);
+    const gridTop = headBottom + 72;
+    const minEdge = 0.07 * vw;
+    const gapXof = (e) => Math.max(e * 0.18, 46);         // wide enough to hold the label row apart
+    const gapYof = (e) => Math.max(e * 0.20, 54);
+    const fits = (e) => {
+      const gx = gapXof(e), gy = gapYof(e), gh = 2 * e + gy;
+      return gridTop + gh + e * 0.15 <= vh - 12;
+    };
+    let edge = Math.min(0.12 * vw, 0.18 * vh);
+    while (edge > minEdge && !fits(edge)) edge -= 4;
+    edge = Math.max(edge, minEdge);
+    grid6EdgePx = edge;
+    const gapX = gapXof(edge), gapY = gapYof(edge), cx = vw / 2;
+    for (let k = 0; k < PROJ6.length; k++) {
+      const col = k % 3, row = Math.floor(k / 3);
+      const px = cx + (col - 1) * (edge + gapX);
+      const py = gridTop + edge / 2 + row * (edge + gapY) - (shiftPx || 0);
+      const wpt = worldAtScreen(px, py, 0);
+      grid6World[k].set(wpt.x, wpt.y, 0);
+    }
+    const ppu0 = (vh * 0.5) / (camera.position.z * tanHalf());
+    grid6Scale = edge / ppu0;
+  }
+
+  // Record one section's scroll progress. main.js calls this for all three sections every
+  // frame. Cube positions, the feature-cube hinge, and the projects grid are derived from
+  // these in frame() (pure functions of progress), so motion follows and reverses scroll
+  // exactly. No opacity dimming, no visible-set latch: a cube is off-screen by POSITION when
+  // its owning section is before (p=0) or after (p=1) its active window.
+  function setSectionProgress(section, p) {
+    if (!(section in secProg)) return;
+    scrubOn = true;
+    visibleSet = null;                 // ownership drives visibility now, not the set latch
+    secProg[section] = clamp01(p);
+    // feature-cube hinge rig: experience(cube 4) or slicer(cube 3), never both at once
+    let wantRig = -1, wantRaymond = false;
+    if (hingeAmt(secProg.experience) > 0.02) { wantRig = 4; wantRaymond = true; }
+    else if (hingeAmt(secProg.slicer) > 0.02) { wantRig = 3; wantRaymond = false; }
+    if (wantRig >= 0) { if (!srig || srigIndex !== wantRig) buildScrubRig(wantRig, wantRaymond); }
+    else if (srig) disposeScrubRig();
+  }
+
   window.addEventListener('resize', resize);
   resize();
+  // __TESTHOOKS__ (stripped before commit)
+  window.__scrub = setSectionProgress; window.__ufr = unfoldFaceRects;
+  window.__cc = cubeCenters; window.__co = (i) => meshes[i].material[0].opacity;
   // initial spawn: the ONLY direct position write. Every later change is integration.
   for (let i = 0; i < meshes.length; i++) { meshes[i].position.copy(base[i]); tgt[i].copy(base[i]); }
   window.__dbgT = () => { const w = window.innerWidth, h = window.innerHeight; return tgt.map((v, i) => { const q = v.clone(); group.localToWorld(q); q.project(camera); const q1 = v.clone(); q1.x += 1; group.localToWorld(q1); q1.project(camera); const sx = (q.x * 0.5 + 0.5) * w; const ppu = Math.abs((q1.x * 0.5 + 0.5) * w - sx); return { i, sx: Math.round(sx), sy: Math.round((-q.y * 0.5 + 0.5) * h), ppu: Math.round(ppu), sc: +scaleTarget[i].toFixed(2), av: _avoid[i] }; }); };
@@ -1221,6 +1436,10 @@ export function createCubeHero({ onCubeClick } = {}) {
 
     // C5: while the projects/contact grid is on, size and place it from the live lanes.
     if (projT > 0.01 || contactT > 0.01) computeGridSlots();
+    if (scrubOn) {
+      const shift = Math.max(0, (secProg.projects - 0.6) / 0.4) * (window.innerHeight * 0.95);
+      computeGrid6(shift);
+    }
     // ---- pass A: every section sets a spring TARGET (group-local), scale, and rotation.
     // No position writes here; positions are integrated in pass B.
     for (let i = 0; i < meshes.length; i++) {
@@ -1241,6 +1460,49 @@ export function createCubeHero({ onCubeClick } = {}) {
         scaleTarget[i] = 1;
         revealTargets[i] = 1;               // never dim an on-screen cube
         if (moving) { m.rotation.x += TUMBLE_X * fs; m.rotation.y += TUMBLE_Y * fs; }
+      } else if (scrubOn) {
+        // Round 4: every cube is driven by its OWNER section's scroll progress. Off-screen by
+        // position when the section is before (p=0) or after (p=1) its window; opacity stays 1.
+        const owner = ownerOf(i);
+        const pp = secProg[owner];
+        const vw2 = window.innerWidth, vh2 = window.innerHeight;
+        if (owner === 'projects') {
+          // 3x2 grid: fly up from below the fold (p 0..0.4), hold, then translate up past the
+          // hold (computeGrid6 applies the shift) so the block leaves the top like page content.
+          const k = PROJ6.indexOf(i);
+          const e = easeInOut(Math.min(1, pp / 0.4));
+          _tmp.copy(grid6World[k]).sub(group.position);   // grid slot (group-local)
+          const belowY = localAtVwVh(50, 130).y;          // below the fold, same column x
+          tgt[i].set(_tmp.x,
+                     belowY + (_tmp.y - belowY) * e + bob * 0.12,
+                     _tmp.z);
+          scaleTarget[i] = 1 + (grid6Scale - 1) * e;
+          m.rotation.x += (0.04 - m.rotation.x) * 0.12;
+          m.rotation.y += (0.05 - m.rotation.y) * 0.12;
+          _opArr[i] = 1;
+        } else {
+          // feature cube: fly in from the right (0..0.3), park in the band (..0.85), fold and
+          // exit up-left (..1). Pure f(p) -> the spring reverses exactly. While its faces are
+          // hinged open the closed cube is hidden (opacity 0); the scrub rig shows the faces.
+          scrubBand(owner);
+          const park = localAtVwVh((bandCx / vw2) * 100, (bandCy / vh2) * 100);
+          const parkScale = Math.max(1.0, Math.min(2.6, (0.5 * Math.min(bandW, bandH)) / CUBE_PX));
+          let sc;
+          if (pp < 0.30) {
+            const e = easeInOut(pp / 0.30);
+            tgt[i].copy(localAtVwVh(116, (bandCy / vh2) * 100)).lerp(park, e);
+            sc = 0.8 + (parkScale - 0.8) * e;
+          } else if (pp < 0.85) {
+            tgt[i].copy(park); sc = parkScale;
+          } else {
+            const e = easeInOut((pp - 0.85) / 0.15);
+            tgt[i].copy(park).lerp(localAtVwVh(-18, -18), e); sc = parkScale;
+          }
+          scaleTarget[i] = sc;
+          _opArr[i] = hingeAmt(pp) > 0.05 ? 0 : 1;
+          m.rotation.x += (0.05 - m.rotation.x) * 0.15;
+          m.rotation.y += (0.06 - m.rotation.y) * 0.15;
+        }
       } else if (projT > 0.01) {
         // 4x2 centred grid; open cube hides (its unfold rig shows), the rest hold at 0.06
         const e = ease(projT);
@@ -1363,9 +1625,11 @@ export function createCubeHero({ onCubeClick } = {}) {
     const w = window.innerWidth;
     for (let i = 0; i < meshes.length; i++) {
       const m = meshes[i];
-      // a = -2*zeta*omega*vel - omega^2*(pos - target); semi-implicit Euler
-      _acc.copy(m.position).sub(tgt[i]).multiplyScalar(-OMEGA * OMEGA);
-      _acc.addScaledVector(vel[i], -2 * ZETA * OMEGA);
+      // a = -2*zeta*omega*vel - omega^2*(pos - target); semi-implicit Euler. A stiffer spring
+      // (omega ~8) while a scrubbed section is active so cube motion tracks scroll tightly.
+      const om = scrubOn ? 8 : OMEGA;
+      _acc.copy(m.position).sub(tgt[i]).multiplyScalar(-om * om);
+      _acc.addScaledVector(vel[i], -2 * ZETA * om);
       vel[i].addScaledVector(_acc, dtc);
       // px per group-local x-unit at this cube's depth, for the screen speed cap
       m.getWorldPosition(_c0); _c1.copy(_c0); _c1.x += 1;
@@ -1385,6 +1649,7 @@ export function createCubeHero({ onCubeClick } = {}) {
     }
 
     updateRaymondRig();   // Raymond faces + hide the parked cube behind the rig (after opacity)
+    if (srig && scrubOn) { const os = ownerOf(srigIndex); updateScrubRig(hingeAmt(secProg[os]), os); }
     renderer.render(scene, camera);
     updateLabels();
   }
@@ -1394,6 +1659,7 @@ export function createCubeHero({ onCubeClick } = {}) {
     cubeBoxes, labelBoxes, chapterPark, setTrack, setExclude, setTextRects, setShapeRects, setLanes, setTargets, exit, recall, chapterDim, setCloudDim, setMobileHide, setForceHidden, meshBox,
     setProjects, setContact, gridSlots, cubeCenters, shapeRectsNow, setHover, openProject, closeProject, projectOpenIndex, faceAnchors, setProjectHandlers,
     setParkAnchor, setRaymondUnfold, setRaymondFaces, raymondFaceRects, raymondFaceAt,
+    setSectionProgress, unfoldFaceRects,
     _dbgTargets: () => { const w = window.innerWidth, h = window.innerHeight; return tgt.map((v, i) => { const q = v.clone(); group.localToWorld(q); q.project(camera); return { i, sx: +((q.x * 0.5 + 0.5) * w).toFixed(0), sy: +((-q.y * 0.5 + 0.5) * h).toFixed(0), avoid: _avoid[i] }; }); },
     projectsActive: () => projActive,
     labelFor: (i) => (CUBES[i] ? CUBES[i].label : ''),
