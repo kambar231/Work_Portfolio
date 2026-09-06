@@ -86,19 +86,49 @@ def launch(pw, headless):
     return pw.chromium.launch(headless=False, args=args)
 
 
+GATE_NAMES = ("nopop", "opacity", "panel", "raymond", "seam", "visibility",
+              "realclick", "overlay", "click", "contact", "positions")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--headless", action="store_true")
     ap.add_argument("--port", type=int, default=8792)
     ap.add_argument("--step", type=int, default=200)
+    ap.add_argument("--only", default="", help="comma list of gates: " + ",".join(GATE_NAMES))
+    ap.add_argument("--range", dest="yrange", default="", help="Y1,Y2 - positions only within this scroll range")
     args = ap.parse_args()
+
+    # targeted mode: --only restricts the run to the named gates and skips the film so a single
+    # gate finishes in well under a minute; without --only the full sweep runs as before.
+    only = None
+    if args.only:
+        only = {g.strip().lower() for g in args.only.split(",") if g.strip()}
+        bad = only - set(GATE_NAMES)
+        if bad:
+            print(f"unknown gate(s): {sorted(bad)}; valid: {GATE_NAMES}")
+            sys.exit(2)
+
+    def want(g):
+        return only is None or g in only
+
+    film_on = only is None
+    yrange = None
+    if args.yrange:
+        p = args.yrange.split(",")
+        yrange = (int(p[0]), int(p[1]))
+    run_loop = want("positions") or want("opacity") or want("nopop")
+    print(f"mode: {'FULL' if only is None else 'only=' + ','.join(sorted(only))}"
+          f"{' range=' + str(yrange) if yrange else ''} step={args.step} film={'on' if film_on else 'off'}")
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     FACES_DIR.mkdir(parents=True, exist_ok=True)
-    for old in OUT_DIR.glob("*.png"):
-        old.unlink()
-    for old in FACES_DIR.glob("*.png"):
-        old.unlink()
+    if film_on:  # only a full run wipes the film; targeted runs leave prior frames intact
+        for old in OUT_DIR.glob("*.png"):
+            old.unlink()
+    if want("seam"):
+        for old in FACES_DIR.glob("*.png"):
+            old.unlink()
     httpd = serve(args.port)
     url = f"http://127.0.0.1:{args.port}/v2/"
     failures = []
@@ -152,23 +182,21 @@ def main():
         end_y = max(0, sh - vh)
         print(f"document end (scrollHeight - innerHeight) = {end_y}")
         positions = list(range(0, end_y + args.step, args.step))
-        last_idx = len(positions) - 1
-        for idx, y in enumerate(positions):
+        if yrange:
+            positions = [y for y in positions if yrange[0] <= y <= yrange[1]]
+        for idx, y in enumerate(positions if run_loop else []):
+            is_end = y >= end_y  # the document end: let the contact grid finish settling
             pg.evaluate(f"() => window.__v2.scrollToY({y})")
-            # the last position is the document end: let the contact grid finish settling
-            pg.wait_for_timeout(2200 if idx == last_idx else 320)
+            if is_end:
+                pg.wait_for_timeout(2200)
+            else:
+                pg.wait_for_timeout(320)
+                settle(pg)  # wait for the springs to reach their targets before measuring
             checks = {}
-
-            # at the document end, every cube must be on its grid slot (< 6 px)
-            if idx == last_idx:
-                slot = pg.evaluate("""() => {
-                  const s = window.__v2.gridSlots(); const c = window.__v2.cubeCenters();
-                  let maxd = 0; for (let i = 0; i < 8; i++) maxd = Math.max(maxd, Math.hypot(c[i].x-s[i].x, c[i].y-s[i].y));
-                  return +maxd.toFixed(1);
-                }""")
-                checks["g_contact_on_slot"] = slot <= 6
-                if slot > 6:
-                    failures.append(("contact-end-slot", f"max slot dist {slot} px", 0))
+            overlap = 0.0
+            overlap_pairs = []  # (cube_i, cube_j, px) in allCubes order
+            on_text_cubes = []
+            on_shape_cubes = []
 
             cubes = pg.evaluate("() => window.__v2.allCubes()")
             ru = pg.evaluate("() => (typeof window.__v2.raymondUnfold === 'function') ? window.__v2.raymondUnfold() : 0")
@@ -176,116 +204,126 @@ def main():
             # the cube layer is faded out entirely inside the dark stripe; when the canvas is
             # invisible there are no cubes to check for overlap / text / shape
             cubes_visible = pg.evaluate("() => window.__v2.cubesCanvasOpacity()") > 0.1
-            vis = [(i, c) for i, c in enumerate(cubes) if c["op"] > 0.12 and c["box"]["w"] > 0] if cubes_visible else []
-            overlap = 0.0
-            overlap_pairs = []  # (cube_i, cube_j, px) in allCubes order
-            for m in range(len(vis)):
-                for n in range(m + 1, len(vis)):
-                    ia, ca = vis[m]
-                    ib, cb = vis[n]
-                    a, b = shrink(ca["box"]), shrink(cb["box"])
-                    if boxes_intersect(a, b, pad=-1.0):
-                        ox = min(a["x"] + a["w"], b["x"] + b["w"]) - max(a["x"], b["x"])
-                        oy = min(a["y"] + a["h"], b["y"] + b["h"]) - max(a["y"], b["y"])
-                        ov_amt = min(ox, oy)
-                        overlap = max(overlap, ov_amt)
-                        if ov_amt > 0.5:
-                            overlap_pairs.append((ia, ib, round(ov_amt, 1)))
-            checks["a_no_cube_overlap"] = overlap <= 0.5
+            open_idx = pg.evaluate("() => window.__v2.projectOpen()") if (want("positions") or want("opacity")) else -1
 
-            text_rects = pg.evaluate(f"""() => Array.from(document.querySelectorAll('{TEXT_SELECTORS}'))
-                .map(e => e.getBoundingClientRect())
-                .filter(r => r.width > 4 && r.height > 4 && r.bottom > 0 && r.top < window.innerHeight)
-                .map(r => ({{x:r.x, y:r.y, w:r.width, h:r.height}}))""")
-            # routing gate: cubes are never dimmed now, so ANY cube sitting inside a text
-            # rect (+40 px) is a routing failure. threshold raised from 0.35 to 0.98.
-            on_text_cubes = []  # cube indices (allCubes order) sitting on a text rect +40
-            for i, c in enumerate(cubes if cubes_visible else []):
-                if i == ray_exempt:
-                    continue
-                if c["op"] < MIN_CUBE_OP:
-                    continue
-                bx = c["box"]
-                for r in text_rects:
-                    if boxes_intersect(bx, {"x": r["x"] - 40, "y": r["y"] - 40, "w": r["w"] + 80, "h": r["h"] + 80}):
-                        on_text_cubes.append(i)
-                        break
-            checks["b_no_bright_cube_on_text"] = not on_text_cubes
+            if want("positions"):
+                # at the document end, every cube must be on its grid slot (< 6 px)
+                if is_end:
+                    slot = pg.evaluate("""() => {
+                      const s = window.__v2.gridSlots(); const c = window.__v2.cubeCenters();
+                      let maxd = 0; for (let i = 0; i < 8; i++) maxd = Math.max(maxd, Math.hypot(c[i].x-s[i].x, c[i].y-s[i].y));
+                      return +maxd.toFixed(1);
+                    }""")
+                    checks["g_contact_on_slot"] = slot <= 6
+                    if slot > 6:
+                        failures.append(("contact-end-slot", f"max slot dist {slot} px", 0))
 
-            # HARD exclusion: no visible cube (dimmed or not) may sit inside an active morph
-            # shape box. Use the engine's OWN shape rects (already +60) and the inscribed
-            # footprint, so the check and the engine agree exactly.
-            shape_rects = pg.evaluate("() => window.__v2.shapeRects()")
-            on_shape_cubes = []  # cube indices (allCubes order) inside a morph shape box
-            for i, c in enumerate(cubes if cubes_visible else []):
-                if c["op"] < 0.05:
-                    continue
-                for s in shape_rects:
-                    if boxes_intersect(shrink(c["box"]), s, pad=-1.0):
-                        on_shape_cubes.append(i)
-                        break
-            checks["f_no_cube_on_shape"] = not on_shape_cubes
+                vis = [(i, c) for i, c in enumerate(cubes) if c["op"] > 0.12 and c["box"]["w"] > 0] if cubes_visible else []
+                for m in range(len(vis)):
+                    for n in range(m + 1, len(vis)):
+                        ia, ca = vis[m]
+                        ib, cb = vis[n]
+                        a, b = shrink(ca["box"]), shrink(cb["box"])
+                        if boxes_intersect(a, b, pad=-1.0):
+                            ox = min(a["x"] + a["w"], b["x"] + b["w"]) - max(a["x"], b["x"])
+                            oy = min(a["y"] + a["h"], b["y"] + b["h"]) - max(a["y"], b["y"])
+                            ov_amt = min(ox, oy)
+                            overlap = max(overlap, ov_amt)
+                            if ov_amt > 0.5:
+                                overlap_pairs.append((ia, ib, round(ov_amt, 1)))
+                checks["a_no_cube_overlap"] = overlap <= 0.5
 
-            open_idx = pg.evaluate("() => window.__v2.projectOpen()")
-            cards = pg.evaluate("() => document.querySelectorAll('#project-cards .pc').length")
-            checks["c_no_open_unfold"] = open_idx < 0 and cards == 0
+                text_rects = pg.evaluate(f"""() => Array.from(document.querySelectorAll('{TEXT_SELECTORS}'))
+                    .map(e => e.getBoundingClientRect())
+                    .filter(r => r.width > 4 && r.height > 4 && r.bottom > 0 && r.top < window.innerHeight)
+                    .map(r => ({{x:r.x, y:r.y, w:r.width, h:r.height}}))""")
+                # routing gate: cubes are never dimmed now, so ANY cube sitting inside a text
+                # rect (+40 px) is a routing failure. threshold raised from 0.35 to 0.98.
+                for i, c in enumerate(cubes if cubes_visible else []):
+                    if i == ray_exempt or c["op"] < MIN_CUBE_OP:
+                        continue
+                    bx = c["box"]
+                    for r in text_rects:
+                        if boxes_intersect(bx, {"x": r["x"] - 40, "y": r["y"] - 40, "w": r["w"] + 80, "h": r["h"] + 80}):
+                            on_text_cubes.append(i)
+                            break
+                checks["b_no_bright_cube_on_text"] = not on_text_cubes
 
-            ov = pg.evaluate("() => document.documentElement.scrollWidth - window.innerWidth")
-            checks["d_no_h_overflow"] = ov <= 1
+                # HARD exclusion: no visible cube may sit inside an active morph shape box. Use
+                # the engine's OWN shape rects (already +60) and the inscribed footprint.
+                shape_rects = pg.evaluate("() => window.__v2.shapeRects()")
+                for i, c in enumerate(cubes if cubes_visible else []):
+                    if c["op"] < 0.05:
+                        continue
+                    for s in shape_rects:
+                        if boxes_intersect(shrink(c["box"]), s, pad=-1.0):
+                            on_shape_cubes.append(i)
+                            break
+                checks["f_no_cube_on_shape"] = not on_shape_cubes
 
-            checks["e_no_console_errors"] = len(errors) == 0
+                cards = pg.evaluate("() => document.querySelectorAll('#project-cards .pc').length")
+                checks["c_no_open_unfold"] = open_idx < 0 and cards == 0
+                ov = pg.evaluate("() => document.documentElement.scrollWidth - window.innerWidth")
+                checks["d_no_h_overflow"] = ov <= 1
+                checks["e_no_console_errors"] = len(errors) == 0
 
             fps = ""
-            if idx % 10 == 0:
+            if only is None and idx % 10 == 0:
                 f = sample_fps(pg)
                 fps_samples.append(f)
                 fps = f"{f:.0f}"
 
             # MIN-OPACITY gate: outside the projects-open state every cube op must be >= 0.98
             # (the Raymond rig cube is exempt while unfolded, see ray_exempt above).
-            if open_idx < 0 and cubes_visible:
+            if want("opacity") and open_idx < 0 and cubes_visible:
                 step_min_op = min((c["op"] for i, c in enumerate(cubes) if i != ray_exempt), default=1.0)
                 if step_min_op < min_op:
                     min_op = step_min_op
                     min_op_y = y
 
-            # NO-POP gate (static): sample cube centres over consecutive rAF ticks once the
-            # scroll has settled; the worst per-frame displacement of any cube must be <= 14 px
-            step_pop = sample_no_pop_static(pg, NO_POP_TICKS)
-            if step_pop > worst_pop_static:
-                worst_pop_static = step_pop
-                worst_pop_static_y = y
+            # NO-POP gate (static): worst per-frame cube-centre displacement over rAF ticks.
+            if want("nopop"):
+                step_pop = sample_no_pop_static(pg, NO_POP_TICKS)
+                if step_pop > worst_pop_static:
+                    worst_pop_static = step_pop
+                    worst_pop_static_y = y
 
-            passed = all(checks.values())
-            rows.append((y, passed, fps, dict(checks), round(overlap, 1)))
-            if not passed:
-                detail = {}
-                if overlap_pairs:
-                    detail["overlap(i,j,px)"] = overlap_pairs
-                if on_text_cubes:
-                    detail["on_text_cubes"] = on_text_cubes
-                if on_shape_cubes:
-                    detail["on_shape_cubes"] = on_shape_cubes
-                failures.append((y, {k: v for k, v in checks.items() if not v}, round(overlap, 1), detail))
+            if want("positions"):
+                passed = all(checks.values())
+                rows.append((y, passed, fps, dict(checks), round(overlap, 1)))
+                if not passed:
+                    detail = {}
+                    if overlap_pairs:
+                        detail["overlap(i,j,px)"] = overlap_pairs
+                    if on_text_cubes:
+                        detail["on_text_cubes"] = on_text_cubes
+                    if on_shape_cubes:
+                        detail["on_shape_cubes"] = on_shape_cubes
+                    failures.append((y, {k: v for k, v in checks.items() if not v}, round(overlap, 1), detail))
 
-            pg.screenshot(path=str(OUT_DIR / f"{idx:04d}_y{y:05d}.png"))
+            if film_on:
+                pg.screenshot(path=str(OUT_DIR / f"{idx:04d}_y{y:05d}.png"))
 
         # NO-POP gate (continuous): scroll y=0 -> bottom at 1200 px/s, sampling cube centres
         # every rAF; the worst per-frame displacement of any cube must stay <= 14 px.
-        pop_scroll = sample_no_pop_scroll(pg, end_y)
-        worst_pop_scroll = pop_scroll["worst"]
-        worst_pop_scroll_y = pop_scroll["worstY"]
+        worst_pop_scroll = 0.0
+        worst_pop_scroll_y = 0
+        if want("nopop"):
+            pop_scroll = sample_no_pop_scroll(pg, end_y)
+            worst_pop_scroll = pop_scroll["worst"]
+            worst_pop_scroll_y = pop_scroll["worstY"]
 
-        # interaction tests
-        click_fail = run_click_test(pg)
-        panel_fail = run_panel_test(pg)
-        contact_fail = run_contact_test(pg, sh, vh)
-        panel_scroll_info = run_panel_scroll_test(pg)
+        # interaction tests (each runs only when its gate is selected)
+        click_fail = run_click_test(pg) if want("click") else None
+        panel_fail = run_panel_test(pg) if want("panel") else None
+        contact_fail = run_contact_test(pg, sh, vh) if want("contact") else None
+        panel_scroll_info = run_panel_scroll_test(pg) if want("panel") else {"ok": True}
         panel_scroll_fail = None if panel_scroll_info.get("ok") else panel_scroll_info
-        raymond = run_raymond_test(pg)
-        visibility = run_visibility_test(pg)
-        realclick = run_real_click_test(pg)
-        seam_report = run_seam_test(pg)
+        raymond = run_raymond_test(pg) if want("raymond") else {"status": "SKIP", "reason": "not selected"}
+        visibility = run_visibility_test(pg) if want("visibility") else {"status": "SKIP", "reason": "not selected"}
+        realclick = (run_real_click_test(pg) if (want("realclick") or want("overlay"))
+                     else {"mismatches": [], "overlay": [], "has_rig_hook": False})
+        seam_report = run_seam_test(pg) if want("seam") else []
         if click_fail:
             failures.append(("click-test", click_fail, 0))
         if panel_fail:
@@ -316,58 +354,72 @@ def main():
 
         med_fps = statistics.median(fps_samples) if fps_samples else 0
         fps_ok = (med_fps >= 55) if gpu else True
-        if not fps_ok:
+        if only is None and not fps_ok:  # fps sampled only on a full run
             failures.append(("fps", f"median {med_fps:.0f} < 55 on GPU", 0))
 
         browser.close()
 
     httpd.shutdown()
 
-    print("\n== per-position ==")
-    print(f"{'y':>7} {'pass':>5} {'fps':>4}  failing-checks")
-    for y, passed, fps, checks, overlap in rows:
-        bad = ",".join(k for k, v in checks.items() if not v)
-        print(f"{y:>7} {'OK' if passed else 'FAIL':>5} {fps:>4}  {bad}")
-    print(f"\nmedian fps sample: {med_fps:.0f}  (gpu={gpu}, enforced={gpu})")
-    print(f"click test: {'OK' if not click_fail else click_fail}")
-    print(f"panel test: {'OK' if not panel_fail else panel_fail}")
-    print(f"contact grid: {'OK' if not contact_fail else contact_fail}")
-    print(f"frames written: {len(rows)} -> {OUT_DIR}")
+    if want("positions") and rows:
+        print("\n== per-position ==")
+        print(f"{'y':>7} {'pass':>5} {'fps':>4}  failing-checks")
+        for y, passed, fps, checks, overlap in rows:
+            bad = ",".join(k for k, v in checks.items() if not v)
+            print(f"{y:>7} {'OK' if passed else 'FAIL':>5} {fps:>4}  {bad}")
+    if only is None:
+        print(f"\nmedian fps sample: {med_fps:.0f}  (gpu={gpu}, enforced={gpu})")
+    if want("click"):
+        print(f"click test: {'OK' if not click_fail else click_fail}")
+    if want("panel"):
+        print(f"panel test: {'OK' if not panel_fail else panel_fail}")
+    if want("contact"):
+        print(f"contact grid: {'OK' if not contact_fail else contact_fail}")
+    if film_on:
+        print(f"frames written: {len(rows)} -> {OUT_DIR}")
 
-    print("\n== round-3 gates ==")
+    print("\n== gates ==")
     print(f"{'gate':<16} {'verdict':>7}  detail")
 
     def _row(name, ok, detail):
         print(f"{name:<16} {'OK' if ok else 'FAIL':>7}  {detail}")
 
-    _row("NO-POP-STEP", worst_pop_static <= NO_POP_MAX,
-         f"worst {worst_pop_static} px (<= {NO_POP_MAX}) at y={worst_pop_static_y}")
-    _row("NO-POP-SCROLL", worst_pop_scroll <= NO_POP_MAX,
-         f"worst {worst_pop_scroll} px (<= {NO_POP_MAX}) at y={worst_pop_scroll_y}")
-    _row("MIN-OPACITY", min_op >= MIN_CUBE_OP,
-         f"min cube op {min_op} (>= {MIN_CUBE_OP}) at y={min_op_y}")
-    _row("PANEL-SCROLL", not panel_scroll_fail,
-         f"panel={panel_scroll_info.get('id')} scrollHeight={panel_scroll_info.get('scrollHeight')} "
-         f"scrollTop={panel_scroll_info.get('scrollTop')}")
-    if raymond["status"] == "SKIP":
-        print(f"{'RAYMOND':<16} {'SKIP':>7}  {raymond.get('reason')} "
-              f"(unfold={raymond.get('unfold')}, faces_present={raymond.get('faces_present')})")
-    else:
-        _row("RAYMOND", raymond["status"] == "OK",
-             f"unfold={raymond['unfold']} fails={len(raymond['fails'])} {raymond['fails'] if raymond['fails'] else ''}")
-    if visibility["status"] == "SKIP":
-        print(f"{'VISIBILITY':<16} {'SKIP':>7}  {visibility.get('reason')}")
-    else:
-        _row("VISIBILITY", visibility["status"] == "OK",
-             f"fails={len(visibility['fails'])} {visibility['fails'] if visibility['fails'] else ''}")
-    _row("REAL-CLICK", not realclick["mismatches"],
-         "all 8 open the clicked cube" if not realclick["mismatches"] else str(realclick["mismatches"]))
-    _row("NO-OVERLAY", not realclick["overlay"],
-         (f"closed cube hidden after open (rigPose hook={'yes' if realclick['has_rig_hook'] else 'no, crops for review'})"
-          if not realclick["overlay"] else str(realclick["overlay"])))
-    seam_flagged = sum(s["flagged"] for s in seam_report)
-    _row("SEAM-CROPS", seam_flagged == 0,
-         "  ".join(f"cube{s['cube']}:{s['flagged']}/{s['faces']}" for s in seam_report))
+    if want("nopop"):
+        _row("NO-POP-STEP", worst_pop_static <= NO_POP_MAX,
+             f"worst {worst_pop_static} px (<= {NO_POP_MAX}) at y={worst_pop_static_y}")
+        _row("NO-POP-SCROLL", worst_pop_scroll <= NO_POP_MAX,
+             f"worst {worst_pop_scroll} px (<= {NO_POP_MAX}) at y={worst_pop_scroll_y}")
+    if want("opacity"):
+        _row("MIN-OPACITY", min_op >= MIN_CUBE_OP,
+             f"min cube op {min_op} (>= {MIN_CUBE_OP}) at y={min_op_y}")
+    if want("panel"):
+        _row("PANEL-SCROLL", not panel_scroll_fail,
+             f"panel={panel_scroll_info.get('id')} scrollHeight={panel_scroll_info.get('scrollHeight')} "
+             f"scrollTop={panel_scroll_info.get('scrollTop')}")
+    if want("raymond"):
+        if raymond["status"] == "SKIP":
+            print(f"{'RAYMOND':<16} {'SKIP':>7}  {raymond.get('reason')} "
+                  f"(unfold={raymond.get('unfold')}, faces_present={raymond.get('faces_present')})")
+        else:
+            _row("RAYMOND", raymond["status"] == "OK",
+                 f"unfold={raymond['unfold']} fails={len(raymond['fails'])} {raymond['fails'] if raymond['fails'] else ''}")
+    if want("visibility"):
+        if visibility["status"] == "SKIP":
+            print(f"{'VISIBILITY':<16} {'SKIP':>7}  {visibility.get('reason')}")
+        else:
+            _row("VISIBILITY", visibility["status"] == "OK",
+                 f"fails={len(visibility['fails'])} {visibility['fails'] if visibility['fails'] else ''}")
+    if want("realclick"):
+        _row("REAL-CLICK", not realclick["mismatches"],
+             "all 8 open the clicked cube" if not realclick["mismatches"] else str(realclick["mismatches"]))
+    if want("overlay"):
+        _row("NO-OVERLAY", not realclick["overlay"],
+             (f"closed cube hidden after open (rigPose hook={'yes' if realclick['has_rig_hook'] else 'no, crops for review'})"
+              if not realclick["overlay"] else str(realclick["overlay"])))
+    if want("seam"):
+        seam_flagged = sum(s["flagged"] for s in seam_report)
+        _row("SEAM-CROPS", seam_flagged == 0,
+             "  ".join(f"cube{s['cube']}:{s['flagged']}/{s['faces']}" for s in seam_report))
 
     if failures:
         print(f"\nFAILURES ({len(failures)}):")
@@ -383,6 +435,26 @@ def sample_fps(pg):
       function tick(t){ n++; if (t - t0 >= 1000) res(n * 1000 / (t - t0)); else requestAnimationFrame(tick); }
       requestAnimationFrame(tick);
     })""")
+
+
+def settle(pg, timeout_ms=1600, step_ms=80):
+    # after a scroll jump the cubes spring toward their targets; wait until the centres stop
+    # moving (< 1 px between polls) or the timeout, so every mode measures the settled state.
+    return pg.evaluate("""([timeout, stepMs]) => new Promise(res => {
+      let prev = null; const t0 = performance.now();
+      function check(){
+        const c = window.__v2.cubeCenters();
+        let moved = 0;
+        if (prev) for (let i = 0; i < Math.min(prev.length, c.length); i++) {
+          const d = Math.hypot(c[i].x - prev[i].x, c[i].y - prev[i].y); if (d > moved) moved = d;
+        }
+        prev = c;
+        if (moved < 1 && performance.now() - t0 > stepMs) return res(+moved.toFixed(2));
+        if (performance.now() - t0 > timeout) return res(-1);
+        setTimeout(check, stepMs);
+      }
+      check();
+    })""", [timeout_ms, step_ms])
 
 
 def sample_no_pop_static(pg, ticks):
