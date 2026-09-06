@@ -144,9 +144,9 @@ if (expSec) {
       onUpdate: (self) => {
         const p = self.progress;
         let m;
-        if (p < 0.6) m = p2(p / 0.6);
-        else if (p < 0.75) m = 1;
-        else m = 1 - p2((p - 0.75) / 0.25);
+        if (p < 0.45) m = p2(p / 0.45);        // assemble from dust over the first 45%
+        else if (p < 0.80) m = 1;              // hold the truck formed and crisp 45-80%
+        else m = 1 - p2((p - 0.80) / 0.20);    // dissolve back to dust across the last 20%
         particles.setMorph(0, m);
         expSec.classList.toggle('seen', p > 0.02);
         lines.forEach((el, k) => el.classList.toggle('in', p > 0.08 + k * 0.045));
