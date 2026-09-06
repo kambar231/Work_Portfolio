@@ -167,15 +167,21 @@ def main():
             # the cube layer is faded out entirely inside the dark stripe; when the canvas is
             # invisible there are no cubes to check for overlap / text / shape
             cubes_visible = pg.evaluate("() => window.__v2.cubesCanvasOpacity()") > 0.1
-            vis = [c for c in cubes if c["op"] > 0.12 and c["box"]["w"] > 0] if cubes_visible else []
+            vis = [(i, c) for i, c in enumerate(cubes) if c["op"] > 0.12 and c["box"]["w"] > 0] if cubes_visible else []
             overlap = 0.0
-            for i in range(len(vis)):
-                for j in range(i + 1, len(vis)):
-                    a, b = shrink(vis[i]["box"]), shrink(vis[j]["box"])
+            overlap_pairs = []  # (cube_i, cube_j, px) in allCubes order
+            for m in range(len(vis)):
+                for n in range(m + 1, len(vis)):
+                    ia, ca = vis[m]
+                    ib, cb = vis[n]
+                    a, b = shrink(ca["box"]), shrink(cb["box"])
                     if boxes_intersect(a, b, pad=-1.0):
                         ox = min(a["x"] + a["w"], b["x"] + b["w"]) - max(a["x"], b["x"])
                         oy = min(a["y"] + a["h"], b["y"] + b["h"]) - max(a["y"], b["y"])
-                        overlap = max(overlap, min(ox, oy))
+                        ov_amt = min(ox, oy)
+                        overlap = max(overlap, ov_amt)
+                        if ov_amt > 0.5:
+                            overlap_pairs.append((ia, ib, round(ov_amt, 1)))
             checks["a_no_cube_overlap"] = overlap <= 0.5
 
             text_rects = pg.evaluate(f"""() => Array.from(document.querySelectorAll('{TEXT_SELECTORS}'))
@@ -184,34 +190,30 @@ def main():
                 .map(r => ({{x:r.x, y:r.y, w:r.width, h:r.height}}))""")
             # routing gate: cubes are never dimmed now, so ANY cube sitting inside a text
             # rect (+40 px) is a routing failure. threshold raised from 0.35 to 0.98.
-            bright_on_text = False
-            for c in (cubes if cubes_visible else []):
+            on_text_cubes = []  # cube indices (allCubes order) sitting on a text rect +40
+            for i, c in enumerate(cubes if cubes_visible else []):
                 if c["op"] < MIN_CUBE_OP:
                     continue
                 bx = c["box"]
                 for r in text_rects:
                     if boxes_intersect(bx, {"x": r["x"] - 40, "y": r["y"] - 40, "w": r["w"] + 80, "h": r["h"] + 80}):
-                        bright_on_text = True
+                        on_text_cubes.append(i)
                         break
-                if bright_on_text:
-                    break
-            checks["b_no_bright_cube_on_text"] = not bright_on_text
+            checks["b_no_bright_cube_on_text"] = not on_text_cubes
 
             # HARD exclusion: no visible cube (dimmed or not) may sit inside an active morph
             # shape box. Use the engine's OWN shape rects (already +60) and the inscribed
             # footprint, so the check and the engine agree exactly.
             shape_rects = pg.evaluate("() => window.__v2.shapeRects()")
-            cube_on_shape = False
-            for c in (cubes if cubes_visible else []):
+            on_shape_cubes = []  # cube indices (allCubes order) inside a morph shape box
+            for i, c in enumerate(cubes if cubes_visible else []):
                 if c["op"] < 0.05:
                     continue
                 for s in shape_rects:
                     if boxes_intersect(shrink(c["box"]), s, pad=-1.0):
-                        cube_on_shape = True
+                        on_shape_cubes.append(i)
                         break
-                if cube_on_shape:
-                    break
-            checks["f_no_cube_on_shape"] = not cube_on_shape
+            checks["f_no_cube_on_shape"] = not on_shape_cubes
 
             open_idx = pg.evaluate("() => window.__v2.projectOpen()")
             cards = pg.evaluate("() => document.querySelectorAll('#project-cards .pc').length")
@@ -245,7 +247,14 @@ def main():
             passed = all(checks.values())
             rows.append((y, passed, fps, dict(checks), round(overlap, 1)))
             if not passed:
-                failures.append((y, {k: v for k, v in checks.items() if not v}, round(overlap, 1)))
+                detail = {}
+                if overlap_pairs:
+                    detail["overlap(i,j,px)"] = overlap_pairs
+                if on_text_cubes:
+                    detail["on_text_cubes"] = on_text_cubes
+                if on_shape_cubes:
+                    detail["on_shape_cubes"] = on_shape_cubes
+                failures.append((y, {k: v for k, v in checks.items() if not v}, round(overlap, 1), detail))
 
             pg.screenshot(path=str(OUT_DIR / f"{idx:04d}_y{y:05d}.png"))
 
