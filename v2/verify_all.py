@@ -118,6 +118,10 @@ def main():
         p = args.yrange.split(",")
         yrange = (int(p[0]), int(p[1]))
     run_loop = want("positions") or want("opacity") or want("nopop")
+    banner = "CHECKER RUNNING: do not touch this browser window"
+    print("=" * len(banner))
+    print(banner)
+    print("=" * len(banner))
     print(f"mode: {'FULL' if only is None else 'only=' + ','.join(sorted(only))}"
           f"{' range=' + str(yrange) if yrange else ''} step={args.step} film={'on' if film_on else 'off'}")
 
@@ -157,6 +161,8 @@ def main():
         pg.on("pageerror", lambda e: errors.append("PAGEERROR: " + e.message))
         pg.on("requestfailed", lambda r: errors.append("REQFAIL: " + r.url))
         pg.goto(url, wait_until="load")
+        # make the automated window obviously the checker's so no one scrolls it by hand
+        pg.evaluate("() => { document.title = 'CHECKER RUNNING - do not touch'; }")
         pg.wait_for_timeout(4200)
 
         sh = pg.evaluate("() => document.documentElement.scrollHeight")
