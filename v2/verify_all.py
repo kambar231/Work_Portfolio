@@ -22,6 +22,7 @@ Requires:  playwright (Python), Pillow.  No repo-specific tooling.
 import argparse
 import functools
 import http.server
+import io
 import os
 import socketserver
 import statistics
@@ -29,16 +30,27 @@ import sys
 import threading
 from pathlib import Path
 
+import numpy as np
+from PIL import Image
 from playwright.sync_api import sync_playwright
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 OUT_DIR = REPO_ROOT / "docs" / "v2-film" / "full"
+FACES_DIR = OUT_DIR / "faces"
 
 TEXT_SELECTORS = (
     ".display,.hero-sub,.exp-word,.exp2-head,.exp2-systems,.exp2-ach,.exp2-prev,"
     ".slicer-story,.slicer-key,.ev-strip,.flat-head,.projects-head,.web-lead,.web-tiles,"
-    ".ds-left,.edu,.contact-inner"
+    ".ds-left,.edu,.contact-inner,.prev-band"
 )
+
+# ---- round-3 gate thresholds (spec section 8) ----
+NO_POP_MAX = 14.0        # max per-frame cube-centre displacement (px)
+MIN_CUBE_OP = 0.98       # cube opacity outside the projects scrim state
+NO_POP_TICKS = 40        # rAF ticks sampled per no-pop probe
+SEAM_EDGE = 24           # grayscale diagonal edge response threshold
+SEAM_FRAC = 0.60         # fraction of a diagonal above SEAM_EDGE that flags a seam
+SEAM_MIN_LEN = 200       # a diagonal must be longer than this (px) to be judged
 
 
 def serve(port: int) -> socketserver.TCPServer:
@@ -79,12 +91,20 @@ def main():
     args = ap.parse_args()
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
+    FACES_DIR.mkdir(parents=True, exist_ok=True)
     for old in OUT_DIR.glob("*.png"):
+        old.unlink()
+    for old in FACES_DIR.glob("*.png"):
         old.unlink()
     httpd = serve(args.port)
     url = f"http://127.0.0.1:{args.port}/v2/"
     failures = []
     rows = []
+    # round-3 gate trackers
+    worst_pop_static = 0.0
+    worst_pop_static_y = 0
+    min_op = 1.0
+    min_op_y = 0
 
     with sync_playwright() as pw:
         try:
@@ -159,9 +179,11 @@ def main():
                 .map(e => e.getBoundingClientRect())
                 .filter(r => r.width > 4 && r.height > 4 && r.bottom > 0 && r.top < window.innerHeight)
                 .map(r => ({{x:r.x, y:r.y, w:r.width, h:r.height}}))""")
+            # routing gate: cubes are never dimmed now, so ANY cube sitting inside a text
+            # rect (+40 px) is a routing failure. threshold raised from 0.35 to 0.98.
             bright_on_text = False
             for c in (cubes if cubes_visible else []):
-                if c["op"] <= 0.35:
+                if c["op"] < MIN_CUBE_OP:
                     continue
                 bx = c["box"]
                 for r in text_rects:
@@ -203,6 +225,20 @@ def main():
                 fps_samples.append(f)
                 fps = f"{f:.0f}"
 
+            # MIN-OPACITY gate: outside the projects-open state every cube op must be >= 0.98
+            if open_idx < 0 and cubes_visible:
+                step_min_op = min((c["op"] for c in cubes), default=1.0)
+                if step_min_op < min_op:
+                    min_op = step_min_op
+                    min_op_y = y
+
+            # NO-POP gate (static): sample cube centres over consecutive rAF ticks once the
+            # scroll has settled; the worst per-frame displacement of any cube must be <= 14 px
+            step_pop = sample_no_pop_static(pg, NO_POP_TICKS)
+            if step_pop > worst_pop_static:
+                worst_pop_static = step_pop
+                worst_pop_static_y = y
+
             passed = all(checks.values())
             rows.append((y, passed, fps, dict(checks), round(overlap, 1)))
             if not passed:
@@ -210,16 +246,37 @@ def main():
 
             pg.screenshot(path=str(OUT_DIR / f"{idx:04d}_y{y:05d}.png"))
 
+        # NO-POP gate (continuous): scroll y=0 -> bottom at 1200 px/s, sampling cube centres
+        # every rAF; the worst per-frame displacement of any cube must stay <= 14 px.
+        pop_scroll = sample_no_pop_scroll(pg, end_y)
+        worst_pop_scroll = pop_scroll["worst"]
+        worst_pop_scroll_y = pop_scroll["worstY"]
+
         # interaction tests
         click_fail = run_click_test(pg)
         panel_fail = run_panel_test(pg)
         contact_fail = run_contact_test(pg, sh, vh)
+        panel_scroll_fail = run_panel_scroll_test(pg)
+        seam_report = run_seam_test(pg)
         if click_fail:
             failures.append(("click-test", click_fail, 0))
         if panel_fail:
             failures.append(("panel-test", panel_fail, 0))
         if contact_fail:
             failures.append(("contact-grid", contact_fail, 0))
+
+        # ---- round-3 gate verdicts ----
+        if worst_pop_static > NO_POP_MAX:
+            failures.append(("no-pop-static", f"worst {worst_pop_static} px at y={worst_pop_static_y}", worst_pop_static))
+        if worst_pop_scroll > NO_POP_MAX:
+            failures.append(("no-pop-scroll", f"worst {worst_pop_scroll} px at y={worst_pop_scroll_y}", worst_pop_scroll))
+        if min_op < MIN_CUBE_OP:
+            failures.append(("min-opacity", f"min cube op {min_op} at y={min_op_y}", min_op))
+        if panel_scroll_fail:
+            failures.append(("panel-scroll", panel_scroll_fail, 0))
+        seam_flagged = sum(s["flagged"] for s in seam_report)
+        if seam_flagged > 0:
+            failures.append(("seam-crops", [s for s in seam_report if s["flagged"]], seam_flagged))
 
         med_fps = statistics.median(fps_samples) if fps_samples else 0
         fps_ok = (med_fps >= 55) if gpu else True
@@ -241,6 +298,24 @@ def main():
     print(f"contact grid: {'OK' if not contact_fail else contact_fail}")
     print(f"frames written: {len(rows)} -> {OUT_DIR}")
 
+    print("\n== round-3 gates ==")
+    print(f"{'gate':<16} {'verdict':>7}  detail")
+
+    def _row(name, ok, detail):
+        print(f"{name:<16} {'OK' if ok else 'FAIL':>7}  {detail}")
+
+    _row("NO-POP-STEP", worst_pop_static <= NO_POP_MAX,
+         f"worst {worst_pop_static} px (<= {NO_POP_MAX}) at y={worst_pop_static_y}")
+    _row("NO-POP-SCROLL", worst_pop_scroll <= NO_POP_MAX,
+         f"worst {worst_pop_scroll} px (<= {NO_POP_MAX}) at y={worst_pop_scroll_y}")
+    _row("MIN-OPACITY", min_op >= MIN_CUBE_OP,
+         f"min cube op {min_op} (>= {MIN_CUBE_OP}) at y={min_op_y}")
+    _row("PANEL-SCROLL", not panel_scroll_fail,
+         "OK" if not panel_scroll_fail else str(panel_scroll_fail))
+    seam_flagged = sum(s["flagged"] for s in seam_report)
+    _row("SEAM-CROPS", seam_flagged == 0,
+         "  ".join(f"cube{s['cube']}:{s['flagged']}/{s['faces']}" for s in seam_report))
+
     if failures:
         print(f"\nFAILURES ({len(failures)}):")
         for f in failures:
@@ -255,6 +330,135 @@ def sample_fps(pg):
       function tick(t){ n++; if (t - t0 >= 1000) res(n * 1000 / (t - t0)); else requestAnimationFrame(tick); }
       requestAnimationFrame(tick);
     })""")
+
+
+def sample_no_pop_static(pg, ticks):
+    # collect cube centres on `ticks` consecutive rAF ticks (no scrolling) and return the
+    # worst per-frame displacement of any single cube between consecutive ticks.
+    return pg.evaluate("""(n) => new Promise(res => {
+      const samples = []; let count = 0;
+      function tick(){
+        const c = window.__v2.cubeCenters();
+        samples.push(c.map(p => ({ x: p.x, y: p.y })));
+        count++;
+        if (count >= n) {
+          let worst = 0;
+          for (let k = 1; k < samples.length; k++) {
+            const a = samples[k - 1], b = samples[k];
+            const m = Math.min(a.length, b.length);
+            for (let i = 0; i < m; i++) {
+              const d = Math.hypot(b[i].x - a[i].x, b[i].y - a[i].y);
+              if (d > worst) worst = d;
+            }
+          }
+          res(+worst.toFixed(2));
+        } else requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    })""", ticks)
+
+
+def sample_no_pop_scroll(pg, end_y, speed=1200):
+    # drive a continuous scroll from y=0 to the document bottom at `speed` px/s, sampling
+    # cube centres every rAF; return the worst per-frame displacement and the y where it hit.
+    pg.evaluate("() => window.__v2.scrollToY(0)")
+    pg.wait_for_timeout(600)
+    return pg.evaluate("""([endY, speed]) => new Promise(res => {
+      let prev = null, worst = 0, worstY = 0; const t0 = performance.now();
+      function tick(t){
+        const y = Math.min(endY, speed * (t - t0) / 1000);
+        window.__v2.scrollToY(y);
+        const cur = window.__v2.cubeCenters().map(p => ({ x: p.x, y: p.y }));
+        if (prev) {
+          const m = Math.min(prev.length, cur.length);
+          for (let i = 0; i < m; i++) {
+            const d = Math.hypot(cur[i].x - prev[i].x, cur[i].y - prev[i].y);
+            if (d > worst) { worst = d; worstY = y; }
+          }
+        }
+        prev = cur;
+        if (y >= endY) res({ worst: +worst.toFixed(2), worstY: Math.round(worstY) });
+        else requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    })""", [end_y, speed])
+
+
+def run_panel_scroll_test(pg):
+    # open the longest reading panel and confirm it scrolls internally.
+    pg.evaluate("() => window.__v2panel.open('ray-stability')")
+    pg.wait_for_timeout(600)
+    info = pg.evaluate("""() => {
+      const panel = Array.from(document.querySelectorAll('article.panel'))
+        .find(p => !p.hidden);
+      if (!panel) return { err: 'no visible panel' };
+      // the article may itself scroll, or an inner .panel-scroll may be the scroller
+      const cand = [panel, ...panel.querySelectorAll('.panel-scroll,[data-lenis-prevent]')];
+      let el = cand.find(e => e.scrollHeight > e.clientHeight + 1) || panel;
+      const before = { id: panel.id, which: el === panel ? 'article' : (el.className || 'inner'),
+                       scrollHeight: el.scrollHeight, clientHeight: el.clientHeight };
+      el.scrollTop = 600;
+      before.scrollTop = el.scrollTop;
+      return before;
+    }""")
+    pg.screenshot(path=str(OUT_DIR / "panel_scroll.png"))
+    pg.keyboard.press("Escape")
+    pg.wait_for_timeout(420)
+    if info.get("err"):
+        return info
+    scrollable = info["scrollHeight"] > info["clientHeight"]
+    scrolled = info.get("scrollTop", 0) >= 590
+    if scrollable and scrolled:
+        return None
+    return info
+
+
+def _diagonal_seam_flag(gray):
+    # gray: 2-D uint8 array. Flag a face if any 45-degree diagonal longer than SEAM_MIN_LEN px
+    # has more than SEAM_FRAC of its pixels with an abs neighbour-difference above SEAM_EDGE.
+    a = gray.astype(np.int16)
+    flipped = np.fliplr(a)
+    n = a.shape[0]
+    for src in (a, flipped):  # down-right diagonals, then anti-diagonals
+        for k in range(-(n - 1), n):
+            diag = np.diagonal(src, offset=k)
+            if diag.size <= SEAM_MIN_LEN:
+                continue
+            d = np.abs(np.diff(diag))
+            if d.size and (d > SEAM_EDGE).mean() > SEAM_FRAC:
+                return True
+    return False
+
+
+def run_seam_test(pg):
+    # for each project cube, open it, crop 400x400 around every face anchor, and run a
+    # diagonal-line check to catch the old lighting seam. Reports flagged faces per cube.
+    report = []
+    for i in range(8):
+        pg.evaluate(f"() => window.__v2.openProject({i})")
+        pg.wait_for_timeout(1400)
+        anchors = pg.evaluate("() => window.__v2.faceAnchors()") or {}
+        png = pg.screenshot()
+        img = Image.open(io.BytesIO(png)).convert("RGB")
+        W, H = img.size
+        flagged = 0
+        faces = 0
+        for key, a in anchors.items():
+            if not a:
+                continue
+            faces += 1
+            cx, cy = int(a["x"]), int(a["y"])
+            left = max(0, min(W - 400, cx - 200))
+            top = max(0, min(H - 400, cy - 200))
+            crop = img.crop((left, top, left + 400, top + 400))
+            crop.save(str(FACES_DIR / f"cube{i}_face{faces - 1}.png"))
+            gray = np.asarray(crop.convert("L"))
+            if _diagonal_seam_flag(gray):
+                flagged += 1
+        pg.keyboard.press("Escape")
+        pg.wait_for_timeout(1000)
+        report.append({"cube": i, "faces": faces, "flagged": flagged})
+    return report
 
 
 def run_click_test(pg):
