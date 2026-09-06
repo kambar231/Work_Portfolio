@@ -401,7 +401,31 @@ export function createCubeHero({ onCubeClick } = {}) {
   function raycast(ndc) {
     raycaster.setFromCamera(new THREE.Vector2(ndc.x, ndc.y), camera);
     const hits = raycaster.intersectObjects(meshes, false);
-    return hits.length ? meshes.indexOf(hits[0].object) : -1;
+    for (const h of hits) {            // nearest hit that is actually visible and clickable
+      const idx = meshes.indexOf(h.object);
+      if (idx < 0) continue;
+      if (visibleSet && !visibleSet.has(idx)) continue;
+      if (meshes[idx].material[0].opacity < 0.12) continue;   // faded-out cubes are not clickable
+      return idx;
+    }
+    return -1;
+  }
+  // C2: pixel-space hit test (nearest visible cube mesh under the pointer) for main.js + checker
+  function hitTest(clientX, clientY) {
+    const ndc = { x: (clientX / window.innerWidth) * 2 - 1, y: -(clientY / window.innerHeight) * 2 + 1 };
+    return raycast(ndc);
+  }
+  // C1: which cube indices are live this section. null = all. Cubes not in the set exit
+  // off-screen and fade out (skipped by hit tests and gates), and any stale park/override on
+  // a leaving cube is cleared so a discrete scroll jump can never strand it.
+  let visibleSet = null;
+  function setVisibleSet(indices) {
+    visibleSet = (indices && indices.length !== undefined) ? new Set(indices) : (indices || null);
+    if (visibleSet) {
+      for (let i = 0; i < meshes.length; i++) {
+        if (!visibleSet.has(i)) { delete parkTargets[i]; override[i] = null; }
+      }
+    }
   }
 
   // ---- label DOM ----
@@ -1031,11 +1055,20 @@ export function createCubeHero({ onCubeClick } = {}) {
       const m = meshes[i];
       let tumbleScale = 1;
       _opArr[i] = 1; _forceable[i] = false; _avoid[i] = false; _avoidPair[i] = false;
+      if (visibleSet && visibleSet.has(i)) revealTargets[i] = 1;   // C1: re-entering the set fades in
       const bob = Math.sin(t * 0.6 + i) * BOB_AMP;
       const pt = parkTargets[i];
       const tr = _tr[i];
       const ov = override[i];
-      if (projT > 0.01) {
+      if (visibleSet && !visibleSet.has(i)) {
+        // C1: not in this section's visible set -> exit off-screen and fade out; skipped by
+        // hit tests and by the checker gates (opacity 0). No park/target/lane work applies.
+        const ex = exitTargetLocal(i);
+        tgt[i].set(ex.x, ex.y, ex.z);
+        scaleTarget[i] = 1;
+        revealTargets[i] = 0;               // fade to 0 so gates and clicks ignore it
+        if (moving) { m.rotation.x += TUMBLE_X * fs; m.rotation.y += TUMBLE_Y * fs; }
+      } else if (projT > 0.01) {
         // 4x2 centred grid; open cube hides (its unfold rig shows), the rest hold at 0.06
         const e = ease(projT);
         _tmp.copy(projWorld[i]).sub(group.position);
@@ -1157,7 +1190,7 @@ export function createCubeHero({ onCubeClick } = {}) {
   }
 
   return {
-    frame, setUnravel, setState, focus, raycast, setPointer, ready,
+    frame, setUnravel, setState, focus, raycast, hitTest, setVisibleSet, setPointer, ready,
     cubeBoxes, labelBoxes, chapterPark, setTrack, setExclude, setTextRects, setShapeRects, setLanes, setTargets, exit, recall, chapterDim, setCloudDim, setMobileHide, setForceHidden, meshBox,
     setProjects, setContact, gridSlots, cubeCenters, shapeRectsNow, setHover, openProject, closeProject, projectOpenIndex, faceAnchors, setProjectHandlers,
     setParkAnchor, setRaymondUnfold, setRaymondFaces, raymondFaceRects, raymondFaceAt,
