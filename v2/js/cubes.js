@@ -799,24 +799,43 @@ export function createCubeHero({ onCubeClick } = {}) {
     const col = j % 3, row = Math.floor(j / 3);
     return { x: (RAY_CENTER_VW / 100) * vw + (col - 1) * step, y: (RAY_CENTER_VH / 100) * vh + (row - 0.5) * step, size: face };
   }
-  const _rv = new THREE.Vector3();
+  // C4: cross-net layout (face units), standard cube unfold, one entry per face in j order.
+  //   [ ][T][ ][ ]
+  //   [L][F][R][B]
+  //   [ ][Bo][ ][]
+  const RAY_NET = [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1], [2, 0]];   // F,R,L,T,Bo,B
+  const _rv = new THREE.Vector3(), _rNet = new THREE.Vector3(), _rGrid = new THREE.Vector3();
   function updateRaymondRig() {
     if (!raymondRig || !raymondFaceMeshes.length) return;
     const vw = window.innerWidth, vh = window.innerHeight;
     const halfHz = (camera.position.z - PARK_Z) * tanHalf();
-    const faceWorld = (RAY_FACE_VH / 100) * 2 * halfHz;         // 15vh -> world units at PARK_Z
-    const hinge = easeInOut(Math.min(1, raymondT / 0.5));
-    const slide = easeInOut(Math.max(0, (raymondT - 0.5) / 0.5));
+    const faceWorld = (RAY_FACE_VH / 100) * 2 * halfHz;         // grid face size in world units
+    const netStep = faceWorld * 1.04;                          // net cells touch with a hair of gap
     const centerLocal = anchorLocalXY(RAY_CENTER_VW, RAY_CENTER_VH);
+    // C4 two phases: t 0..0.55 HINGE the six faces open into the cross net at the park pose,
+    // t 0.55..1 SLIDE the open faces from the net into the 3x2 grid. Never a jump-cut.
+    const a = easeInOut(Math.min(1, raymondT / 0.55));         // hinge open into the net
+    const b = easeInOut(Math.max(0, (raymondT - 0.55) / 0.45)); // slide net -> grid
+    const meanX = (0 + 1 - 1 + 0 + 0 + 2) / 6;                 // centre the cross on the park point
     for (let j = 0; j < 6; j++) {
       const m = raymondFaceMeshes[j];
+      // net position (group-local), centred on the park point
+      _rNet.set(centerLocal.x + (RAY_NET[j][0] - meanX) * netStep,
+                centerLocal.y + RAY_NET[j][1] * netStep, centerLocal.z);
+      // grid slot (group-local)
       const slot = raymondSlotPx(j);
-      const target = anchorLocalXY((slot.x / vw) * 100, (slot.y / vh) * 100);
-      m.position.lerpVectors(centerLocal, target, slide);
-      const sc = faceWorld * (0.32 + 0.68 * hinge);
-      m.scale.set(sc, sc, sc);
-      const col = j % 3, foldSign = col === 0 ? 1 : (col === 2 ? -1 : 0);
-      m.rotation.set((Math.floor(j / 3) === 0 ? 1 : -1) * (1 - hinge) * 0.9, foldSign * (1 - hinge) * (Math.PI / 2), 0);
+      const g = anchorLocalXY((slot.x / vw) * 100, (slot.y / vh) * 100);
+      _rGrid.set(g.x, g.y, g.z);
+      // phase A: unfold from the stacked park centre out to the net cell, hinging flat
+      _rv.lerpVectors(centerLocal, _rNet, a);
+      // phase B: slide the open face from its net cell into the grid slot
+      _rv.lerpVectors(_rv, _rGrid, b);
+      m.position.copy(_rv);
+      m.scale.setScalar(faceWorld);
+      const foldX = RAY_NET[j][1] !== 0 ? Math.sign(RAY_NET[j][1]) : 0;
+      const foldY = RAY_NET[j][0] !== 0 ? Math.sign(RAY_NET[j][0]) : 0;
+      // folded (a=0) -> 90deg about the hinge axis; flat net and grid (a>=1, b>=0) -> face-on
+      m.rotation.set(foldX * (1 - a) * (Math.PI / 2), foldY * (1 - a) * (Math.PI / 2), 0);
     }
     const rc = raymondCubeIndex();
     if (raymondT > 0.02 && meshes[rc]) setCubeOpacity(meshes[rc], 0);   // hide parked cube behind rig
