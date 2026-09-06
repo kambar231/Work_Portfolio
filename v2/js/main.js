@@ -133,14 +133,15 @@ function initPart3() {
       onLeaveBack: () => { particles.setDark(0); particles.setMorph(2, 0); if (veil) veil.style.opacity = '0'; document.body.classList.remove('in-stripe'); },
     });
   }
-  // Contact: the eight cubes glide from the drift back into the sorted grid (labels return
-  // with the unravel) as contact scrolls in.
+  // Contact: the eight cubes glide from the drift into the SAME sorted 4x2 grid as projects
+  // (labels return), fully settled by 60 percent of the section with tumble damped to 0, so
+  // nothing moves after that.
   const contactReassemble = document.getElementById('contact');
   if (contactReassemble && !reduced && !mobile) {
-    gsap.to({ p: 1 }, {
-      p: 0, ease: 'none',
-      scrollTrigger: { trigger: contactReassemble, start: 'top 90%', end: 'bottom bottom', scrub: 0.6 },
-      onUpdate: function () { cubes.setUnravel(this.targets()[0].p); },
+    ScrollTrigger.create({
+      trigger: contactReassemble, start: 'top 80%', end: 'bottom bottom', scrub: 0.6,
+      onUpdate: (self) => cubes.setContact(Math.min(1, self.progress / 0.6)),
+      onLeaveBack: () => cubes.setContact(0),
     });
   }
 }
@@ -336,14 +337,23 @@ if (projSec) {
     });
     cardsEl.setAttribute('aria-hidden', 'false');
   }
+  // cards stay hidden through the unfold and fade in over 0.25 s once the net is complete
+  // (openT >= 0.985), so the first painted state is never a net with half-drawn cards.
+  let cardFadeStart = 0;
   function positionCards() {
     const a = cubes.faceAnchors();
     if (!a) return;
+    const openT = a.front ? a.front.vis : 0;
+    let op;
+    if (openT >= 0.985) {
+      if (!cardFadeStart) cardFadeStart = performance.now();
+      op = Math.min(1, (performance.now() - cardFadeStart) / 250);
+    } else { cardFadeStart = 0; op = 0; }
     for (const key in cardByFace) {
       const el = cardByFace[key]; const p = a[key];
       if (!p) continue;
       el.style.transform = `translate(-50%, -50%) translate(${p.x.toFixed(1)}px, ${p.y.toFixed(1)}px)`;
-      el.style.opacity = Math.max(0, (p.vis - 0.35) / 0.65).toFixed(2);
+      el.style.opacity = op.toFixed(3);
     }
   }
   let cardRAF = 0;
@@ -405,6 +415,8 @@ window.__v2.state = () => cubes.getState();
 window.__v2.openProject = (i) => cubes.openProject(i);
 window.__v2.projectOpen = () => cubes.projectOpenIndex();
 window.__v2.faceAnchors = () => cubes.faceAnchors();
+window.__v2.gridSlots = () => cubes.gridSlots();
+window.__v2.cubeCenters = () => cubes.cubeCenters();
 window.__v2.cardCentres = () => Array.from(document.querySelectorAll('#project-cards .pc')).map((el) => {
   const r = el.getBoundingClientRect();
   const key = (el.className.match(/pc-(front|right|left|top|bottom|back)/) || [])[1];
@@ -510,6 +522,14 @@ function refreshTextRects() {
     const r = el.getBoundingClientRect();
     if (r.width > 4 && r.height > 4 && r.bottom > 0 && r.top < vh && r.left < vw && r.right > 0) {
       rects.push({ x: r.x, y: r.y, w: r.width, h: r.height });
+    }
+  }
+  // while a morph shape is active, its bounding box (expanded ~60 px) is an avoid zone too,
+  // so drifting cubes fade off the forklift / slice stack / cube outline
+  for (let k = 0; k < 3; k++) {
+    if (particles.morphVal(k) > 0.25) {
+      const b = particles.morphBox(k);
+      if (b) rects.push({ x: b.x - 20, y: b.y - 20, w: b.w + 40, h: b.h + 40 });
     }
   }
   cubes.setTextRects(rects);

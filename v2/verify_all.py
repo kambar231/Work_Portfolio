@@ -54,6 +54,16 @@ def boxes_intersect(a, b, pad=0.0):
                 or a["y"] + a["h"] + pad <= b["y"] or b["y"] + b["h"] + pad <= a["y"])
 
 
+# A tilted cube's axis-aligned projected box overstates its visible silhouette (empty
+# corners), so cube-cube overlap is judged on the inscribed footprint (matches cubes.js).
+CUBE_SHRINK = 0.68
+
+
+def shrink(box, f=CUBE_SHRINK):
+    return {"x": box["x"] + box["w"] * (1 - f) / 2, "y": box["y"] + box["h"] * (1 - f) / 2,
+            "w": box["w"] * f, "h": box["h"] * f}
+
+
 def launch(pw, headless):
     args = ["--use-gl=angle", "--ignore-gpu-blocklist", "--enable-gpu"]
     if headless:
@@ -120,7 +130,7 @@ def main():
             overlap = 0.0
             for i in range(len(vis)):
                 for j in range(i + 1, len(vis)):
-                    a, b = vis[i]["box"], vis[j]["box"]
+                    a, b = shrink(vis[i]["box"]), shrink(vis[j]["box"])
                     if boxes_intersect(a, b, pad=-1.0):
                         ox = min(a["x"] + a["w"], b["x"] + b["w"]) - max(a["x"], b["x"])
                         oy = min(a["y"] + a["h"], b["y"] + b["h"]) - max(a["y"], b["y"])
@@ -143,6 +153,21 @@ def main():
                 if bright_on_text:
                     break
             checks["b_no_bright_cube_on_text"] = not bright_on_text
+
+            # no cube brighter than 0.35 inside an active morph shape's box (+60 px)
+            shapes = pg.evaluate("() => [0,1,2].filter(k => window.__v2.morphVal(k) > 0.25)"
+                                 ".map(k => window.__v2.morphBox(k)).filter(Boolean)")
+            bright_on_shape = False
+            for c in cubes:
+                if c["op"] <= 0.35:
+                    continue
+                for s in shapes:
+                    if boxes_intersect(c["box"], {"x": s["x"] - 60, "y": s["y"] - 60, "w": s["w"] + 120, "h": s["h"] + 120}):
+                        bright_on_shape = True
+                        break
+                if bright_on_shape:
+                    break
+            checks["f_no_bright_cube_on_shape"] = not bright_on_shape
 
             open_idx = pg.evaluate("() => window.__v2.projectOpen()")
             cards = pg.evaluate("() => document.querySelectorAll('#project-cards .pc').length")
@@ -169,10 +194,13 @@ def main():
         # interaction tests
         click_fail = run_click_test(pg)
         panel_fail = run_panel_test(pg)
+        contact_fail = run_contact_test(pg, sh, vh)
         if click_fail:
             failures.append(("click-test", click_fail, 0))
         if panel_fail:
             failures.append(("panel-test", panel_fail, 0))
+        if contact_fail:
+            failures.append(("contact-grid", contact_fail, 0))
 
         med_fps = statistics.median(fps_samples) if fps_samples else 0
         fps_ok = (med_fps >= 55) if gpu else True
@@ -191,6 +219,7 @@ def main():
     print(f"\nmedian fps sample: {med_fps:.0f}  (gpu={gpu}, enforced={gpu})")
     print(f"click test: {'OK' if not click_fail else click_fail}")
     print(f"panel test: {'OK' if not panel_fail else panel_fail}")
+    print(f"contact grid: {'OK' if not contact_fail else contact_fail}")
     print(f"frames written: {len(rows)} -> {OUT_DIR}")
 
     if failures:
@@ -222,11 +251,15 @@ def run_click_test(pg):
         y0 = pg.evaluate("() => window.scrollY")
         pg.evaluate(f"() => window.__v2.openProject({i})")
         pg.wait_for_timeout(1500)
+        # by now the net is complete (~1.1 s) plus >350 ms; cards must be fully faded in
         chk = pg.evaluate("""() => {
           const a = window.__v2.faceAnchors(); const cs = window.__v2.cardCentres();
-          let maxd = null; if (a) { maxd = 0; cs.forEach(c => { const d = Math.hypot(c.x-a[c.key].x, c.y-a[c.key].y); if (d>maxd) maxd=d; }); }
-          return { open: window.__v2.projectOpen(), n: cs.length, maxd: maxd===null?null:+maxd.toFixed(2) };
+          let maxd = null, minop = 1;
+          if (a) { maxd = 0; cs.forEach(c => { const d = Math.hypot(c.x-a[c.key].x, c.y-a[c.key].y); if (d>maxd) maxd=d; if (c.op<minop) minop=c.op; }); }
+          return { open: window.__v2.projectOpen(), n: cs.length,
+                   maxd: maxd===null?null:+maxd.toFixed(2), minop: +minop.toFixed(2) };
         }""")
+        pg.screenshot(path=str(OUT_DIR / f"open_{i}.png"))
         if i % 2 == 0:
             pg.click("#project-close")
         else:
@@ -235,9 +268,37 @@ def run_click_test(pg):
         y1 = pg.evaluate("() => window.scrollY")
         after = pg.evaluate("() => window.__v2.projectOpen()")
         ok = (chk["open"] == i and chk["n"] == 6 and chk["maxd"] is not None
-              and chk["maxd"] <= 8 and after == -1 and abs(y1 - y0) < 2)
+              and chk["maxd"] <= 8 and chk["minop"] >= 0.95 and after == -1 and abs(y1 - y0) < 2)
         if not ok:
             fails.append({"cube": i, **chk, "after": after, "dscroll": round(y1 - y0, 1)})
+    return fails
+
+
+def run_contact_test(pg, sh, vh):
+    # scroll to the very bottom and let the settle finish, then assert every cube sits on
+    # its grid slot (< 6 px) and no two boxes overlap.
+    pg.evaluate(f"() => window.__v2.scrollToY({sh})")
+    pg.wait_for_timeout(2600)
+    data = pg.evaluate("""() => {
+      const slots = window.__v2.gridSlots(); const centers = window.__v2.cubeCenters();
+      const boxes = window.__v2.allCubes();
+      return centers.map((c, i) => ({ cx: c.x, cy: c.y, sx: slots[i].x, sy: slots[i].y,
+        box: boxes[i].box, op: boxes[i].op }));
+    }""")
+    fails = []
+    maxd = 0.0
+    for i, d in enumerate(data):
+        dist = ((d["cx"] - d["sx"]) ** 2 + (d["cy"] - d["sy"]) ** 2) ** 0.5
+        maxd = max(maxd, dist)
+        if dist > 6:
+            fails.append({"cube": i, "slot_dist": round(dist, 1)})
+    boxes = [d["box"] for d in data if d["op"] > 0.12]
+    for i in range(len(boxes)):
+        for j in range(i + 1, len(boxes)):
+            if boxes_intersect(shrink(boxes[i]), shrink(boxes[j]), pad=-1.0):
+                fails.append({"overlap": [i, j]})
+    if fails:
+        fails.append({"max_slot_dist": round(maxd, 1)})
     return fails
 
 

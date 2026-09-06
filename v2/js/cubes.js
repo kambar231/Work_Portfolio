@@ -341,7 +341,7 @@ export function createCubeHero({ onCubeClick } = {}) {
     // box is hugely inflated by the tumble, so pin the label a fixed pixel offset below the
     // projected cube CENTRE (~half a 180px cube plus margin): clear of this cube, above the
     // next row.
-    const inProjects = projT > 0.5 && openIndex < 0;
+    const inProjects = (projT > 0.5 || contactT > 0.5) && openIndex < 0;
     for (let i = 0; i < meshes.length; i++) {
       let x, y, op;
       if (forceHidden || openIndex >= 0) {
@@ -488,8 +488,10 @@ export function createCubeHero({ onCubeClick } = {}) {
   // When the projects section is on screen the eight cubes settle into a centred 4x2 grid.
   // Clicking one glides it to the centre and unfolds it into a cross net of six textured
   // faces; DOM cards (positioned by projection, see faceAnchors) fade in over each face.
-  const PROJ_SCALE = 1.55, PROJ_SPX = 2.0, PROJ_SPY = 2.7, PROJ_CY = -0.05;
+  const PROJ_SCALE = 1.5, PROJ_SPX = 2.5, PROJ_SPY = 2.9, PROJ_CY = -0.05;
   let projT = 0, projActive = false;          // 0..1 settle into the grid
+  let contactT = 0;                           // 0..1 settle into the SAME grid at the close
+  function setContact(t) { contactT = Math.min(1, Math.max(0, t)); }
   let hoverIndex = -1;
   let openIndex = -1, openT = 0;              // 0 closed, 1 fully unfolded
   const projWorld = [];                        // centred grid slot (world) per cube
@@ -597,6 +599,30 @@ export function createCubeHero({ onCubeClick } = {}) {
   }
   function setHover(i) { hoverIndex = i; }
   function projectOpenIndex() { return openIndex; }
+   // screen centres of the eight grid slots (for the contact-settle verifier)
+  function gridSlots() {
+    const w = window.innerWidth, h = window.innerHeight; const out = [];
+    group.updateWorldMatrix(true, false);
+    for (let i = 0; i < projWorld.length; i++) {
+      // the settled cube sits at local (projWorld - group.position); project THAT through the
+      // group transform, exactly where a cube ends up, so the slot matches the cube.
+      _p.copy(projWorld[i]).sub(group.position);
+      group.localToWorld(_p);
+      _p.project(camera);
+      out.push({ x: (_p.x * 0.5 + 0.5) * w, y: (-_p.y * 0.5 + 0.5) * h });
+    }
+    return out;
+  }
+  // projected CENTRE POINT of each cube (not the AABB centre, which perspective skews for a
+  // tilted off-centre cube) — the fair comparison against a grid slot.
+  function cubeCenters() {
+    const w = window.innerWidth, h = window.innerHeight; const out = [];
+    for (let i = 0; i < meshes.length; i++) {
+      meshes[i].getWorldPosition(_p); _p.project(camera);
+      out.push({ x: (_p.x * 0.5 + 0.5) * w, y: (-_p.y * 0.5 + 0.5) * h, op: meshes[i].material[0].opacity });
+    }
+    return out;
+  }
 
   window.addEventListener('resize', resize);
   resize();
@@ -610,6 +636,10 @@ export function createCubeHero({ onCubeClick } = {}) {
   const _c0 = new THREE.Vector3(), _c1 = new THREE.Vector3();
   const _sc = new Array(CUBES.length).fill(null);
   const OVERLAP_MARGIN = 8;
+  // A tilted cube's axis-aligned projected box is much larger than its visible silhouette
+  // (empty corners), so overlap is judged on the inscribed footprint. The checker uses the
+  // same factor.
+  const OVERLAP_SHRINK = 0.68;
   function gatherBoxes() {
     const w = window.innerWidth, h = window.innerHeight;
     let n = 0;
@@ -638,10 +668,12 @@ export function createCubeHero({ onCubeClick } = {}) {
     return n;
   }
   function resolveOverlaps() {
-    // Re-project and correct up to 3 times so cubes at different depths converge to an
-    // overlap-free layout, then fade any cube still sitting on visible text.
+    // The settled projects/contact grids are laid out to not overlap; skip the pairwise
+    // push there so cubes stay exactly on their slots (their tilt-inflated AABBs would
+    // otherwise cascade the grid apart). Repulsion still runs for the drifting cloud.
+    const inGrid = projT > 0.5 || contactT > 0.5;
     let n = 0;
-    for (let pass = 0; pass < 3; pass++) {
+    for (let pass = 0; pass < 3 && !inGrid; pass++) {
       n = gatherBoxes();
       if (n < 2) break;
       let anyOverlap = false;
@@ -652,8 +684,8 @@ export function createCubeHero({ onCubeClick } = {}) {
           for (let b = a + 1; b < meshes.length; b++) {
             const B = _sc[b]; if (!B) continue;
             const dx = B.cx - A.cx, dy = B.cy - A.cy;
-            const ox = (A.hx + B.hx + OVERLAP_MARGIN) - Math.abs(dx);
-            const oy = (A.hy + B.hy + OVERLAP_MARGIN) - Math.abs(dy);
+            const ox = ((A.hx + B.hx) * OVERLAP_SHRINK + OVERLAP_MARGIN) - Math.abs(dx);
+            const oy = ((A.hy + B.hy) * OVERLAP_SHRINK + OVERLAP_MARGIN) - Math.abs(dy);
             if (ox <= 0 || oy <= 0) continue;              // already separated on an axis
             const wa = A.wz >= B.wz ? 0.32 : 0.68, wb = 1 - wa;
             if (ox < oy) { const s = (dx < 0 ? -1 : 1) * ox; A.cx -= s * wa; B.cx += s * wb; A.dx -= s * wa; B.dx += s * wb; }
@@ -710,8 +742,8 @@ export function createCubeHero({ onCubeClick } = {}) {
     }
     const parked = anyParked();
 
-    // projects grid settles the whole cloud; ease parallax out while it is active
-    if (projT > 0.01) { group.rotation.x *= 0.88; group.rotation.y *= 0.88; }
+    // the projects and contact grids settle the whole cloud; ease parallax out
+    if (projT > 0.01 || contactT > 0.01) { group.rotation.x *= 0.88; group.rotation.y *= 0.88; }
 
     for (let i = 0; i < meshes.length; i++) {
       const m = meshes[i];
@@ -733,14 +765,29 @@ export function createCubeHero({ onCubeClick } = {}) {
         if (projT > 0.4 && openIndex < 0) {
           // settle nearer face-on (small 3D tilt) so each cube reads at its ~180px
           // footprint and a label fits cleanly under it between the two rows
-          m.rotation.x += (0.16 - m.rotation.x) * 0.12;
-          m.rotation.y += (0.26 - m.rotation.y) * 0.12;
+          m.rotation.x += (0.1 - m.rotation.x) * 0.12;
+          m.rotation.y += (0.14 - m.rotation.y) * 0.12;
         }
         op = openIndex >= 0 ? (i === openIndex ? 0 : 0.06) : 1;
         if (moving && tumbleScale > 0) { m.rotation.x += TUMBLE_X * fs * tumbleScale; m.rotation.y += TUMBLE_Y * fs * tumbleScale; }
         m.scale.setScalar(targetScale);
         cubeReveal[i] += (revealTargets[i] - cubeReveal[i]) * Math.min(1, 0.12 * fs);
         setCubeOpacity(m, op * cubeReveal[i]);
+        continue;
+      }
+      if (contactT > 0.01) {
+        // settle into the SAME centred 4x2 grid as projects; tumble damped to 0, no bob or
+        // drift, so once settled nothing moves.
+        const e = ease(contactT);
+        _tmp.copy(projWorld[i]).sub(group.position);
+        m.position.set(base[i].x + (_tmp.x - base[i].x) * e,
+          base[i].y + (_tmp.y - base[i].y) * e,
+          base[i].z + (_tmp.z - base[i].z) * e);
+        m.rotation.x += (0.1 - m.rotation.x) * 0.12;
+        m.rotation.y += (0.14 - m.rotation.y) * 0.12;
+        m.scale.setScalar(1 + (PROJ_SCALE - 1) * e);
+        cubeReveal[i] += (revealTargets[i] - cubeReveal[i]) * Math.min(1, 0.12 * fs);
+        setCubeOpacity(m, cubeReveal[i]);
         continue;
       }
       if (tr) {
@@ -792,11 +839,11 @@ export function createCubeHero({ onCubeClick } = {}) {
   return {
     frame, setUnravel, setState, focus, raycast, setPointer, ready,
     cubeBoxes, labelBoxes, chapterPark, setTrack, setExclude, setTextRects, chapterDim, setCloudDim, setMobileHide, setForceHidden, meshBox,
-    setProjects, setHover, openProject, closeProject, projectOpenIndex, faceAnchors, setProjectHandlers,
+    setProjects, setContact, gridSlots, cubeCenters, setHover, openProject, closeProject, projectOpenIndex, faceAnchors, setProjectHandlers,
     projectsActive: () => projActive,
     labelFor: (i) => (CUBES[i] ? CUBES[i].label : ''),
     cubeOpacity: (i) => meshes[i].material[0].opacity,
-    getState: () => ({ unravel, parked: Object.keys(parkTargets).map(Number) }),
+    getState: () => ({ unravel, parked: Object.keys(parkTargets).map(Number), projT: +projT.toFixed(2), contactT: +contactT.toFixed(2) }),
     capDpr() { renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5)); resize(); },
     halveCount() {},
     sectionFor: (i) => (CUBES[i] ? CUBES[i].section : null),
