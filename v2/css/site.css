@@ -413,8 +413,11 @@ html.lenis, html.lenis body { height: auto; }
 .exp2-head li { font-size: 15px; color: var(--grey2); line-height: 1.6; }
 /* Experience column: heading + dates pinned to the top, achievements to the bottom, so
    the 34vh to 70vh band on the left is free for the Raymond cube to park and unfold. */
-#experience .exp2-pin { padding: 6vh 0; }
-#experience .exp2-col { max-width: 34vw; min-height: 88vh; display: flex; flex-direction: column; justify-content: space-between; }
+#experience .exp2-pin { padding: 4vh 0; }
+#experience .exp2-col { max-width: 34vw; min-height: 92vh; display: flex; flex-direction: column; justify-content: space-between; }
+/* heading held small here so the whole top block (word + employer lines) clears 26vh, leaving
+   the 26vh to 74vh band on the left free for the unfolded Raymond faces. */
+#experience .exp-word { font-size: min(56px, 4.4vw); line-height: 1; }
 .exp2-top { margin: 0; }
 .exp2-bottom { margin: 0; }
 .exp2-sub { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--label); margin: 0 0 12px; font-weight: 500; }
@@ -455,7 +458,7 @@ html.lenis, html.lenis body { height: auto; }
 .slice-label { position: absolute; right: 0; top: 6px; font-size: 12px; color: var(--ink); letter-spacing: .02em; }
 
 /* ---- Projects: cube grid + unfold ---- */
-.projects2 { position: relative; min-height: 120vh; }
+.projects2 { position: relative; min-height: 160vh; }
 .projects-head { position: sticky; top: 12vh; z-index: 2; transition: opacity .4s ease; }
 .projects-head.dim { opacity: 0.15; pointer-events: none; }
 .projects-hint { font-size: 14px; color: var(--label); margin: 8px 0 0; }

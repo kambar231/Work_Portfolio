@@ -36,6 +36,11 @@ const cubes = createCubeHero({
   onCubeClick: (i) => scrollToSection(cubes.sectionFor(i)),
 });
 
+// Pinned-section ScrollTriggers, captured so the master loop can read their pixel range
+// and feed a 0..1 progress (0 before the pin, 1 after) to the engine every frame.
+let expST = null, slST = null, projST = null;
+const clamp01b = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
+
 // Raymond unfold state, shared by the experience ScrollTrigger and the pointer handlers.
 let raymondUnfoldT = 0;
 let raymondFaces = [];
@@ -127,17 +132,7 @@ function initPart3() {
       onLeaveBack: () => { particles.setDark(0); particles.setMorph(2, 0); if (veil) veil.style.opacity = '0'; document.body.classList.remove('in-stripe'); },
     });
   }
-  // Contact: the eight cubes glide from the drift into the SAME sorted 4x2 grid as projects
-  // (labels return), fully settled by 60 percent of the section with tumble damped to 0, so
-  // nothing moves after that.
-  const contactReassemble = document.getElementById('contact');
-  if (contactReassemble && !reduced && !mobile) {
-    ScrollTrigger.create({
-      trigger: contactReassemble, start: 'top 80%', end: 'bottom bottom', scrub: 0.6,
-      onUpdate: (self) => cubes.setContact(Math.min(1, self.progress / 0.6)),
-      onLeaveBack: () => cubes.setContact(0),
-    });
-  }
+  // (No cubes below projects: the contact / websites sections no longer host the grid.)
 }
 
 // ---- variable cam timing diagram (experience section); its update is driven by the one
@@ -189,8 +184,8 @@ if (expSec) {
     // cube 4 (Raymond "deploy") parks left of the forklift; every other cube is hidden by
     // the visible-set choreography in the master loop. Park + visibility are driven by
     // scroll position there, so this trigger only drives the forklift + unfold + reveal.
-    ScrollTrigger.create({
-      trigger: expSec, start: 'top top', end: '+=180%', pin: expSec.querySelector('.exp2-pin'),
+    expST = ScrollTrigger.create({
+      trigger: expSec, start: 'top top', end: '+=320%', pin: expSec.querySelector('.exp2-pin'),
       pinSpacing: true, scrub: 0.8,
       onUpdate: (self) => {
         const p = self.progress;
@@ -234,8 +229,8 @@ if (slSec) {
     slLines.forEach((el) => el.classList.add('in'));
     if (hair) hair.style.opacity = '0';
   } else {
-    ScrollTrigger.create({
-      trigger: slSec, start: 'top top', end: '+=160%', pin: slSec.querySelector('.exp2-pin'),
+    slST = ScrollTrigger.create({
+      trigger: slSec, start: 'top top', end: '+=260%', pin: slSec.querySelector('.exp2-pin'),
       pinSpacing: true, scrub: 0.8,
       onUpdate: (self) => {
         const p = self.progress;
@@ -349,9 +344,10 @@ if (projSec) {
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && cubes.projectOpenIndex() >= 0) cubes.closeProject(); });
 
   if (!reduced && !mobile) {
-    // desktop: the eight-cube grid shows only within #projects. Which cubes are live and
-    // whether setProjects is on are both driven by scroll position in the master loop, so
-    // the grid never leaks into the neighbouring sections.
+    // desktop: the eight-cube grid lives inside #projects. A no-pin measurement trigger
+    // gives the master loop the section's 160vh scroll range so it can feed the engine a
+    // 0..1 progress (grid fully settled at p = 0.5); the engine owns visibility + click.
+    projST = ScrollTrigger.create({ trigger: projSec, start: 'top top', end: '+=160%' });
   } else {
     // mobile / reduced: a 2x4 grid of tappable project tiles; tap opens a vertical face stack
     const grid = document.createElement('div');
@@ -502,38 +498,21 @@ function updateMobileDim() {
   }
 }
 
-// ---- section visibility: the cubes appear only in their own sections. Derived from scroll
-// POSITION every frame (ScrollTrigger onLeave does not fire on the checker's discrete
-// scrollToY jumps, which used to strand a parked cube into later sections), and pushed to
-// the engine only when the active section changes. Sets: #experience -> cube 4 (parked left
-// of the forklift), #slicer -> cube 3 (parked left of the slice stack), #projects and
-// #contact -> all eight (grid), every other section (hero, previous, websites, dark stripe,
-// education) -> none. ----
-const ALL8 = [0, 1, 2, 3, 4, 5, 6, 7];
-const secVis = [
-  { el: document.getElementById('experience'), set: [4], park: { i: 4, vw: 30, vh: 52, scale: 2.4 } },
-  { el: document.getElementById('slicer'), set: [3], park: { i: 3, vw: 24, vh: 55, scale: 1.8 } },
-  { el: document.getElementById('projects'), set: ALL8, projects: true },
-  { el: document.getElementById('contact'), set: ALL8, contact: true },
-].filter((s) => s.el);
-let lastVisKey = null;
-function updateSectionVisibility() {
-  if (reduced || mobile || !cubes.setVisibleSet) return;
-  const mid = window.innerHeight * 0.5;
-  let active = null;
-  for (const s of secVis) {
-    const r = s.el.getBoundingClientRect();
-    if (r.top <= mid && r.bottom >= mid) { active = s; break; }   // section owns the midline
-  }
-  const key = active ? active.el.id : 'none';
-  if (key === lastVisKey) return;                                  // only push on a change
-  lastVisKey = key;
-  cubes.setVisibleSet(active ? active.set : []);                   // [] hides every cube
-  if (cubes.setParkAnchor && active && active.park) {
-    cubes.setParkAnchor(active.park.i, active.park.vw, active.park.vh, active.park.scale);
-  }
-  cubes.setProjects(!!(active && active.projects));               // grid + click only in #projects
-  if (!(active && active.contact)) cubes.setContact(0);           // reset the contact grid off-section
+// ---- section progress: every frame, feed the engine a 0..1 scroll progress for each of the
+// three pinned sections (0 before the pin, 1 after). The engine owns cube visibility, the
+// Raymond/slicer park, the unfold, and the projects grid + click, deriving them from this
+// single signal. Computed from each ScrollTrigger's measured pixel range against the live
+// window.scrollY, so the checker's discrete scrollToY jumps land at the right progress. ----
+function progOf(st) {
+  if (!st) return 0;
+  const span = st.end - st.start;
+  return span > 0 ? clamp01b((window.scrollY - st.start) / span) : 0;
+}
+function updateSectionProgress() {
+  if (reduced || mobile || !cubes.setSectionProgress) return;
+  cubes.setSectionProgress('experience', progOf(expST));
+  cubes.setSectionProgress('slicer', progOf(slST));
+  cubes.setSectionProgress('projects', progOf(projST));
 }
 
 // ---- visible text rects (so bright cubes fade off the copy); elements cached once ----
@@ -589,7 +568,7 @@ function loop(now) {
   if (vctFrame) vctFrame(now);
   updateProgress();
   updateMobileDim();
-  updateSectionVisibility();
+  updateSectionProgress();
 
   // count rAF for 2.5 s after load; if under 50 fps, halve the particle count. A short
   // window lets weak/software-rendered hardware shed load quickly (better on a laptop
