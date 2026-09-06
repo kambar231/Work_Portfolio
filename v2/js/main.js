@@ -81,23 +81,10 @@ function scrollToSection(sel) {
   else el.scrollIntoView({ behavior: 'smooth' });
 }
 
-// ---- unravel: one GSAP timeline scrubbed by ScrollTrigger over the first 120vh ----
-if (!reduced && !mobile) {
-  const proxy = { p: 0 };
-  gsap.to(proxy, {
-    p: 1,
-    ease: 'power2.inOut',
-    scrollTrigger: {
-      trigger: '#hero',
-      start: 'top top',
-      end: '+=120%',
-      scrub: true,
-    },
-    onUpdate: () => cubes.setUnravel(proxy.p),
-  });
-} else {
-  cubes.setUnravel(0);   // reduced + mobile: the sorted grid stays put
-}
+// Cubes appear only in their own sections (driven by scroll position in the master loop
+// below), so there is no hero unravel: the sorted grid never shows behind the headline.
+cubes.setUnravel(0);
+if (!reduced && !mobile && cubes.setVisibleSet) cubes.setVisibleSet([]);   // hero starts empty
 
 // ---- reading panels ----
 initChapters({ lenis });
@@ -199,25 +186,9 @@ if (expSec) {
     expSec.classList.add('seen');
     lines.forEach((el) => el.classList.add('in'));
   } else {
-    // cube 4 (Raymond "deploy") parks left of the forklift; the other seven exit to the
-    // edges while experience is on screen and are recalled to drift when it leaves.
-    const RAYMOND_CUBE = 4;
-    const enterExperience = () => {
-      for (let i = 0; i < cubes.count; i++) {
-        if (i === RAYMOND_CUBE) continue;
-        cubes.exit(i);
-      }
-      // park the raymond cube left of the forklift (30vw / 52vh, scale 2.4). chapterPark
-      // ignores axvw/ayvh, so use the engine's setParkAnchor when it is available.
-      if (cubes.setParkAnchor) cubes.setParkAnchor(RAYMOND_CUBE, 30, 52, 2.4);
-      else cubes.chapterPark(RAYMOND_CUBE, 'left', 1, { scale: 2.4 });
-    };
-    const leaveExperience = () => {
-      if (cubes.setRaymondUnfold) cubes.setRaymondUnfold(0);
-      raymondUnfoldT = 0;
-      for (let i = 0; i < cubes.count; i++) cubes.recall(i);
-      cubes.chapterPark(RAYMOND_CUBE, 'left', 0);   // unpark -> back to drift
-    };
+    // cube 4 (Raymond "deploy") parks left of the forklift; every other cube is hidden by
+    // the visible-set choreography in the master loop. Park + visibility are driven by
+    // scroll position there, so this trigger only drives the forklift + unfold + reveal.
     ScrollTrigger.create({
       trigger: expSec, start: 'top top', end: '+=180%', pin: expSec.querySelector('.exp2-pin'),
       pinSpacing: true, scrub: 0.8,
@@ -240,12 +211,9 @@ if (expSec) {
         expSec.classList.toggle('seen', p > 0.02);
         lines.forEach((el, k) => el.classList.toggle('in', p > 0.08 + k * 0.045));
       },
-      onEnter: enterExperience,
-      onEnterBack: enterExperience,
-      // forward exit: forklift HOLDS at 1 (slicer crossfade zeroes it); just recall cubes
-      onLeave: leaveExperience,
-      // back exit above experience: no forklift here, so dissolve it
-      onLeaveBack: () => { leaveExperience(); particles.setMorph(0, 0); },
+      // scrolling back up above experience: dissolve the forklift (cube visibility and the
+      // Raymond park are handled by scroll position in the master loop, not here).
+      onLeaveBack: () => { particles.setMorph(0, 0); },
     });
     // verifier hooks: current unfold t and a screen rect for face j (when the engine exposes it)
     window.__v2.raymondUnfold = () => raymondUnfoldT;
@@ -381,12 +349,9 @@ if (projSec) {
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && cubes.projectOpenIndex() >= 0) cubes.closeProject(); });
 
   if (!reduced && !mobile) {
-    // active only while the grid is on screen; turning off closes any open cube (setProjects)
-    ScrollTrigger.create({
-      trigger: projSec, start: 'top 60%', end: 'bottom 70%',
-      onEnter: () => cubes.setProjects(true), onEnterBack: () => cubes.setProjects(true),
-      onLeave: () => cubes.setProjects(false), onLeaveBack: () => cubes.setProjects(false),
-    });
+    // desktop: the eight-cube grid shows only within #projects. Which cubes are live and
+    // whether setProjects is on are both driven by scroll position in the master loop, so
+    // the grid never leaks into the neighbouring sections.
   } else {
     // mobile / reduced: a 2x4 grid of tappable project tiles; tap opens a vertical face stack
     const grid = document.createElement('div');
@@ -537,6 +502,40 @@ function updateMobileDim() {
   }
 }
 
+// ---- section visibility: the cubes appear only in their own sections. Derived from scroll
+// POSITION every frame (ScrollTrigger onLeave does not fire on the checker's discrete
+// scrollToY jumps, which used to strand a parked cube into later sections), and pushed to
+// the engine only when the active section changes. Sets: #experience -> cube 4 (parked left
+// of the forklift), #slicer -> cube 3 (parked left of the slice stack), #projects and
+// #contact -> all eight (grid), every other section (hero, previous, websites, dark stripe,
+// education) -> none. ----
+const ALL8 = [0, 1, 2, 3, 4, 5, 6, 7];
+const secVis = [
+  { el: document.getElementById('experience'), set: [4], park: { i: 4, vw: 30, vh: 52, scale: 2.4 } },
+  { el: document.getElementById('slicer'), set: [3], park: { i: 3, vw: 24, vh: 55, scale: 1.8 } },
+  { el: document.getElementById('projects'), set: ALL8, projects: true },
+  { el: document.getElementById('contact'), set: ALL8, contact: true },
+].filter((s) => s.el);
+let lastVisKey = null;
+function updateSectionVisibility() {
+  if (reduced || mobile || !cubes.setVisibleSet) return;
+  const mid = window.innerHeight * 0.5;
+  let active = null;
+  for (const s of secVis) {
+    const r = s.el.getBoundingClientRect();
+    if (r.top <= mid && r.bottom >= mid) { active = s; break; }   // section owns the midline
+  }
+  const key = active ? active.el.id : 'none';
+  if (key === lastVisKey) return;                                  // only push on a change
+  lastVisKey = key;
+  cubes.setVisibleSet(active ? active.set : []);                   // [] hides every cube
+  if (cubes.setParkAnchor && active && active.park) {
+    cubes.setParkAnchor(active.park.i, active.park.vw, active.park.vh, active.park.scale);
+  }
+  cubes.setProjects(!!(active && active.projects));               // grid + click only in #projects
+  if (!(active && active.contact)) cubes.setContact(0);           // reset the contact grid off-section
+}
+
 // ---- visible text rects (so bright cubes fade off the copy); elements cached once ----
 // keep this selector list in sync with TEXT_SELECTORS in v2/verify_all.py
 const TEXT_SEL = '.display,.hero-sub,.exp-word,.exp2-head,.exp2-systems,.exp2-ach,.exp2-prev,'
@@ -590,6 +589,7 @@ function loop(now) {
   if (vctFrame) vctFrame(now);
   updateProgress();
   updateMobileDim();
+  updateSectionVisibility();
 
   // count rAF for 2.5 s after load; if under 50 fps, halve the particle count. A short
   // window lets weak/software-rendered hardware shed load quickly (better on a laptop
