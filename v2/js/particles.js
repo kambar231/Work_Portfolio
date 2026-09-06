@@ -73,7 +73,7 @@ export function createParticles(opts = {}) {
   const flagAttr = flag.map((arr) => { const at = new THREE.BufferAttribute(arr, 1); at.setUsage(THREE.DynamicDrawUsage); return at; });
   const shapeNorm = [null, null, null];   // normalised source data once fetched (stride 4: x,y,z,cls)
   const shapeLoaded = [false, false, false];
-  const shapeBounds = [null, null, null]; // {maxx} of the normalised shape, for placement
+  const shapeBounds = [null, null, null]; // {minx,maxx,miny,maxy} of the normalised shape, for placement
 
   const geom = new THREE.BufferGeometry();
   geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -117,8 +117,14 @@ export function createParticles(opts = {}) {
          base.x += uWarp * sin(base.y * uFreq + uTime * 0.35) * (1.0 - m);
          base.y += uWarp * cos(base.x * uFreq + uTime * 0.31) * (1.0 - m);
          vec3 pos = base;
-         pos = mix(pos, aShape0, uMorph0);
-         pos = mix(pos, aShape1, uM1);
+         // crossfade forklift (0) and slice stack (1): blend the two forms by their
+         // relative weight, then blend up from dust by the total. At 50/50 the point
+         // sits midway between the two forms, never falling back to the plain field.
+         float sum01 = uMorph0 + uM1;
+         float ratio01 = uM1 / max(0.0001, sum01);
+         float amt01 = clamp(sum01, 0.0, 1.0);
+         vec3 form01 = mix(aShape0, aShape1, ratio01);
+         pos = mix(pos, form01, amt01);
          // cube outline: rotate the target set about its centre (Y axis) so the wireframe spins
          vec3 s2 = aShape2;
          vec2 rel2 = vec2(s2.x - uCubeCx, s2.z - uCubeCz);
@@ -162,14 +168,26 @@ export function createParticles(opts = {}) {
 
   // ---- shape placement (normalised -> world) ----
   // shapes are stored height 1, centred; forklift sits ~64vh tall with its right edge at 92vw.
+  // place shape k so its bounding-box centre projects to screen fraction (fx, fy) and its
+  // height covers hFrac of the viewport, at any aspect ratio. The attractor field is untouched.
+  function placeAt(k, fx, fy, hFrac) {
+    const halfW = visH * aspect() * 0.5;
+    const b = shapeBounds[k];
+    const hNorm = b ? Math.max(1e-4, b.maxy - b.miny) : 1;
+    const ncx = b ? (b.minx + b.maxx) * 0.5 : 0;
+    const ncy = b ? (b.miny + b.maxy) * 0.5 : 0;
+    const s = (hFrac * visH) / hNorm;
+    const targetX = (2 * fx - 1) * halfW;          // screen frac -> world x at z=0
+    const targetY = (1 - 2 * fy) * (visH * 0.5);   // screen frac from top -> world y at z=0
+    return { s, cx: targetX - ncx * s, cy: targetY - ncy * s, cz: 0 };
+  }
+  // per-shape depth correction: a shape with z-depth (the slice stack's rings) projects taller
+  // than its world height under perspective, so calibrate() tunes this until the ON-SCREEN
+  // height matches the 62vh target. A flat shape (forklift) converges to ~1.
+  const adj = [1, 1, 1];
   const PLACE = {
-    0: () => {
-      const halfW = visH * aspect() * 0.5;
-      const s = 0.64 * visH;
-      const maxx = shapeBounds[0] ? shapeBounds[0].maxx : 0.4;
-      return { s, cx: 0.84 * halfW - maxx * s, cy: 0, cz: 0 };   // right edge at 92vw
-    },
-    1: () => { const halfW = visH * aspect() * 0.5; return { s: 0.62 * visH, cx: 0.5 * halfW, cy: 0, cz: 0 }; }, // slice stack, right 45%
+    0: () => placeAt(0, 0.62, 0.50, 0.62 * adj[0]),   // forklift, centred at 62vw/50vh, 62vh tall
+    1: () => placeAt(1, 0.62, 0.50, 0.62 * adj[1]),   // slice stack, same box (crossfades with forklift)
     2: () => { const halfW = visH * aspect() * 0.5; return { s: 0.55 * visH, cx: 0.48 * halfW, cy: 0, cz: 0 }; }, // cube outline, right half, 55vh
   };
   const slicePlace = { lo: -1, hi: 1, cx: 0, cz: 0, s: 1 };
@@ -198,10 +216,15 @@ export function createParticles(opts = {}) {
     fetch(url).then((r) => r.arrayBuffer()).then((buf) => {
       const src = new Float32Array(buf);
       shapeNorm[k] = src;
-      let maxx = 0; const M = src.length / 4;
-      for (let i = 0; i < M; i++) { const x = src[i * 4]; if (x > maxx) maxx = x; }
-      shapeBounds[k] = { maxx };
-      placeShape(k); shapeLoaded[k] = true;
+      const M = src.length / 4;
+      let minx = Infinity, maxx = -Infinity, miny = Infinity, maxy = -Infinity;
+      for (let i = 0; i < M; i++) {
+        const x = src[i * 4], y = src[i * 4 + 1];
+        if (x < minx) minx = x; if (x > maxx) maxx = x;
+        if (y < miny) miny = y; if (y > maxy) maxy = y;
+      }
+      shapeBounds[k] = { minx, maxx, miny, maxy };
+      placeShape(k); calibrate(k); placeShape(k); shapeLoaded[k] = true;
       if (forcedK === k) uniforms['uMorph' + k].value = 1;   // apply a pending debug force
     }).catch(() => {});
   }
@@ -215,7 +238,7 @@ export function createParticles(opts = {}) {
     renderer.setSize(window.innerWidth, window.innerHeight, false);
     camera.aspect = aspect();
     camera.updateProjectionMatrix();
-    for (let k = 0; k < 3; k++) if (shapeLoaded[k]) placeShape(k);
+    for (let k = 0; k < 3; k++) if (shapeLoaded[k]) { placeShape(k); calibrate(k); placeShape(k); }
   }
   resize();
   window.addEventListener('resize', resize);
@@ -247,6 +270,18 @@ export function createParticles(opts = {}) {
       minx = Math.min(minx, X); maxx = Math.max(maxx, X); miny = Math.min(miny, Y); maxy = Math.max(maxy, Y);
     }
     return { x: minx, y: miny, w: maxx - minx, h: maxy - miny };
+  }
+
+  // tune adj[k] so the shape's projected screen height converges on the 62vh target
+  function calibrate(k) {
+    if (!shapeNorm[k]) return;
+    adj[k] = 1;
+    for (let it = 0; it < 6; it++) {
+      const box = morphBox(k); if (!box) break;
+      const hf = box.h / window.innerHeight;
+      if (Math.abs(hf - 0.62) < 0.008 || hf <= 0) break;
+      adj[k] *= 0.62 / hf;
+    }
   }
 
   function setDark(v) { uniforms.uDark.value = Math.min(1, Math.max(0, v)); }
