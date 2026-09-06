@@ -256,7 +256,8 @@ def main():
         click_fail = run_click_test(pg)
         panel_fail = run_panel_test(pg)
         contact_fail = run_contact_test(pg, sh, vh)
-        panel_scroll_fail = run_panel_scroll_test(pg)
+        panel_scroll_info = run_panel_scroll_test(pg)
+        panel_scroll_fail = None if panel_scroll_info.get("ok") else panel_scroll_info
         seam_report = run_seam_test(pg)
         if click_fail:
             failures.append(("click-test", click_fail, 0))
@@ -311,7 +312,8 @@ def main():
     _row("MIN-OPACITY", min_op >= MIN_CUBE_OP,
          f"min cube op {min_op} (>= {MIN_CUBE_OP}) at y={min_op_y}")
     _row("PANEL-SCROLL", not panel_scroll_fail,
-         "OK" if not panel_scroll_fail else str(panel_scroll_fail))
+         f"panel={panel_scroll_info.get('id')} scrollHeight={panel_scroll_info.get('scrollHeight')} "
+         f"scrollTop={panel_scroll_info.get('scrollTop')}")
     seam_flagged = sum(s["flagged"] for s in seam_report)
     _row("SEAM-CROPS", seam_flagged == 0,
          "  ".join(f"cube{s['cube']}:{s['flagged']}/{s['faces']}" for s in seam_report))
@@ -385,17 +387,45 @@ def sample_no_pop_scroll(pg, end_y, speed=1200):
 
 
 def run_panel_scroll_test(pg):
-    # open the longest reading panel and confirm it scrolls internally.
-    pg.evaluate("() => window.__v2panel.open('ray-stability')")
+    # find the LONGEST reading panel dynamically (its scrollHeight), then confirm it scrolls
+    # internally by 600 px. Panel content varies, so ray-stability is not assumed longest.
+    names = pg.evaluate("() => Array.from(document.querySelectorAll('#panels .panel')).map(e => e.id.replace('panel-',''))")
+
+    def _scroller_metrics():
+        return pg.evaluate("""() => {
+          const panel = Array.from(document.querySelectorAll('article.panel')).find(p => !p.hidden);
+          if (!panel) return null;
+          // the article may itself scroll, or an inner .panel-scroll may be the scroller
+          const cand = [panel, ...panel.querySelectorAll('.panel-scroll,[data-lenis-prevent]')];
+          const el = cand.find(e => e.scrollHeight > e.clientHeight + 1) || panel;
+          return { id: panel.id.replace('panel-',''),
+                   which: el === panel ? 'article' : (el.className || 'inner'),
+                   scrollHeight: el.scrollHeight, clientHeight: el.clientHeight };
+        }""")
+
+    longest = None
+    for name in names:
+        pg.evaluate(f"() => window.__v2panel.open('{name}')")
+        pg.wait_for_timeout(220)
+        m = _scroller_metrics()
+        pg.keyboard.press("Escape")
+        pg.wait_for_timeout(160)
+        if m and (longest is None or m["scrollHeight"] > longest["scrollHeight"]):
+            longest = m
+
+    if longest is None:
+        return {"err": "no visible panel among " + str(names)}
+
+    # reopen the longest panel and run the 600 px scroll assertion on its scroller
+    pg.evaluate(f"() => window.__v2panel.open('{longest['id']}')")
     pg.wait_for_timeout(600)
     info = pg.evaluate("""() => {
-      const panel = Array.from(document.querySelectorAll('article.panel'))
-        .find(p => !p.hidden);
+      const panel = Array.from(document.querySelectorAll('article.panel')).find(p => !p.hidden);
       if (!panel) return { err: 'no visible panel' };
-      // the article may itself scroll, or an inner .panel-scroll may be the scroller
       const cand = [panel, ...panel.querySelectorAll('.panel-scroll,[data-lenis-prevent]')];
-      let el = cand.find(e => e.scrollHeight > e.clientHeight + 1) || panel;
-      const before = { id: panel.id, which: el === panel ? 'article' : (el.className || 'inner'),
+      const el = cand.find(e => e.scrollHeight > e.clientHeight + 1) || panel;
+      const before = { id: panel.id.replace('panel-',''),
+                       which: el === panel ? 'article' : (el.className || 'inner'),
                        scrollHeight: el.scrollHeight, clientHeight: el.clientHeight };
       el.scrollTop = 600;
       before.scrollTop = el.scrollTop;
@@ -405,11 +435,9 @@ def run_panel_scroll_test(pg):
     pg.keyboard.press("Escape")
     pg.wait_for_timeout(420)
     if info.get("err"):
+        info["ok"] = False
         return info
-    scrollable = info["scrollHeight"] > info["clientHeight"]
-    scrolled = info.get("scrollTop", 0) >= 590
-    if scrollable and scrolled:
-        return None
+    info["ok"] = (info["scrollHeight"] > info["clientHeight"]) and (info.get("scrollTop", 0) >= 590)
     return info
 
 
