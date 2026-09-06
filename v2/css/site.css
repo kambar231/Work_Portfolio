@@ -252,8 +252,7 @@ body { background: transparent; overflow-x: hidden; }
   .ch-tail { min-height: auto; padding: 2vh 0 8vh; }
   .evidence { grid-template-columns: repeat(2, 1fr); gap: 20px; }
   .panel-col { padding: 72px 22px 100px; }
-  /* contact: grid in the top 34vh, details start at 42vh */
-  .ch-contact { min-height: 100vh; align-items: flex-start; padding-top: 42vh; padding-bottom: 8vh; }
+  .ch-contact { min-height: auto; align-items: flex-start; padding-top: 14vh; padding-bottom: 10vh; }
   /* tap targets >= 44px */
   .nav-links a { padding: 12px 6px; }
   .ch-open, .ray-open, .panel-close, .contact-list a, .web-tile { min-height: 44px; }
@@ -356,8 +355,8 @@ body { background: transparent; overflow-x: hidden; }
 .edu-col h3 { font-size: 14px; text-transform: uppercase; letter-spacing: .12em; margin: 0 0 14px; }
 .edu-col p { font-size: 16px; line-height: 1.7; color: var(--grey2); margin: 0 0 12px; }
 
-/* ---- Contact ---- */
-.ch-contact { position: relative; min-height: 100vh; display: flex; align-items: flex-end; padding-bottom: 12vh; }
+/* ---- Contact (no cube grid above it any more, so the block centres in the section) ---- */
+.ch-contact { position: relative; min-height: 100vh; display: flex; align-items: center; padding-bottom: 12vh; }
 .contact-list { list-style: none; margin: 24px 0 0; padding: 0; }
 .contact-list li { margin: 6px 0; }
 .contact-list a { font-size: 22px; color: var(--ink); text-decoration: none; }

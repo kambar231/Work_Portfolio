@@ -86,10 +86,8 @@ function scrollToSection(sel) {
   else el.scrollIntoView({ behavior: 'smooth' });
 }
 
-// Cubes appear only in their own sections (driven by scroll position in the master loop
-// below), so there is no hero unravel: the sorted grid never shows behind the headline.
-cubes.setUnravel(0);
-if (!reduced && !mobile && cubes.setVisibleSet) cubes.setVisibleSet([]);   // hero starts empty
+// Cubes appear only inside their own pinned sections (the engine derives visibility from the
+// per-frame section progress below), so nothing shows behind the hero headline.
 
 // ---- reading panels ----
 initChapters({ lenis });
@@ -528,31 +526,12 @@ function scrollProgress() {
   return max > 0 ? window.scrollY / max : 0;
 }
 
-// ---- mobile: hero + contact show the sorted grid; between them every cube is hidden
-// except the active chapter's cube, parked above its category word ----
-const contactEl = document.getElementById('contact');
-const mAnchors = mobile ? Array.from(document.querySelectorAll('.m-cube-anchor')) : [];
+// ---- mobile: the sorted cube grid shows on the hero only; every cube is hidden past it
+// (no cubes below projects, contact included) ----
 function updateMobileDim() {
   if (!mobile || reduced) return;
-  const vh = window.innerHeight, y = window.scrollY, mid = vh * 0.5;
-  const ct = contactEl ? contactEl.offsetTop : Infinity;
-  const inChapters = y > vh * 0.92 && y < ct - vh * 0.5;
-  cubes.setMobileHide(inChapters);
-  if (inChapters) {
-    // show the cube only while its word sits in a comfortable middle band (clear of the nav)
-    let best = null, bestD = Infinity;
-    for (const a of mAnchors) {
-      const r = a.getBoundingClientRect();
-      const cy = r.top + r.height / 2;
-      if (cy > vh * 0.22 && cy < vh * 0.72) {
-        const d = Math.abs(cy - mid);
-        if (d < bestD) { bestD = d; best = a; }
-      }
-    }
-    cubes.setTrack(best ? [{ i: parseInt(best.dataset.cube, 10), el: best, scale: 1.6 }] : []);
-  } else {
-    cubes.setTrack([]);
-  }
+  cubes.setMobileHide(window.scrollY > window.innerHeight * 0.92);
+  cubes.setTrack([]);
 }
 
 // ---- section progress: every frame, feed the engine a 0..1 scroll progress for each of the
