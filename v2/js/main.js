@@ -9,6 +9,7 @@ import ScrollTrigger from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
 import { createParticles } from './particles.js';
 import { createCubeHero } from './cubes.js';
+import { initChapters } from './chapters.js';
 
 window.gsap = gsap;                       // let cubes.js use GSAP for setState/focus
 gsap.registerPlugin(ScrollTrigger);
@@ -40,6 +41,10 @@ window.__v2 = {
     const r = el.getBoundingClientRect();
     return { x: r.x, y: r.y, w: r.width, h: r.height };
   },
+  navBox: () => {
+    const r = document.querySelector('.nav-links').getBoundingClientRect();
+    return { x: r.x, y: r.y, w: r.width, h: r.height };
+  },
 };
 
 function scrollToSection(sel) {
@@ -67,6 +72,23 @@ if (!reduced) {
 } else {
   cubes.setUnravel(0);
 }
+
+// ---- chapters (phase 2) ----
+initChapters({ gsap, ScrollTrigger, cubes, lenis, reduced });
+
+// verifier hook: parked-cube box vs a chapter's text column
+window.__v2.parkCube = (i, side, t) => { cubes.setUnravel(1); cubes.chapterPark(i, side, t); };
+window.__v2.meshBox = (i) => cubes.meshBox(i);
+window.__v2.state = () => cubes.getState();
+
+window.__v2.scrollToY = (y) => { if (lenis) lenis.scrollTo(y, { immediate: true }); else window.scrollTo(0, y); };
+window.__lenis = lenis;
+window.__v2.textColBox = (sel) => {
+  const el = document.querySelector(sel + ' .ch-inner');
+  if (!el) return null;
+  const r = el.getBoundingClientRect();
+  return { x: r.x, y: r.y, w: r.width, h: r.height };
+};
 
 // ---- cursor parallax for the cubes ----
 window.addEventListener('pointermove', (e) => {

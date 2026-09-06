@@ -33,6 +33,7 @@ with sync_playwright() as p:
         head = pg.evaluate("() => window.__v2.headlineBox()")
         cubes = pg.evaluate("() => window.__v2.cubeBoxes()")
         labels = pg.evaluate("() => window.__v2.labelBoxes()")
+        nav = pg.evaluate("() => window.__v2.navBox()")
         hc = [i for i, c in enumerate(cubes) if intersect(head, c)]
         hl = [i for i, l in enumerate(labels) if intersect(head, l)]
         if hc or hl:
@@ -40,6 +41,14 @@ with sync_playwright() as p:
             print(f"[{W}] FAIL headline overlaps cubes={hc} labels={hl}  head={ {k:round(v) for k,v in head.items()} }")
         else:
             print(f"[{W}] PASS headline clear of all cubes and labels")
+        # nav clearance: no cube under WORK/ABOUT/CONTACT, top row clears nav by >=24px
+        navc = [i for i, c in enumerate(cubes) if intersect(nav, c)]
+        top_gap = min(c["y"] for c in cubes) - (nav["y"] + nav["h"])
+        if navc or top_gap < 24:
+            fails += 1
+            print(f"[{W}] FAIL nav clearance: under-nav cubes={navc} top_gap={round(top_gap)}px (need >=24)")
+        else:
+            print(f"[{W}] PASS nav clear, top row gap {round(top_gap)}px")
 
         # unravel path: no two cubes intersect
         for pv in [0, 0.25, 0.5, 0.75, 1.0]:
@@ -55,6 +64,20 @@ with sync_playwright() as p:
                 print(f"[{W}] FAIL unravel {pv}: overlapping cube pairs {bad}")
             else:
                 print(f"[{W}] PASS unravel {pv}: no cube overlaps")
+
+        # parked cube must not overlap its chapter's text column
+        chapters = [(0, "right", "#polymer"), (1, "left", "#casting"),
+                    (2, "right", "#cnc"), (3, "left", "#slicer")]
+        for idx, side, sel in chapters:
+            pg.evaluate(f"() => window.__v2.parkCube({idx}, '{side}', 1)")
+            pg.wait_for_timeout(120)
+            cube = pg.evaluate(f"() => window.__v2.meshBox({idx})")
+            text = pg.evaluate(f"() => window.__v2.textColBox('{sel}')")
+            if text and intersect(cube, text):
+                fails += 1
+                print(f"[{W}] FAIL {sel}: parked cube overlaps text column")
+            else:
+                print(f"[{W}] PASS {sel}: parked cube clear of text column")
         pg.close()
     b.close()
 

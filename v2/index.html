@@ -49,11 +49,108 @@
       </div>
     </section>
 
-    <section id="origin" class="chapter"><div class="col"><span class="kicker">01 / origin</span><h2>origin</h2><p class="note">Chapter content arrives in phase 2.</p></div></section>
-    <section id="polymer" class="chapter"><div class="col"><span class="kicker">02 / simulate</span><h2>polymer</h2><p class="note">Chapter content arrives in phase 2.</p></div></section>
-    <section id="casting" class="chapter"><div class="col"><span class="kicker">03 / make</span><h2>casting</h2><p class="note">Chapter content arrives in phase 2.</p></div></section>
-    <section id="cnc" class="chapter"><div class="col"><span class="kicker">04 / build</span><h2>cnc</h2><p class="note">Chapter content arrives in phase 2.</p></div></section>
-    <section id="slicer" class="chapter"><div class="col"><span class="kicker">05 / software</span><h2>slicer</h2><p class="note">Chapter content arrives in phase 2.</p></div></section>
+    <!-- Chapter 1: Origin (no project cube; the field just densifies) -->
+    <section id="origin" class="ch" data-side="left" data-cube="-1">
+      <div class="ch-pin"><div class="col ch-inner">
+        <span class="ch-label">01 / origin</span>
+        <h2 class="ch-word" data-word="origin">origin</h2>
+        <ul class="ch-facts">
+          <li>Semey, Kazakhstan</li>
+          <li>Rochester, New York, 2016</li>
+          <li>RIT, BS and MEng, controls, GPA 3.90 and 4.00</li>
+        </ul>
+        <p class="ch-story">I'm from Semey, a town in eastern Kazakhstan. I came to the United States in 2016 and learned English and the machine shop at about the same speed. RIT gave me a BS and a master's in mechanical engineering, and I took the controls concentration because that part wouldn't leave me alone. Everything after this page starts here.</p>
+        <p class="ch-key">The controls concentration is the part that stuck.</p>
+      </div></div>
+    </section>
+
+    <!-- Chapter 2: Polymer Lithography Simulation -->
+    <section id="polymer" class="ch" data-side="right" data-cube="0">
+      <div class="ch-pin"><div class="col ch-inner">
+        <span class="ch-label">02 / simulate</span>
+        <h2 class="ch-word" data-word="simulate">simulate</h2>
+        <ul class="ch-list">
+          <li>Block copolymer phase separation</li>
+          <li>Weeks-Chandler-Andersen potential in LAMMPS</li>
+          <li>RIT Honors research, Dr. Padmanabhan, 2020</li>
+        </ul>
+        <p class="ch-story">My first real research was a simulation, not a machine. Block copolymers separate into holes, spheres, stripes, or lamellae depending on their chemistry, and lithography uses those shapes. I wrote about a hundred lines of molecular dynamics with the Weeks-Chandler-Andersen potential and ran thousands of them on RIT's cluster. Temperature, repulsion, and atom size each push the result around, so the point was to find where to start in the lab instead of guessing with expensive runs.</p>
+        <p class="ch-key">Simulation bridged to experiment.</p>
+        <button class="ch-open" type="button" data-panel="polymer">Read the full breakdown</button>
+      </div></div>
+      <div class="ch-tail"><div class="col evidence">
+        <div class="ev-col"><span class="ev-label">Designed</span><img loading="lazy" src="assets/img/polymer-2.jpg" alt="Diagram of block copolymer morphologies: spheres, lamellae, cylinders, stripes" /><p>The same system settles into holes, spheres, stripes, or lamellae. Which pattern you get is the whole design space.</p></div>
+        <div class="ev-col"><span class="ev-label">Analyzed</span><img loading="lazy" src="assets/img/polymer-phase-sep.jpg" alt="Molecular dynamics render of two phase-separated block types" /><p>About 100 lines of molecular dynamics, WCA potential, run in LAMMPS on the RIT cluster across thousands of cases.</p></div>
+        <div class="ev-col ev-gap"><span class="ev-label">Built</span><div class="ev-none">no rig</div><p>The build here is the simulation itself. No physical rig.</p></div>
+        <div class="ev-col"><span class="ev-label">Proved</span><img loading="lazy" src="assets/img/polymer-3.jpg" alt="Simulation cell showing a cleanly striped phase separated end state" /><p>The runs reached clean separated end states. The interaction parameter falls with temperature and rises with repulsion, a starting map for the lab.</p></div>
+      </div></div>
+    </section>
+
+    <!-- Chapter 3: Additive Manufacturing and Investment Casting -->
+    <section id="casting" class="ch" data-side="left" data-cube="1">
+      <div class="ch-pin"><div class="col ch-inner">
+        <span class="ch-label">03 / make</span>
+        <h2 class="ch-word" data-word="make">make</h2>
+        <ul class="ch-list">
+          <li>Fusion 360 negative mold</li>
+          <li>Truncated-octahedron lattice in nTopology</li>
+          <li>Transient CFD at 1273 K, RIT AMPrint</li>
+        </ul>
+        <p class="ch-story">This one turns a printed shell into a metal part. In Fusion 360 I built the negative mold with pour holes up top and drains at the bottom, then tilted the whole thing 2 degrees so a 90 degree overhang stayed printable. To keep the ceramic shell from warping in the kiln, I grew a truncated-octahedron lattice in nTopology with most struts running vertical. Before melting anything, I simulated the pour.</p>
+        <p class="ch-key">Molten aluminium into a printed ceramic mold.</p>
+        <button class="ch-open" type="button" data-panel="casting">Read the full breakdown</button>
+      </div></div>
+      <div class="ch-tail"><div class="col evidence">
+        <div class="ev-col"><span class="ev-label">Designed</span><img loading="lazy" src="assets/img/casting-2.jpg" alt="Cross section of the ceramic mold with cores and a 2 degree tilt" /><p>Negative mold in Fusion 360, cores and a 2 degree tilt for printability.</p></div>
+        <div class="ev-col"><span class="ev-label">Analyzed</span><img loading="lazy" src="assets/img/casting-5.jpg" alt="Transient CFD half-model mesh of the metal fill" /><p>Transient CFD with air and liquid aluminium at 1273 K, checking for an early freeze or trapped air.</p></div>
+        <div class="ev-col ev-gap"><span class="ev-label">Built</span><div class="ev-none">photo pending</div><p>The mold prints and the pour is designed. I don't have a clean photo of the finished cast nozzle yet.</p></div>
+        <div class="ev-col"><span class="ev-label">Proved</span><img loading="lazy" src="assets/img/casting-3.jpg" alt="Truncated octahedron lattice shell generated in nTopology" /><p>The CFD showed a complete fill before any metal was melted. You find the cold shut on the screen, not in a ruined mold.</p></div>
+      </div></div>
+    </section>
+
+    <!-- Chapter 4: PrintNC CNC Router -->
+    <section id="cnc" class="ch" data-side="right" data-cube="2">
+      <div class="ch-pin"><div class="col ch-inner">
+        <span class="ch-label">04 / build</span>
+        <h2 class="ch-word" data-word="build">build</h2>
+        <ul class="ch-list">
+          <li>PrintNC steel frame, Fusion 360</li>
+          <li>2.2 kW spindle, star ground against EMI</li>
+          <li>1200 by 800 mm work area</li>
+        </ul>
+        <p class="ch-story">I wanted a machine that could cut real material, not foam and patience, so I built a PrintNC in my apartment. On the third floor. Don't tell my landlord. Rigidity comes from steel, so I cut and tapped the members for a stiff frame. The 2.2 kW spindle throws a lot of electrical noise, so I planned a line filter, shielded cable, and a single star ground to keep it out of the logic.</p>
+        <p class="ch-key">1200 by 800 mm, holds 0.1 mm.</p>
+        <button class="ch-open" type="button" data-panel="cnc">Read the full breakdown</button>
+      </div></div>
+      <div class="ch-tail"><div class="col evidence">
+        <div class="ev-col"><span class="ev-label">Designed</span><img loading="lazy" src="assets/img/cnc-render.jpg" alt="PrintNC reference CAD render of the router" /><p>Worked from the PrintNC reference in Fusion 360, sized for the cut area I wanted.</p></div>
+        <div class="ev-col"><span class="ev-label">Analyzed</span><img loading="lazy" src="assets/img/cnc-build.jpg" alt="Welded steel frame and assembled gantry" /><p>Rigidity is in the steel. The spindle and its VFD needed an EMI filter, shielding, and a star ground away from the logic.</p></div>
+        <div class="ev-col"><span class="ev-label">Built</span><img loading="lazy" src="assets/img/cnc-machine.jpg" alt="The finished PrintNC router on the bench" /><p>Welded steel frame, assembled gantry, water-cooled spindle, wired and running.</p></div>
+        <div class="ev-col"><span class="ev-label">Proved</span><img loading="lazy" src="assets/img/cnc-cut-clean.jpg" alt="Clean second-pass cut with vertical walls" /><p>It cuts. The first pass was rough, the second came out with clean vertical walls, and it now cuts parts for other projects.</p></div>
+      </div></div>
+    </section>
+
+    <!-- Chapter 5: 3D Slicer and G-code -->
+    <section id="slicer" class="ch" data-side="left" data-cube="3">
+      <div class="ch-pin"><div class="col ch-inner">
+        <span class="ch-label">05 / software</span>
+        <h2 class="ch-word" data-word="software">software</h2>
+        <ul class="ch-list">
+          <li>STL to G-code in Python and PyQt</li>
+          <li>Every stage exposed, not hidden</li>
+          <li>Foundation for tilted-plane slicing</li>
+        </ul>
+        <p class="ch-story">I got tired of treating my slicer like a black box, so I wrote my own in Python. You load an STL, set a layer height, then slice and generate G-code, and each stage shows its own state instead of hiding it. Every layer is computed and drawn, so I can check the wall paths at any height. Doing it from scratch is humbling. Every smooth print is hiding a stack of geometry decisions you never had to think about.</p>
+        <p class="ch-key">STL to G-code, written from scratch.</p>
+        <button class="ch-open" type="button" data-panel="slicer">Read the full breakdown</button>
+      </div></div>
+      <div class="ch-tail"><div class="col evidence">
+        <div class="ev-col"><span class="ev-label">Designed</span><img loading="lazy" src="assets/img/slicer-software.jpg" alt="The custom Python slicer interface built in PyQt" /><p>A small pipeline that exposes every stage. Load an STL, set layer height and resolution, slice, generate.</p></div>
+        <div class="ev-col"><span class="ev-label">Analyzed</span><img loading="lazy" src="assets/img/slicer-layer-plot.jpg" alt="Slicer layer outlines with current and next walls overlaid" /><p>Every layer is computed and drawn, so I can see the wall paths and check geometry at each height.</p></div>
+        <div class="ev-col"><span class="ev-label">Built</span><img loading="lazy" src="assets/img/slicer-stl-viewer.jpg" alt="Custom STL viewer with a model on the build plate" /><p>The working program slices a real STL and writes G-code end to end.</p></div>
+        <div class="ev-col"><span class="ev-label">Proved</span><img loading="lazy" src="assets/img/slicer-stl-detail.jpg" alt="Slicer viewer close up at 0.2 mm layer height" /><p>It generates usable G-code from an arbitrary STL. It's the base for research on tilted and curved slicing planes, which is why I wrote it.</p></div>
+      </div></div>
+    </section>
     <section id="raymond" class="chapter"><div class="col"><span class="kicker">06 / deploy</span><h2>raymond</h2><p class="note">Chapter content arrives in phase 3.</p></div></section>
     <section id="experience" class="chapter"><div class="col"><span class="kicker">07 / before</span><h2>experience</h2><p class="note">Chapter content arrives in phase 3.</p></div></section>
     <section id="others" class="chapter"><div class="col"><span class="kicker">08 / more</span><h2>other projects</h2><p class="note">Chapter content arrives in phase 3.</p></div></section>
@@ -61,6 +158,61 @@
     <section id="about" class="chapter"><div class="col"><span class="kicker">10 / about</span><h2>about</h2><p class="note">Chapter content arrives in phase 3.</p></div></section>
     <section id="contact" class="chapter"><div class="col"><span class="kicker">11 / contact</span><h2>contact</h2><p class="note">Chapter content arrives in phase 3.</p></div></section>
   </main>
+
+  <!-- Reading panels: full four-step breakdowns, opened from each chapter -->
+  <div id="panels" aria-hidden="true">
+    <article class="panel" id="panel-polymer" role="dialog" aria-modal="true" aria-label="Polymer Lithography Simulation, full breakdown" hidden>
+      <div class="panel-scroll"><div class="panel-col">
+        <button class="panel-close" type="button" aria-label="Close">Close</button>
+        <span class="panel-kicker">02 / simulate</span>
+        <h2>Polymer Lithography Simulation</h2>
+        <p class="panel-ctx">RIT Honors research, Dr. Padmanabhan, 2020. LAMMPS.</p>
+        <div class="panel-step"><h3>Designed</h3><p>Depending on the block ratio and chemistry, the same system settles into holes, spheres, stripes, or lamellae, and those shapes are what lithography then uses. The design space is which pattern you get.</p><figure><img loading="lazy" src="assets/img/polymer-2.jpg" alt="Block copolymer morphologies" /><figcaption>The target morphologies.</figcaption></figure></div>
+        <div class="panel-step"><h3>Analyzed</h3><p>The model is about 100 lines of molecular dynamics using the Weeks-Chandler-Andersen potential, run in LAMMPS on the RIT research cluster. Temperature, repulsion strength, and atom size each push the outcome chaotically, so we ran thousands of simulations to find where to start experiments instead of running expensive lab runs blind.</p><figure><img loading="lazy" src="assets/img/polymer-1.jpg" alt="Chains before separation" /><figcaption>Chains before separation.</figcaption></figure><figure><img loading="lazy" src="assets/img/polymer-phase-sep.jpg" alt="Two phases separating" /><figcaption>Two phases separating.</figcaption></figure></div>
+        <div class="panel-step"><h3>Built</h3><p>The build here is the simulation itself, the WCA model and its LAMMPS runs. No physical rig.</p></div>
+        <div class="panel-step"><h3>Proved</h3><p>The runs reached clean separated end states, and the results showed the interaction parameter falls with temperature and rises with repulsion strength. That's a starting map for the lab instead of a blind search.</p><figure><img loading="lazy" src="assets/img/polymer-3.jpg" alt="A clean striped end state" /><figcaption>A clean striped end state.</figcaption></figure></div>
+      </div></div>
+    </article>
+
+    <article class="panel" id="panel-casting" role="dialog" aria-modal="true" aria-label="Additive Manufacturing and Investment Casting, full breakdown" hidden>
+      <div class="panel-scroll"><div class="panel-col">
+        <button class="panel-close" type="button" aria-label="Close">Close</button>
+        <span class="panel-kicker">03 / make</span>
+        <h2>Additive Manufacturing and Investment Casting</h2>
+        <p class="panel-ctx">RIT, AMPrint Center. Fusion 360, nTopology, CFD.</p>
+        <div class="panel-step"><h3>Designed</h3><p>In Fusion 360 I built the negative mold around the part, pour holes at the top and drainage at the bottom, then rotated the whole mold 2 degrees so a 90 degree overhang section stayed printable. To stop the shell warping in the kiln, I generated a truncated-octahedron lattice in nTopology so most struts run vertical with the print direction.</p><figure><img loading="lazy" src="assets/img/casting-1.jpg" alt="The part: a water nozzle" /><figcaption>The part: a water nozzle.</figcaption></figure><figure><img loading="lazy" src="assets/img/casting-2.jpg" alt="Mold cross section" /><figcaption>Mold cross section, cores and 2 degree tilt.</figcaption></figure><figure><img loading="lazy" src="assets/img/casting-3.jpg" alt="Lattice shell" /><figcaption>Truncated-octahedron lattice shell.</figcaption></figure><figure><img loading="lazy" src="assets/img/casting-4.jpg" alt="Support generation" /><figcaption>Support generation for the shell.</figcaption></figure></div>
+        <div class="panel-step"><h3>Analyzed</h3><p>Before committing metal, I ran a transient CFD simulation with air and liquid aluminium at 1273 K to check whether the pour would fill the geometry without freezing early or trapping air.</p><figure><img loading="lazy" src="assets/img/casting-5.jpg" alt="Transient CFD half model mesh" /><figcaption>Transient CFD, half-model mesh of the fill.</figcaption></figure></div>
+        <div class="panel-step"><h3>Built</h3><p>The mold prints and the pour is designed. I don't have a clean photo of the finished cast nozzle yet.</p></div>
+        <div class="panel-step"><h3>Proved</h3><p>The CFD showed a complete fill before any aluminium was melted, which is the whole point of simulating a pour: you find the cold shut or the trapped-air pocket on the screen, not in a ruined mold.</p></div>
+      </div></div>
+    </article>
+
+    <article class="panel" id="panel-cnc" role="dialog" aria-modal="true" aria-label="PrintNC CNC Router, full breakdown" hidden>
+      <div class="panel-scroll"><div class="panel-col">
+        <button class="panel-close" type="button" aria-label="Close">Close</button>
+        <span class="panel-kicker">04 / build</span>
+        <h2>PrintNC Build, CNC Router</h2>
+        <p class="panel-ctx">Personal, operational. Fusion 360, steel frame, 2.2 kW spindle.</p>
+        <div class="panel-step"><h3>Designed</h3><p>I worked from the PrintNC reference design in Fusion 360, sizing the frame and gantry for the cut area I wanted.</p><figure><img loading="lazy" src="assets/img/cnc-render.jpg" alt="Reference CAD render" /><figcaption>Reference CAD render.</figcaption></figure></div>
+        <div class="panel-step"><h3>Analyzed</h3><p>Rigidity comes from the steel, so I cut and tapped the members for a stiff frame. The 2.2 kW spindle and its VFD throw a lot of electrical noise, so I planned a dedicated EMI line filter, shielded cabling, and a single star ground to keep that noise out of the logic circuits.</p></div>
+        <div class="panel-step"><h3>Built</h3><p>Welded steel frame, assembled gantry, water-cooled spindle, wired and running.</p><figure><img loading="lazy" src="assets/img/cnc-build.jpg" alt="Frame and gantry assembled" /><figcaption>Frame and gantry assembled.</figcaption></figure><figure><img loading="lazy" src="assets/img/cnc-bed.jpg" alt="The finished machine on the bench" /><figcaption>The finished machine on the bench.</figcaption></figure></div>
+        <div class="panel-step"><h3>Proved</h3><p>It cuts. The first pass was rough, the second came out with clean vertical walls, and the machine now cuts parts for other projects.</p><figure><img loading="lazy" src="assets/img/cnc-cut-rough.jpg" alt="First rough test cut" /><figcaption>First rough test cut.</figcaption></figure><figure><img loading="lazy" src="assets/img/cnc-cut-clean.jpg" alt="Cleaner second pass" /><figcaption>Cleaner second pass, vertical walls.</figcaption></figure><figure><img loading="lazy" src="assets/img/cnc-cut-warm.jpg" alt="The finished cut" /><figcaption>The finished cut.</figcaption></figure></div>
+      </div></div>
+    </article>
+
+    <article class="panel" id="panel-slicer" role="dialog" aria-modal="true" aria-label="3D Slicer and G-code Generator, full breakdown" hidden>
+      <div class="panel-scroll"><div class="panel-col">
+        <button class="panel-close" type="button" aria-label="Close">Close</button>
+        <span class="panel-kicker">05 / software</span>
+        <h2>3D Slicer and G-code Generator</h2>
+        <p class="panel-ctx">Personal, 2025 to 2026. Python, PyQt.</p>
+        <div class="panel-step"><h3>Designed</h3><p>I built a small pipeline that exposes every stage instead of hiding it. You load an STL, set a layer height and resolution, then slice and generate G-code, and each stage shows its own intermediate state.</p><figure><img loading="lazy" src="assets/img/slicer-software.jpg" alt="The slicer UI" /><figcaption>The slicer UI, built in PyQt.</figcaption></figure><figure><img loading="lazy" src="assets/img/slicer-stl-viewer.jpg" alt="Custom STL viewer" /><figcaption>Custom STL viewer, model on the build plate.</figcaption></figure></div>
+        <div class="panel-step"><h3>Analyzed</h3><p>Every layer is computed and drawn, so I can see the wall paths and check the geometry at each height.</p><figure><img loading="lazy" src="assets/img/slicer-layer-plot.jpg" alt="Layer walls overlaid" /><figcaption>Current and next layer walls, overlaid.</figcaption></figure><figure><img loading="lazy" src="assets/img/slicer-stl-detail.jpg" alt="Close up at 0.2 mm layer height" /><figcaption>Close up at 0.2 mm layer height.</figcaption></figure></div>
+        <div class="panel-step"><h3>Built</h3><p>The working program slices a real STL and writes G-code end to end.</p></div>
+        <div class="panel-step"><h3>Proved</h3><p>It generates usable G-code from an arbitrary STL. It's the foundation for a research effort on cutting support material with tilted or curved slicing planes, which is the reason I wrote my own in the first place.</p></div>
+      </div></div>
+    </article>
+  </div>
 
   <script type="module" src="js/main.js"></script>
 </body>
