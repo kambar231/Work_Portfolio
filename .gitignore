@@ -21,3 +21,8 @@ webgen-shots/
 # film tool scratch output
 webgen-film/
 webgen-shots/
+
+
+# parallel scratch builds, not part of the site
+codex-portfolio/
+docs/scratch/
