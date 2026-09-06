@@ -245,3 +245,24 @@ Order: engine -> experience -> unfold. Every step passes v2/verify_all.py (exten
   runs only on the lead's explicit ask, with --only / --range / --step targeted modes; a full
   sweep runs once per wave.
 
+
+
+## 10. Round 4 (Kambar, 2026-09-06 17:15 and 17:45)
+- Magnetic snap: every section snaps to its steady state plus the in-section key states, so a
+  release lands on a defined pose, never mid-transition.
+- Hero SCROLL hint removed.
+- Section scroll lengths: experience pin 320vh, slicer 260vh, projects 160vh.
+- All cube motion is scrubbed from scroll through setSectionProgress(section, p): fast scroll is
+  fast flight, and every move is reversible by scrolling back. No autonomous motion drives cubes.
+- Raymond cube (cube 4) appears only in experience. It flies in over progress 0 to 0.3, hinges
+  open 0.3 to 0.7 using its own faces (the same mesh, no overlay), holds, then folds and exits
+  for good.
+- Slicer cube (cube 3) does the same inside the slicer section.
+- The other six cubes form the 3x2 projects grid, the lowest state, and translate away with the
+  page. No cubes below projects. The contact grid is removed.
+- Clicks resolve by mesh raycast; labels never intercept. Face clicks open the system panels.
+- Hero portrait: the colour photo shows first (upper right, 34vh), turns into coloured dots in
+  place, the colour drains, then the dots scatter into the attractor field.
+- Checker gates for scrub, unfold, labels, snap (a HARNESS drives Lenis when a synthetic wheel
+  cannot), hero, pixel-click, and positions at spring rest. It samples experience and slicer at
+  p=0.2 (closed) and p=0.75 (open), and projects at the first scroll with progress >= 0.6.

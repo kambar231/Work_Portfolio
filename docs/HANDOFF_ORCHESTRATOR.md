@@ -34,17 +34,18 @@ text, no open unfold, no horizontal overflow, zero console errors; fps median >=
 (headful); 8-cube click test; 19 reading-panel test; contact grid slots within 6 px. Takes ~5
 minutes. Round 3 extends it (no-pop <= 14 px/frame, min opacity 0.98, panel-scroll test).
 
-## State at handoff (updated 2026-09-06, round 3 pivot shipped)
-- origin/main = 5cd3d56 "v2: raymond park centred and on-screen, grid labels under each
-  cube". Round 3 was delivered through the pivot in section 9 of docs/V2_SPEC.md.
-- Commit chain by area (round 3):
-  - engine, v2/js/cubes.js: 25cfb6f, a8647b7, 930e80d, fa697b9, cd093c6, 5a8d861, 3b3799f,
-    0141e7b, 2247c47, e5ce0f5, 8b43245, 5cd3d56.
-  - morph, v2/js/particles.js: 78fda50, a49c2aa.
-  - page, v2/index.html + css + projects.json: 9ec27a0, 4162307, 107b268, 763a050, d55f98d,
-    b387422, 588c112.
-  - checker, v2/verify_all.py: c27d8d7, 6b802cf, c318905, e9a6f39, 7160d8e, df8a756, 8258235,
-    4525ac0, 436cf25, 92a60d7, c3ccac5.
+## State at handoff (updated 2026-09-06, round 4 shipped)
+- origin/main = a6796e3 "v2: feature cube parks in the free band, label row clear". Round 4 was
+  delivered against section 10 of docs/V2_SPEC.md (scrubbed cube motion, magnetic snap, hero
+  portrait to dust, per-section cubes only, contact grid removed).
+- Commit chain by area (round 4):
+  - engine, v2/js/cubes.js: 8e6f6cb, 11a7974, 80931b4, bf1678b, 301e2d5, ae22b6b, 9ccca9e,
+    a1054c1, ec8c0af, 67e1baf, 77b4b7e, a6796e3.
+  - morph and hero portrait, v2/js/particles.js: 46b24a3, 928bc80, 36331a3, efd7dc4.
+  - page, v2/index.html + css: af16a74, 33ab78d.
+  - checker, v2/verify_all.py: f150d19, 3314f67, f0ab039, 85d5710, f666de9.
+- Commit chain by area (round 3): origin/main was 5cd3d56 at the round-3 pivot; that chain was
+  engine 25cfb6f..5cd3d56, morph 78fda50/a49c2aa, page 9ec27a0..588c112, checker c27d8d7..c3ccac5.
 - The last full checker table is in the lead's report. Do not invent results.
 - Open items still waiting on Kambar: CubeSat and CatBot images, the forklift 3D model, and a
   clear cast-part photo. Five of the six Raymond faces use the forklift placeholder image
@@ -84,3 +85,15 @@ Memory: ~/.claude/shared-memory/work-portfolio-project.md.
 - Per-frame section state is derived from the scroll position. ScrollTrigger onEnter and
   onLeave do not fire on discrete jumps.
 - Positions are measured at spring rest.
+
+## Process that worked (round 4, 2026-09-06). Keep doing it this way.
+- Commit with an explicit pathspec: `git commit -m msg -- <paths>`. The shared index races
+  between agents, so staging only your own files keeps another agent's work out of your commit.
+- Never message another agent. A message resurrects a stopped one (seen twice already). Report
+  only to the lead.
+- Builders verify with numbers only. One screenshot set and one full checker run happen per
+  round, on the lead's ask, not per commit.
+- Brief aesthetics by the look, not by ratios. Describe the intended feel and let the builder
+  pick the exact numbers.
+- Hard timeboxes with a lead-commit fallback: if a builder runs past its box, the lead commits
+  what is green and moves on.
