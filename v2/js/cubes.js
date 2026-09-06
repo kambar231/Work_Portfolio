@@ -1056,20 +1056,29 @@ export function createCubeHero({ onCubeClick } = {}) {
   // default so the cube (and its unfolded faces) never land below the fold.
   function scrubBand(section) {
     const vw = window.innerWidth, vh = window.innerHeight;
-    let top = 0.16 * vh, bottom = 0.84 * vh, left = 0.05 * vw, right = 0.52 * vw;
-    const hb = document.querySelector(section === 'slicer' ? '.slicer-story' : '.exp2-head');
-    const ab = document.querySelector(section === 'slicer' ? '.slicer-key' : '.exp2-ach');
-    const hr = hb ? hb.getBoundingClientRect() : null;
-    const ar = ab ? ab.getBoundingClientRect() : null;
-    const onScreen = (r) => r && r.height > 4 && r.width > 4 && r.bottom > 0 && r.top < vh;
-    if (onScreen(hr) && hr.top < 0.5 * vh && hr.bottom < 0.62 * vh) top = Math.max(top, hr.bottom + 40);
-    if (onScreen(ar) && ar.top > 0.42 * vh) bottom = Math.min(bottom, ar.top - 40);
     const shape = (shapeRects[0] && shapeRects[0].w > 4) ? shapeRects[0] : null;
-    if (shape && shape.x > 0.2 * vw) right = Math.min(right, shape.x - 28);
-    // slicer: if the left text column is on-screen, keep the band to its right
-    if (section === 'slicer' && onScreen(hr) && hr.right > 0 && hr.right < 0.55 * vw) left = Math.max(left, hr.right + 20);
-    if (bottom - top < 200) { top = 0.16 * vh; bottom = 0.80 * vh; }
-    if (right - left < 200) { left = 0.05 * vw; right = 0.50 * vw; }
+    const left = 0.04 * vw;
+    let right = Math.min(0.54 * vw, shape && shape.x > 0.2 * vw ? shape.x - 28 : 0.54 * vw);
+    if (right - left < 220) right = Math.min(0.54 * vw, left + 220);   // stack far left: take width
+    // on-screen section text rects in the left column (padded), as vertical blockers
+    const sels = section === 'slicer' ? ['.slicer-story', '.slicer-key'] : ['.exp2-head', '.exp2-ach'];
+    const yTop = 0.05 * vh, yBot = 0.95 * vh;
+    const blockers = [];
+    sels.forEach((s) => {
+      const e = document.querySelector(s); if (!e) return;
+      const r = e.getBoundingClientRect();
+      if (r.height > 4 && r.width > 4 && r.bottom > 0 && r.top < vh && r.x < right)
+        blockers.push([Math.max(yTop, r.top - 40), Math.min(yBot, r.bottom + 40)]);
+    });
+    blockers.sort((a, b) => a[0] - b[0]);
+    // tallest free vertical slab clear of every padded text block
+    let cur = yTop, best = null;
+    const consider = (a, z) => { if (z - a > (best ? best[1] - best[0] : 0)) best = [a, z]; };
+    for (const [b0, b1] of blockers) { if (b0 > cur) consider(cur, b0); cur = Math.max(cur, b1); }
+    consider(cur, yBot);
+    let top, bottom;
+    if (best && best[1] - best[0] >= 160) { top = best[0]; bottom = best[1]; }
+    else { top = 0.15 * vh; bottom = 0.83 * vh; }
     bandW = right - left; bandH = bottom - top;
     bandCx = (left + right) / 2; bandCy = (top + bottom) / 2;
   }
@@ -1233,11 +1242,6 @@ export function createCubeHero({ onCubeClick } = {}) {
 
   window.addEventListener('resize', resize);
   resize();
-  // __TESTHOOKS__ (stripped before commit)
-  window.__scrub = setSectionProgress; window.__ufr = unfoldFaceRects;
-  window.__cc = cubeCenters; window.__co = (i) => meshes[i].material[0].opacity;
-  window.__hit = (x, y) => hitTest(x, y);
-  window.__red = (i) => { for (const mat of meshes[i].material) { mat.map = null; mat.color.set(0xff0000); mat.needsUpdate = true; } };
   // initial spawn: the ONLY direct position write. Every later change is integration.
   for (let i = 0; i < meshes.length; i++) { meshes[i].position.copy(base[i]); tgt[i].copy(base[i]); }
   window.__dbgT = () => { const w = window.innerWidth, h = window.innerHeight; return tgt.map((v, i) => { const q = v.clone(); group.localToWorld(q); q.project(camera); const q1 = v.clone(); q1.x += 1; group.localToWorld(q1); q1.project(camera); const sx = (q.x * 0.5 + 0.5) * w; const ppu = Math.abs((q1.x * 0.5 + 0.5) * w - sx); return { i, sx: Math.round(sx), sy: Math.round((-q.y * 0.5 + 0.5) * h), ppu: Math.round(ppu), sc: +scaleTarget[i].toFixed(2), av: _avoid[i] }; }); };
