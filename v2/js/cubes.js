@@ -499,7 +499,12 @@ export function createCubeHero({ onCubeClick } = {}) {
       let x, y, op;
       // a label is hidden for any cube that is out of the visible set, exited, currently open
       // as a rig, or the Raymond cube while its rig is up (no floating DEPLOY label).
-      const hidden = (visibleSet && !visibleSet.has(i)) || (i === rc && raymondT > 0.02) || i === openIndex;
+      // feature cube: only label it while it is genuinely parked & closed on screen (not flying
+      // in/out, not while its faces are hinged open)
+      const own = scrubOn ? ownerOf(i) : null;
+      const featureOffOrOpen = own && own !== 'projects' && (secProg[own] <= 0.30 || secProg[own] >= 0.85);
+      const hidden = (visibleSet && !visibleSet.has(i)) || (i === rc && raymondT > 0.02) || i === openIndex
+        || (srig && srigIndex === i) || featureOffOrOpen;
       if (forceHidden || openIndex >= 0 || hidden) {
         meshes[i].getWorldPosition(_p); _p.project(camera);
         x = (_p.x * 0.5 + 0.5) * w; y = (-_p.y * 0.5 + 0.5) * h + 124; op = 0;
