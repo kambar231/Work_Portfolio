@@ -36,3 +36,5 @@ docs/codex-study/**/*.png
 
 # v2 phase verification frames
 docs/v2-film/
+
+.idea/
