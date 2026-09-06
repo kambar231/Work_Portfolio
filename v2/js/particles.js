@@ -173,20 +173,19 @@ export function createParticles(opts = {}) {
          vCol = mix(DUST, shapeCol, inShape * mA);
          // portrait colour: for the active portrait points, blend from the field grey toward the
          // photo's own pixel colour by uPortraitColor (1 = full photo colour, 0 = grey dust).
-         // The photo colour is darkened (x0.8) so the light face and white shirt still read as
-         // dots on the white page ground instead of washing out. Hue is preserved.
-         float portC = uPortraitColor * step(0.001, uMorph3) * inShape;
-         vCol = mix(vCol, aColor3 * 0.8, portC);
-         // size: 1.6 dust -> 1.3 fill / 1.9 edge
+         // Hue is preserved at full colour so the tie, suit and skin read as themselves.
+         float isPort = step(0.001, uMorph3) * inShape;
+         vec3 portCol = mix(DUST, aColor3, uPortraitColor);
+         vCol = mix(vCol, portCol, isPort);
+         // size: 1.6 dust -> 1.3 fill / 1.9 edge (portrait is fill class, so no boost)
          float shapeSz = mix(1.3, 1.9, isEdge);
          float sz = mix(size, shapeSz, inShape * mA);
          // background dust drops to 15% opacity once the morph is past 0.4, so the silhouette stands alone
          float dim = (1.0 - inShape) * smoothstep(0.4, 0.6, mA);
          vOpa = mix(1.0, 0.15, dim);
-         // portrait alpha: on the white page ground the light points (face, shirt) must stay
-         // OPAQUE to register, so tone is carried by the darkened colour above, not by fading
-         // the light dots. Keep a near-full alpha with only a slight lift for the darkest points.
-         vOpa *= mix(1.0, 0.88 + 0.12 * aShade3, step(0.001, uMorph3) * inShape);
+         // portrait alpha: darkness drives opacity so the structure reads as tone, not a flat
+         // sheet. hair/suit/tie (dark) opaque, face medium, shirt faint: a = 0.25 + 0.75 * darkness.
+         vOpa *= mix(1.0, 0.25 + 0.75 * aShade3, isPort);
          // dark stripe: every point turns white so it reads on the #1a1a1a band
          vCol = mix(vCol, vec3(1.0), uDark);`)
         .replace('gl_PointSize = size;', 'gl_PointSize = sz;');
@@ -219,12 +218,12 @@ export function createParticles(opts = {}) {
   // than its world height under perspective, so calibrate() tunes this until the ON-SCREEN
   // height matches the 62vh target. A flat shape (forklift) converges to ~1.
   const adj = [1, 1, 1, 1];
-  const calTarget = [0.62, 0.62, 0.62, 0.80];   // on-screen height fraction each shape calibrates to
+  const calTarget = [0.62, 0.62, 0.62, 0.62];   // on-screen height fraction each shape calibrates to
   const PLACE = {
     0: () => placeAt(0, 0.62, 0.50, 0.62 * adj[0]),   // forklift, centred at 62vw/50vh, 62vh tall
     1: () => placeAt(1, 0.62, 0.50, 0.62 * adj[1]),   // slice stack, same box (crossfades with forklift)
     2: () => { const halfW = visH * aspect() * 0.5; return { s: 0.55 * visH, cx: 0.48 * halfW, cy: 0, cz: 0 }; }, // cube outline, right half, 55vh
-    3: () => placeAt(3, 0.82, 0.50, 0.80),            // hero portrait: full-image box 80vh tall, centred at 82vw/50vh (under the <img>)
+    3: () => placeAt(3, 0.80, 0.40, 0.34),            // hero portrait: full-image box 34vh tall, centred at 80vw/40vh (exactly under the <img>)
   };
   const slicePlace = { lo: -1, hi: 1, cx: 0, cz: 0, s: 1 };
   function placeShape(k) {
@@ -313,9 +312,9 @@ export function createParticles(opts = {}) {
         const r = data[idx], g = data[idx + 1], bch = data[idx + 2];
         const lum = (0.299 * r + 0.587 * g + 0.114 * bch) / 255;
         const dark = Math.min(1, Math.max(0, 1 - lum));
-        // uniform over the silhouette, gently biased to the darks so hair/suit stay densest
-        // and the face and shirt still read: p = 0.55 + 0.45 * darkness.
-        if (Math.random() > 0.55 + 0.45 * dark) continue;
+        // biased to the darks so hair/suit/tie stay densest while the face and shirt still
+        // read: p = 0.4 + 0.6 * darkness^1.3 over the matted silhouette.
+        if (Math.random() > 0.4 + 0.6 * Math.pow(dark, 1.3)) continue;
         xs.push(px + 0.5);
         ys.push(-(py + 0.5));                                   // flip: image is top-down, world is y-up
         sh.push(dark);

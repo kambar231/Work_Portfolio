@@ -68,11 +68,14 @@ body { background: transparent; overflow-x: hidden; }
    The headline block lives in the lower-left; the cubes occupy the upper-right, so the
    two never overlap. The headline bottom edge sits near 78vh. */
 #hero { position: relative; min-height: 100vh; }
-/* The hero photo sits over the particle field, centred where the portrait dust is placed
-   (82vw / 50vh, 80vh tall). On scroll it fades out and the coloured dots take its place. */
+/* The hero photo sits over the particle field, in the empty upper-right band beside the
+   headline. The headline is bottom-anchored and three lines tall, so the photo is centred
+   high (80vw / 40vh). The source frame is wide (aspect ~1.57), so at 34vh its box stays
+   inside the right viewport edge and clears the headline rect and .hero-sub by >35px at
+   1440x900 and 1280x800. On scroll it fades out and the coloured dots take its place. */
 .hero-photo {
-  position: fixed; top: 50vh; left: 82vw; transform: translate(-50%, -50%);
-  height: 80vh; width: auto; object-fit: contain;
+  position: fixed; top: 40vh; left: 80vw; transform: translate(-50%, -50%);
+  height: 34vh; width: auto; object-fit: contain;
   pointer-events: none; z-index: 0; opacity: 1; will-change: opacity;
 }
 .hero-inner {

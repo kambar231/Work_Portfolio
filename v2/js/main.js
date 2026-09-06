@@ -181,14 +181,15 @@ if (heroSec && !reduced && !mobile) {
   const clamp01 = (x) => Math.min(1, Math.max(0, x));
   // Photo-to-dust choreography, scrubbed and reversible, keyed on the hero progress p:
   //   p 0.00 -> 0.20  photo fades out while the coloured dots hold in place under it
-  //   p 0.30 -> 0.60  the dot colour drains from the photo colour to the field grey (slight drift)
+  //   p 0.40 -> 0.60  the dot colour drains from the photo colour to the field grey (slight drift)
   //   p 0.60 -> 0.90  the grey dots scatter from the face into the attractor field
-  // Everything is 0 by ~0.90, well before the experience forklift assembles.
+  // Colour is held full through the mid-hero so the coloured face still reads on the white
+  // page at p~0.35, then drains fast. Everything is 0 by ~0.90, before the forklift assembles.
   const applyHero = (p) => {
     const imgO = 1 - clamp01(p / 0.20);
-    const pc = 1 - clamp01((p - 0.30) / 0.30);
+    const pc = 1 - clamp01((p - 0.40) / 0.20);
     const m3 = 1 - clamp01((p - 0.60) / 0.30);
-    const dr = clamp01((p - 0.30) / 0.30) * (1 - clamp01((p - 0.60) / 0.30));
+    const dr = clamp01((p - 0.40) / 0.20) * (1 - clamp01((p - 0.60) / 0.30));
     if (heroImg) heroImg.style.opacity = imgO;
     particles.setPortraitColor(pc);
     particles.setPortraitDrift(dr * 0.35);
@@ -538,15 +539,19 @@ function openFaceAtClient(cx, cy) {
   return null;
 }
 
+// the six settled grid cells are these cube indices (PROJ6 in cubes.js); the feature cubes
+// (3 slicer, 4 raymond) are never in the grid.
+const GRID_SET = new Set([0, 1, 2, 5, 6, 7]);
+
 // ---- cursor parallax + projects-grid hover ----
 window.addEventListener('pointermove', (e) => {
   const nx = (e.clientX / window.innerWidth) * 2 - 1;
   const ny = (e.clientY / window.innerHeight) * 2 - 1;
   cubes.setPointer(nx, ny);
-  if (!mobile && cubes.projectsActive && cubes.projectsActive() && cubes.projectOpenIndex() < 0) {
+  if (!mobile && secProgOut.projects >= 0.4 && cubes.projectOpenIndex() < 0) {
     const i = cubes.raycast({ x: nx, y: -ny });
     cubes.setHover(i);
-    document.body.style.cursor = i >= 0 ? 'pointer' : '';
+    document.body.style.cursor = (i >= 0 && GRID_SET.has(i)) ? 'pointer' : '';
   }
   // hovering an open feature-cube face (Raymond systems or slicer) shows the pointer cursor
   if (!mobile && openFaceAtClient(e.clientX, e.clientY)) {
@@ -583,12 +588,12 @@ window.addEventListener('pointerup', (e) => {
       }
     }
   }
-  const up = cubes.raycast(toNdc(e));
-  if (cubes.projectsActive && cubes.projectsActive()) {
+  const up = cubes.hitTest(e.clientX, e.clientY);
+  if (secProgOut.projects >= 0.4) {
     if (cubes.projectOpenIndex() >= 0) {
       if (up < 0) cubes.closeProject();                       // tap outside closes
-    } else if (up >= 0 && up === d.cube) {
-      cubes.openProject(up);                                  // tap the same cube opens it
+    } else if (up >= 0 && up === d.cube && GRID_SET.has(up)) {
+      cubes.openProject(up);                                  // tap a settled grid cube opens it
     }
     return;
   }
