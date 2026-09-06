@@ -1421,10 +1421,58 @@ export function createCubeHero({ onCubeClick } = {}) {
     const halfW = (camera.position.z - z) * tanHalf() * camera.aspect;
     const frac = meshes.length > 1 ? i / (meshes.length - 1) : 0.5;   // 0..1 across the row
     const x = (-0.82 + 1.64 * frac) * halfW - group.position.x;
-    return { x, y: 1.3 * halfH - group.position.y, z };
+    return { x, y: 1.55 * halfH - group.position.y, z };
   }
 
-  const _tmp = new THREE.Vector3(), _acc = new THREE.Vector3(), _delta = new THREE.Vector3();
+  // ---- off-screen park guarantee ----
+  // A cube parked before (p=0) or after (p=1) its window must sit with its WHOLE projected box
+  // clear of the viewport. The box is a tumbled cube at PARK_Z depth (closer to camera, so it
+  // projects larger) at scales up to 2.6, and a fixed vw/vh anchor cannot promise clearance at
+  // every size. offscreenPark() pushes a park anchor outward, using the exact projected box the
+  // checker reads (meshBox math), until the box is >= OFFSCREEN_PAD px beyond the named edge(s).
+  // Iterated (projection is non-linear) and recomputed each frame, so a resize re-parks it.
+  const OFFSCREEN_PAD = 48;
+  const _bqPos = new THREE.Vector3(), _bqQuat = new THREE.Quaternion(), _bqScale = new THREE.Vector3(), _bqMat = new THREE.Matrix4(), _bqC = new THREE.Vector3();
+  function projectedBoxAtLocal(i, loc, scale) {
+    const m = meshes[i];
+    _bqPos.copy(loc); group.localToWorld(_bqPos);
+    _bqQuat.copy(m.quaternion); _bqScale.setScalar(scale);
+    _bqMat.compose(_bqPos, _bqQuat, _bqScale);
+    const w = window.innerWidth, h = window.innerHeight;
+    let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
+    for (let sx = -1; sx <= 1; sx += 2)
+      for (let sy = -1; sy <= 1; sy += 2)
+        for (let sz = -1; sz <= 1; sz += 2) {
+          _bqC.set(sx * 0.5, sy * 0.5, sz * 0.5).applyMatrix4(_bqMat).project(camera);
+          const X = (_bqC.x * 0.5 + 0.5) * w, Y = (-_bqC.y * 0.5 + 0.5) * h;
+          if (X < minx) minx = X; if (X > maxx) maxx = X;
+          if (Y < miny) miny = Y; if (Y > maxy) maxy = Y;
+        }
+    return { x: minx, y: miny, w: maxx - minx, h: maxy - miny };
+  }
+  const _oa = new THREE.Vector3(), _oaW0 = new THREE.Vector3(), _oaW1 = new THREE.Vector3();
+  function offscreenPark(i, base, scale, edges) {
+    _oa.copy(base);
+    const w = window.innerWidth, h = window.innerHeight;
+    for (let it = 0; it < 5; it++) {
+      const b = projectedBoxAtLocal(i, _oa, scale);
+      _oaW0.copy(_oa); group.localToWorld(_oaW0); _oaW1.copy(_oaW0); _oaW1.x += 1;
+      _oaW0.project(camera); _oaW1.project(camera);
+      const ppu = Math.max(1, Math.abs((_oaW1.x - _oaW0.x) * 0.5 * w));
+      let moved = false;
+      for (const edge of edges) {
+        let sh = 0;
+        if (edge === 'right')       { sh = (w + OFFSCREEN_PAD) - b.x;        if (sh > 0.5) { _oa.x += sh / ppu; moved = true; } }
+        else if (edge === 'left')   { sh = (b.x + b.w) + OFFSCREEN_PAD;      if (sh > 0.5) { _oa.x -= sh / ppu; moved = true; } }
+        else if (edge === 'bottom') { sh = (h + OFFSCREEN_PAD) - b.y;        if (sh > 0.5) { _oa.y -= sh / ppu; moved = true; } }
+        else if (edge === 'top')    { sh = (b.y + b.h) + OFFSCREEN_PAD;      if (sh > 0.5) { _oa.y += sh / ppu; moved = true; } }
+      }
+      if (!moved) break;
+    }
+    return _oa;
+  }
+
+  const _tmp = new THREE.Vector3(), _tmp2 = new THREE.Vector3(), _acc = new THREE.Vector3(), _delta = new THREE.Vector3();
   const _opArr = new Array(CUBES.length).fill(1);
   const _forceable = new Array(CUBES.length).fill(true);
   function frame(now, dt, moving) {
@@ -1490,7 +1538,9 @@ export function createCubeHero({ onCubeClick } = {}) {
           const k = PROJ6.indexOf(i);
           const e = easeInOut(Math.min(1, pp / 0.4));
           _tmp.copy(grid6World[k]).sub(group.position);   // grid slot (group-local)
-          const belowY = localAtVwVh(50, 130).y;          // below the fold, same column x
+          // below-fold start whose full box clears the bottom edge by OFFSCREEN_PAD at scale 1
+          _tmp2.set(_tmp.x, localAtVwVh(50, 130).y, _tmp.z);
+          const belowY = offscreenPark(i, _tmp2, 1, ['bottom']).y;
           tgt[i].set(_tmp.x, belowY + (_tmp.y - belowY) * e, _tmp.z);   // pure f(p), no self-motion
           scaleTarget[i] = 1 + (grid6Scale - 1) * e;
           // face-on so the silhouette centroid equals the projected centre (hit test matches render)
@@ -1507,18 +1557,38 @@ export function createCubeHero({ onCubeClick } = {}) {
           let sc;
           if (pp < 0.30) {
             const e = easeInOut(pp / 0.30);
-            tgt[i].copy(localAtVwVh(116, (bandCy / vh2) * 100)).lerp(park, e);
+            // fly-in start: fully off the RIGHT edge at the entry scale (0.8)
+            const flyIn = offscreenPark(i, localAtVwVh(116, (bandCy / vh2) * 100), 0.8, ['right']);
+            tgt[i].copy(flyIn).lerp(park, e);
             sc = 0.8 + (parkScale - 0.8) * e;
           } else if (pp < 0.85) {
             tgt[i].copy(park); sc = parkScale;
           } else {
             const e = easeInOut((pp - 0.85) / 0.15);
-            tgt[i].copy(park).lerp(localAtVwVh(-18, -18), e); sc = parkScale;
+            // exit end: fully off the TOP-LEFT at the parked scale (up to 2.6)
+            const flyOut = offscreenPark(i, localAtVwVh(-18, -18), parkScale, ['top', 'left']);
+            tgt[i].copy(park).lerp(flyOut, e); sc = parkScale;
           }
           scaleTarget[i] = sc;
           _opArr[i] = hingeAmt(pp) > 0.05 ? 0 : 1;
           m.rotation.x += (0.05 - m.rotation.x) * 0.15;
           m.rotation.y += (0.06 - m.rotation.y) * 0.15;
+        }
+        // Discrete scroll jump: when the owning section is fully before (p=0) or after (p=1) its
+        // window the cube is not in play. Snap it off-screen at once so a direct scrollToY parks
+        // it, instead of crawling across the viewport at the 12 px/frame cap for ~3 s. Gradual
+        // scroll never sits exactly at the extremes with the cube mid-screen, so the fly-in /
+        // park / exit stays smooth.
+        if (pp >= 1 - 1e-4) {
+          // fully past: a full-size parked feature cube (scale up to 2.6) is so large that even
+          // centred off the top-left its perspective-skewed box still pokes in. Drop to scale 1
+          // and park straight off the TOP, where the small box clears every edge.
+          const ex = exitTargetLocal(i);
+          tgt[i].set(ex.x, ex.y, ex.z);
+          scaleTarget[i] = 1; m.scale.setScalar(1);
+          m.position.copy(tgt[i]); vel[i].set(0, 0, 0);
+        } else if (pp <= 1e-4) {
+          m.position.copy(tgt[i]); vel[i].set(0, 0, 0);
         }
       } else if (projT > 0.01) {
         // 4x2 centred grid; open cube hides (its unfold rig shows), the rest hold at 0.06
