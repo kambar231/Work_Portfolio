@@ -407,8 +407,9 @@ def main():
         if visibility["status"] == "SKIP":
             print(f"{'VISIBILITY':<16} {'SKIP':>7}  {visibility.get('reason')}")
         else:
+            obs = visibility.get("observed", {})
             _row("VISIBILITY", visibility["status"] == "OK",
-                 f"fails={len(visibility['fails'])} {visibility['fails'] if visibility['fails'] else ''}")
+                 f"observed {obs}" + (f"  FAILS={visibility['fails']}" if visibility["fails"] else ""))
     if want("realclick"):
         _row("REAL-CLICK", not realclick["mismatches"],
              "all 8 open the clicked cube" if not realclick["mismatches"] else str(realclick["mismatches"]))
@@ -768,16 +769,12 @@ def _section_mid_y(pg, sel, frac=0.5, fallback_offset=-135):
 def run_visibility_test(pg):
     # visible-set gate: at y=0 no cube box is in the viewport; inside #experience only cube 4;
     # inside #slicer only cube 3; inside #projects all eight, each below the projects heading.
-    # SKIP until main.js wires setVisibleSet (no hook -> the section-visibility rig isn't live).
-    has = pg.evaluate("""() => (typeof window.__v2.setVisibleSet === 'function')
-        || (typeof window.__v2.visibleSet !== 'undefined')
-        || (typeof window.__v2.sectionVisible === 'function')""")
-    if not has:
-        return {"status": "SKIP", "reason": "setVisibleSet / visibleSet not wired in main.js yet"}
-
+    # main.js drives cubes.setVisibleSet per section but does not expose it on window.__v2, so we
+    # assert the observable effect (which cube boxes are in the viewport) after the drift settles.
     def inside_set(y):
         pg.evaluate(f"() => window.__v2.scrollToY({y})")
-        pg.wait_for_timeout(700)
+        pg.wait_for_timeout(300)
+        settle(pg)
         return pg.evaluate("""() => {
           const vw = innerWidth, vh = innerHeight, ins = [];
           window.__v2.allCubes().forEach((c, i) => { const b = c.box;
@@ -786,19 +783,25 @@ def run_visibility_test(pg):
         }""")
 
     fails = []
-    z = inside_set(0)
-    if z:
-        fails.append({"at": "y=0", "expected": [], "inside": z})
+    observed = {}
+    observed["y=0"] = inside_set(0)
+    if observed["y=0"]:
+        fails.append({"at": "y=0", "expected": [], "inside": observed["y=0"]})
     ey = _section_mid_y(pg, "#experience")
-    if ey is not None and set(inside_set(ey)) != {4}:
-        fails.append({"at": "experience", "expected": [4], "inside": inside_set(ey)})
+    if ey is not None:
+        observed["experience"] = inside_set(ey)
+        if set(observed["experience"]) != {4}:
+            fails.append({"at": "experience", "expected": [4], "inside": observed["experience"]})
     sy = _section_mid_y(pg, "#slicer")
-    if sy is not None and set(inside_set(sy)) != {3}:
-        fails.append({"at": "slicer", "expected": [3], "inside": inside_set(sy)})
+    if sy is not None:
+        observed["slicer"] = inside_set(sy)
+        if set(observed["slicer"]) != {3}:
+            fails.append({"at": "slicer", "expected": [3], "inside": observed["slicer"]})
     py = _section_mid_y(pg, "#projects")
     if py is not None:
         pg.evaluate(f"() => window.__v2.scrollToY({py})")
-        pg.wait_for_timeout(700)
+        pg.wait_for_timeout(300)
+        settle(pg)
         info = pg.evaluate("""() => {
           const vw = innerWidth, vh = innerHeight;
           const head = document.querySelector('.projects-head');
@@ -809,11 +812,13 @@ def run_visibility_test(pg):
             if (hr && b.y >= hr.bottom) below.push(i); });
           return { inside: ins, below, hbottom: hr ? +hr.bottom.toFixed(0) : null };
         }""")
+        observed["projects"] = info["inside"]
+        observed["projects_below_head"] = info["below"]
         if len(info["inside"]) != 8:
             fails.append({"at": "projects", "expected": "8 inside viewport", "inside": info["inside"]})
         if info["hbottom"] is not None and len(info["below"]) != 8:
             fails.append({"at": "projects", "expected": "8 below heading", "below": info["below"]})
-    return {"status": "FAIL" if fails else "OK", "fails": fails}
+    return {"status": "FAIL" if fails else "OK", "fails": fails, "observed": observed}
 
 
 def run_real_click_test(pg):
