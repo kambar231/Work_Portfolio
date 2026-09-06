@@ -216,7 +216,7 @@
   .fk-js.fk-motion .fk-truck {
     position: absolute; left: 50%; top: 50%; margin: 0;
     width: auto; height: 420px;
-    transform: translate(-50%, -50%) scale(var(--fk-s, 1));
+    transform: translate(calc(-50% + var(--fk-px, 0px)), calc(-50% + var(--fk-py, 0px))) scale(var(--fk-s, 1.3));
     transform-origin: center center; opacity: var(--fk-o, 1);
     will-change: transform, opacity;
   }
@@ -230,14 +230,16 @@
   .fk-js.fk-motion .fk-card {
     position: absolute; width: 214px; margin: 0;
     left: var(--cx); top: var(--cy);
-    transform: translate(-50%, -50%) translate(var(--tx, 0px), var(--ty, 0px));
+    transform: translate(-50%, -50%) translate(var(--tx, 0px), var(--ty, 0px)) scale(var(--csc, 1));
     opacity: var(--op, 0);
     will-change: transform, opacity;
-    box-shadow: 0 3px 16px rgba(0, 0, 0, .09);
+    box-shadow: 0 3px 14px rgba(0, 0, 0, .08);
+    transition: box-shadow .3s ease;
   }
+  .fk-js.fk-motion .fk-card.fk-landed { box-shadow: 0 12px 28px rgba(0, 0, 0, .16); }
   @media (max-width: 1080px) { .fk-js.fk-motion .fk-card { width: 188px; } }
   .fk-js.fk-motion .fk-general { max-height: 0; opacity: 0; }
-  .fk-js.fk-motion[data-fkstage="3"] .fk-general { max-height: 220px; opacity: 1; }
+  .fk-js.fk-motion[data-fkstage="3"] .fk-general { max-height: 190px; opacity: 1; }
   .fk-js.fk-motion .fk-cue { opacity: 0; }
   .fk-js.fk-motion[data-fkstage="4"] .fk-cue { opacity: 1; }
   .fk-js.fk-motion[data-fkstage="4"] .fk-cue svg { animation: fk-pulse .6s ease 2; }
@@ -252,7 +254,8 @@
   .fk-js.fk-motion.fk-open .fk-leaders { display: none; }
   .fk-js.fk-motion.fk-open .fk-cards { display: block; }
   .fk-js.fk-motion.fk-open .fk-card {
-    position: static; opacity: 1 !important; transform: none !important; width: auto; box-shadow: none;
+    position: static; opacity: 1 !important; transform: none !important; will-change: auto;
+    width: auto; box-shadow: none;
   }
   .fk-js.fk-motion.fk-open .fk-card:not([open]) { display: none; }
   .fk-js.fk-motion .fk-card[open] > .detail {
@@ -267,48 +270,23 @@
   }
   .fk-close:hover { background: var(--accent); }
 
-  /* ===== BorgWarner variable cam timing phaser (oil actuated). Plays once in view. ===== */
+  /* ===== BorgWarner vane cam phaser (oil actuated). A JS timeline plays it once in view; ===== */
+  /* the rotor angle is driven by the same fill value as the oil, so it "spins on the oil". */
   .vct-wrap { display: flex; gap: 28px; align-items: center; flex-wrap: wrap; margin: 16px 0 10px; }
-  .vct-fig { flex: 0 0 300px; max-width: 300px; }
+  .vct-fig { flex: 0 0 320px; max-width: 320px; }
   .vct-svg { width: 100%; height: auto; display: block; }
-  .vct-note { flex: 1 1 320px; min-width: 260px; font-size: 14.5px; color: var(--muted); max-width: 52ch; }
+  .vct-note { flex: 1 1 320px; min-width: 260px; font-size: 14.5px; color: var(--muted); max-width: 54ch; }
   .vct-note b { color: var(--ink); }
   .vct-phases { display: flex; gap: 8px; margin: 14px 0 0; flex-wrap: wrap; }
   .vct-phase { font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: var(--accent); font-weight: 700; opacity: .3; transition: opacity .25s ease; }
   .vct-phase::before { content: "\2192"; margin-right: 5px; color: var(--muted); }
   .vct-phase:first-child::before { content: none; }
-
   #vct-rotor { transform-box: fill-box; transform-origin: center; }
-  #vct-pin { transform-box: fill-box; transform-origin: center; }
+  #vct-spool, #vct-pin { transform-box: fill-box; transform-origin: center; }
   .vct-adv { opacity: 0; }
-  .vct-ret { opacity: .8; }
-
-  .vct-wrap.is-run #vct-rotor { animation: vct-rotate 4s cubic-bezier(.4, 0, .2, 1) forwards; }
-  .vct-wrap.is-run .vct-adv { animation: vct-adv-in 4s ease forwards; }
-  .vct-wrap.is-run .vct-ret { animation: vct-ret-out 4s ease forwards; }
-  .vct-wrap.is-run .vct-gallery { animation: vct-flow 4s ease forwards; }
-  .vct-wrap.is-run #vct-pin { animation: vct-pin 4s ease forwards; }
-  .vct-wrap.is-run .vct-l1 { animation: vct-l1 4s linear forwards; }
-  .vct-wrap.is-run .vct-l2 { animation: vct-l2 4s linear forwards; }
-  .vct-wrap.is-run .vct-l3 { animation: vct-l3 4s linear forwards; }
-
-  @keyframes vct-rotate { 0%, 28% { transform: rotate(0); } 68% { transform: rotate(27deg); } 84%, 100% { transform: rotate(25deg); } }
-  @keyframes vct-adv-in { 0% { opacity: 0; } 40% { opacity: .85; } 100% { opacity: .85; } }
-  @keyframes vct-ret-out { 0% { opacity: .8; } 40% { opacity: .08; } 100% { opacity: .08; } }
-  @keyframes vct-flow { 0% { stroke-dashoffset: 64; } 40% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 0; } }
-  @keyframes vct-pin { 0%, 70% { transform: translateY(0); } 88% { transform: translateY(15px); } 94% { transform: translateY(11px); } 100% { transform: translateY(13px); } }
-  @keyframes vct-l1 { 0% { opacity: .3; } 8% { opacity: 1; } 38% { opacity: 1; } 50% { opacity: .3; } 100% { opacity: .3; } }
-  @keyframes vct-l2 { 0%, 30% { opacity: .3; } 42% { opacity: 1; } 66% { opacity: 1; } 78% { opacity: .3; } 100% { opacity: .3; } }
-  @keyframes vct-l3 { 0%, 66% { opacity: .3; } 82% { opacity: 1; } 100% { opacity: 1; } }
-
-  /* Reduced motion: hold the final state, no playback. */
-  .vct-wrap.is-final #vct-rotor { transform: rotate(25deg); }
-  .vct-wrap.is-final .vct-adv { opacity: .85; }
-  .vct-wrap.is-final .vct-ret { opacity: .08; }
-  .vct-wrap.is-final .vct-gallery { stroke-dashoffset: 0; }
-  .vct-wrap.is-final #vct-pin { transform: translateY(13px); }
-  .vct-wrap.is-final .vct-l3 { opacity: 1; }
-  @media (max-width: 620px) { .vct-wrap { gap: 16px; } .vct-fig { flex-basis: 240px; } }
+  .vct-ret { opacity: .12; }
+  .vct-gal-adv line, .vct-gal-ret line, .vct-gal-main { opacity: 0; }
+  @media (max-width: 620px) { .vct-wrap { gap: 16px; } .vct-fig { flex-basis: 260px; } }
 </style>
 </head>
 <body>
@@ -389,10 +367,14 @@
        <g id="drive-tire">
          <circle cx="300" cy="392" r="36"/>
          <circle cx="300" cy="392" r="13"/>
+         <line x1="264" y1="392" x2="336" y2="392" stroke-width="2.5"/>
+         <line x1="300" y1="356" x2="300" y2="428" stroke-width="2.5"/>
        </g>
        <g id="caster">
          <circle cx="150" cy="398" r="17"/>
          <circle cx="150" cy="398" r="6"/>
+         <line x1="133" y1="398" x2="167" y2="398" stroke-width="2"/>
+         <line x1="150" y1="381" x2="150" y2="415" stroke-width="2"/>
        </g>
        <g id="mast">
          <line x1="150" y1="110" x2="150" y2="362"/>
@@ -423,7 +405,7 @@
      <div class="fk-cards">
 
       <!-- SEnS+ -> sensor head -->
-      <details class="fk-card" data-part="sensor-head" data-cx="16%" data-cy="22%" data-fromx="-560" data-fromy="-70">
+      <details class="fk-card" data-part="sensor-head" data-cx="16%" data-cy="17%" data-fromx="-560" data-fromy="-70">
         <summary>
           <h3 class="fk-title">Smart Environment Sensor Plus</h3>
           <p class="fk-stat">Stereo camera tied to regen braking</p>
@@ -469,7 +451,7 @@
       </details>
 
       <!-- Performance Stability -> operator station -->
-      <details class="fk-card" data-part="operator-station" data-cx="84%" data-cy="22%" data-fromx="560" data-fromy="-70">
+      <details class="fk-card" data-part="operator-station" data-cx="84%" data-cy="17%" data-fromx="560" data-fromy="-70">
         <summary>
           <h3 class="fk-title">Performance Stability System</h3>
           <p class="fk-stat">+14% performance, -10% battery draw</p>
@@ -596,7 +578,7 @@
       </details>
 
       <!-- Structural Frame -> chassis -->
-      <details class="fk-card" data-part="chassis" data-cx="16%" data-cy="79%" data-fromx="-560" data-fromy="70">
+      <details class="fk-card" data-part="chassis" data-cx="16%" data-cy="83%" data-fromx="-560" data-fromy="70">
         <summary>
           <h3 class="fk-title">Structural Frame Redesign</h3>
           <p class="fk-stat">Infinite fatigue life, strain-gauge validated</p>
@@ -635,7 +617,7 @@
       </details>
 
       <!-- Steer Differentiation -> drive tire -->
-      <details class="fk-card" data-part="drive-tire" data-cx="84%" data-cy="79%" data-fromx="560" data-fromy="70">
+      <details class="fk-card" data-part="drive-tire" data-cx="84%" data-cy="83%" data-fromx="560" data-fromy="70">
         <summary>
           <h3 class="fk-title">Steer Differentiation System</h3>
           <p class="fk-stat">Tighter turns, less tire wear</p>
@@ -686,53 +668,73 @@
   <!-- Variable cam timing phaser, oil actuated. Cutaway plays once on scroll into view. -->
   <div class="vct-wrap">
     <div class="vct-fig">
-      <svg class="vct-svg" viewBox="0 0 300 300" role="img" aria-label="Cutaway animation of an oil-actuated variable cam timing phaser: oil fills the advance chambers, the vane rotor turns, and a lock pin seats.">
+      <svg class="vct-svg" viewBox="0 0 360 300" role="img" aria-label="Cutaway of an oil-actuated vane-type cam phaser. The oil control valve shifts, amber oil travels the galleries into the advance chambers, the vane rotor turns in proportion to the fill, then oil crosses to the retard side and a lock pin seats.">
         <g fill="none" stroke="#15607a">
-          <!-- inner chamber wall -->
-          <circle cx="150" cy="150" r="104" stroke-width="3"/>
-          <!-- oil: advance chambers fill, retard chambers drain -->
+          <!-- housing sprocket: gear teeth + rim -->
+          <path d="M 251.0,150.0 L 265.8,156.2 L 265.0,165.2 L 249.3,168.6 L 249.3,168.6 L 262.7,177.4 L 260.3,186.0 L 244.2,186.5 L 244.2,186.5 L 255.8,197.6 L 251.8,205.7 L 235.9,203.2 L 235.9,203.2 L 245.2,216.3 L 239.8,223.4 L 224.6,218.0 L 224.6,218.0 L 231.4,232.6 L 224.8,238.7 L 210.9,230.6 L 210.9,230.6 L 214.8,246.2 L 207.2,250.9 L 195.0,240.4 L 195.0,240.4 L 196.1,256.5 L 187.7,259.7 L 177.6,247.1 L 177.6,247.1 L 175.7,263.1 L 166.9,264.8 L 159.3,250.6 L 159.3,250.6 L 154.5,265.9 L 145.5,265.9 L 140.7,250.6 L 140.7,250.6 L 133.1,264.8 L 124.3,263.1 L 122.4,247.1 L 122.4,247.1 L 112.3,259.7 L 103.9,256.5 L 105.0,240.4 L 105.0,240.4 L 92.8,250.9 L 85.2,246.2 L 89.1,230.6 L 89.1,230.6 L 75.2,238.7 L 68.6,232.6 L 75.4,218.0 L 75.4,218.0 L 60.2,223.4 L 54.8,216.3 L 64.1,203.2 L 64.1,203.2 L 48.2,205.7 L 44.2,197.6 L 55.8,186.5 L 55.8,186.5 L 39.7,186.0 L 37.3,177.4 L 50.7,168.6 L 50.7,168.6 L 35.0,165.2 L 34.2,156.2 L 49.0,150.0 L 49.0,150.0 L 34.2,143.8 L 35.0,134.8 L 50.7,131.4 L 50.7,131.4 L 37.3,122.6 L 39.7,114.0 L 55.8,113.5 L 55.8,113.5 L 44.2,102.4 L 48.2,94.3 L 64.1,96.8 L 64.1,96.8 L 54.8,83.7 L 60.2,76.6 L 75.4,82.0 L 75.4,82.0 L 68.6,67.4 L 75.2,61.3 L 89.1,69.4 L 89.1,69.4 L 85.2,53.8 L 92.8,49.1 L 105.0,59.6 L 105.0,59.6 L 103.9,43.5 L 112.3,40.3 L 122.4,52.9 L 122.4,52.9 L 124.3,36.9 L 133.1,35.2 L 140.7,49.4 L 140.7,49.4 L 145.5,34.1 L 154.5,34.1 L 159.3,49.4 L 159.3,49.4 L 166.9,35.2 L 175.7,36.9 L 177.6,52.9 L 177.6,52.9 L 187.7,40.3 L 196.1,43.5 L 195.0,59.6 L 195.0,59.6 L 207.2,49.1 L 214.8,53.8 L 210.9,69.4 L 210.9,69.4 L 224.8,61.3 L 231.4,67.4 L 224.6,82.0 L 224.6,82.0 L 239.8,76.6 L 245.2,83.7 L 235.9,96.8 L 235.9,96.8 L 251.8,94.3 L 255.8,102.4 L 244.2,113.5 L 244.2,113.5 L 260.3,114.0 L 262.7,122.6 L 249.3,131.4 L 249.3,131.4 L 265.0,134.8 L 265.8,143.8 L 251.0,150.0 Z" fill="#fff" stroke-width="2.5" stroke-linejoin="round"/>
+          <circle cx="150" cy="150" r="100" stroke-width="3.5" fill="#fff"/>
+          <circle cx="150" cy="150" r="92" stroke-width="2"/>
+          <!-- oil in the chambers (advance fills, retard drains) -->
           <g stroke="none">
-            <path class="vct-adv" fill="#e0972a" d="M252,150 A102 102 0 0 1 222.1,222.1 L183.9,183.9 A48 48 0 0 0 198,150 Z"/>
-            <path class="vct-adv" fill="#e0972a" d="M150,252 A102 102 0 0 1 77.9,222.1 L116.1,183.9 A48 48 0 0 0 150,198 Z"/>
-            <path class="vct-adv" fill="#e0972a" d="M48,150 A102 102 0 0 1 77.9,77.9 L116.1,116.1 A48 48 0 0 0 102,150 Z"/>
-            <path class="vct-adv" fill="#e0972a" d="M150,48 A102 102 0 0 1 222.1,77.9 L183.9,116.1 A48 48 0 0 0 150,102 Z"/>
-            <path class="vct-ret" fill="#e0972a" d="M222.1,77.9 A102 102 0 0 1 252,150 L198,150 A48 48 0 0 0 183.9,116.1 Z"/>
-            <path class="vct-ret" fill="#e0972a" d="M222.1,222.1 A102 102 0 0 1 150,252 L150,198 A48 48 0 0 0 183.9,183.9 Z"/>
-            <path class="vct-ret" fill="#e0972a" d="M77.9,222.1 A102 102 0 0 1 48,150 L102,150 A48 48 0 0 0 116.1,183.9 Z"/>
-            <path class="vct-ret" fill="#e0972a" d="M77.9,77.9 A102 102 0 0 1 150,48 L150,102 A48 48 0 0 0 116.1,116.1 Z"/>
+            <path class="vct-adv" fill="#e0972a" d="M240.0,150.0 A90 90 0 0 1 213.6,213.6 L175.5,175.5 A36 36 0 0 0 186.0,150.0 Z"/>
+            <path class="vct-adv" fill="#e0972a" d="M150.0,240.0 A90 90 0 0 1 86.4,213.6 L124.5,175.5 A36 36 0 0 0 150.0,186.0 Z"/>
+            <path class="vct-adv" fill="#e0972a" d="M60.0,150.0 A90 90 0 0 1 86.4,86.4 L124.5,124.5 A36 36 0 0 0 114.0,150.0 Z"/>
+            <path class="vct-adv" fill="#e0972a" d="M150.0,60.0 A90 90 0 0 1 213.6,86.4 L175.5,124.5 A36 36 0 0 0 150.0,114.0 Z"/>
+            <path class="vct-ret" fill="#e0972a" d="M213.6,86.4 A90 90 0 0 1 240.0,150.0 L186.0,150.0 A36 36 0 0 0 175.5,124.5 Z"/>
+            <path class="vct-ret" fill="#e0972a" d="M213.6,213.6 A90 90 0 0 1 150.0,240.0 L150.0,186.0 A36 36 0 0 0 175.5,175.5 Z"/>
+            <path class="vct-ret" fill="#e0972a" d="M86.4,213.6 A90 90 0 0 1 60.0,150.0 L114.0,150.0 A36 36 0 0 0 124.5,175.5 Z"/>
+            <path class="vct-ret" fill="#e0972a" d="M86.4,86.4 A90 90 0 0 1 150.0,60.0 L150.0,114.0 A36 36 0 0 0 124.5,124.5 Z"/>
           </g>
-          <!-- housing stops (fixed radial walls between chambers) -->
-          <g stroke-width="8" stroke-linecap="round">
-            <line x1="183.9" y1="183.9" x2="222.1" y2="222.1"/>
-            <line x1="116.1" y1="183.9" x2="77.9" y2="222.1"/>
-            <line x1="116.1" y1="116.1" x2="77.9" y2="77.9"/>
-            <line x1="183.9" y1="116.1" x2="222.1" y2="77.9"/>
+          <!-- fixed housing stops between chambers -->
+          <g stroke-width="9" stroke-linecap="round">
+            <line x1="174.0" y1="174.0" x2="215.1" y2="215.1"/>
+            <line x1="126.0" y1="174.0" x2="84.9" y2="215.1"/>
+            <line x1="126.0" y1="126.0" x2="84.9" y2="84.9"/>
+            <line x1="174.0" y1="126.0" x2="215.1" y2="84.9"/>
           </g>
-          <!-- housing / sprocket -->
-          <circle cx="150" cy="150" r="132" stroke-width="5"/>
-          <circle cx="150" cy="150" r="139" stroke-width="8" stroke-dasharray="5 9" stroke-linecap="butt"/>
-          <!-- galleries: oil feeding the advance side of each chamber -->
-          <g stroke="#e0972a" stroke-width="6" stroke-linecap="round" fill="none">
-            <line class="vct-gallery" x1="168.5" y1="157.7" x2="214.7" y2="176.8" stroke-dasharray="64" stroke-dashoffset="64"/>
-            <line class="vct-gallery" x1="142.3" y1="168.5" x2="123.2" y2="214.7" stroke-dasharray="64" stroke-dashoffset="64"/>
-            <line class="vct-gallery" x1="131.5" y1="142.3" x2="85.3" y2="123.2" stroke-dasharray="64" stroke-dashoffset="64"/>
-            <line class="vct-gallery" x1="157.7" y1="131.5" x2="176.8" y2="85.3" stroke-dasharray="64" stroke-dashoffset="64"/>
-          </g>
-          <!-- vane rotor, keyed to the cam. Rotates about 25 degrees under oil pressure. -->
-          <g id="vct-rotor">
-            <g stroke-width="9" stroke-linecap="round">
-              <line x1="196" y1="150" x2="250" y2="150"/>
-              <line x1="150" y1="196" x2="150" y2="250"/>
-              <line x1="104" y1="150" x2="50" y2="150"/>
-              <line x1="150" y1="104" x2="150" y2="50"/>
+          <!-- oil galleries feeding advance and retard sides -->
+          <g stroke="#e0972a" stroke-width="4.5" stroke-linecap="round">
+            <g class="vct-gal-adv">
+            <line class="vct-gal" x1="185.1" y1="164.5" x2="209.1" y2="174.5"/>
+            <line class="vct-gal" x1="135.5" y1="185.1" x2="125.5" y2="209.1"/>
+            <line class="vct-gal" x1="114.9" y1="135.5" x2="90.9" y2="125.5"/>
+            <line class="vct-gal" x1="164.5" y1="114.9" x2="174.5" y2="90.9"/>
             </g>
-            <circle cx="150" cy="150" r="46" fill="#fff" stroke-width="4"/>
-            <circle cx="150" cy="150" r="19" fill="none" stroke-width="4"/>
-            <rect x="144" y="131" width="12" height="12" fill="#15607a" stroke="none"/>
+            <g class="vct-gal-ret">
+            <line class="vct-gal" x1="185.1" y1="135.5" x2="209.1" y2="125.5"/>
+            <line class="vct-gal" x1="164.5" y1="185.1" x2="174.5" y2="209.1"/>
+            <line class="vct-gal" x1="114.9" y1="164.5" x2="90.9" y2="174.5"/>
+            <line class="vct-gal" x1="135.5" y1="114.9" x2="125.5" y2="90.9"/>
+            </g>
           </g>
-          <!-- lock pin and its seat, at the top -->
-          <rect x="142" y="112" width="16" height="14" fill="none" stroke-width="3"/>
-          <rect id="vct-pin" x="144" y="92" width="12" height="20" rx="2" fill="#15607a" stroke="none"/>
+          <!-- vane rotor keyed to the cam; rotation is driven by the oil fill -->
+          <g id="vct-rotor">
+            <g stroke-width="10" stroke-linecap="round">
+            <line x1="184.0" y1="150.0" x2="240.0" y2="150.0"/>
+            <line x1="150.0" y1="184.0" x2="150.0" y2="240.0"/>
+            <line x1="116.0" y1="150.0" x2="60.0" y2="150.0"/>
+            <line x1="150.0" y1="116.0" x2="150.0" y2="60.0"/>
+            </g>
+            <circle cx="150" cy="150" r="34" fill="#fff" stroke-width="3.5"/>
+            <polygon points="163.0,157.5 150.0,165.0 137.0,157.5 137.0,142.5 150.0,135.0 163.0,142.5" fill="#fff" stroke-width="3"/>
+            <circle cx="150" cy="150" r="4.5" fill="#15607a" stroke="none"/>
+          </g>
+          <!-- lock pin and its seat at the hold position -->
+          <rect x="142" y="60" width="16" height="13" fill="none" stroke-width="2.5"/>
+          <rect id="vct-pin" x="144" y="42" width="12" height="19" rx="2" fill="#15607a" stroke="none"/>
+          <!-- oil control valve: spool with two lands in its bore, feeding the cam galleries -->
+          <g class="vct-valve">
+            <rect x="266" y="134" width="86" height="32" rx="4" fill="#fff" stroke-width="2.5"/>
+            <line x1="150" y1="150" x2="266" y2="150" class="vct-gal-main" stroke="#e0972a" stroke-width="5" stroke-linecap="round"/>
+            <line x1="284" y1="134" x2="284" y2="120"/>
+            <line x1="334" y1="134" x2="334" y2="120"/>
+            <line x1="309" y1="166" x2="309" y2="182"/>
+            <g id="vct-spool" fill="#15607a" stroke="none">
+              <rect x="278" y="136" width="13" height="28" rx="2"/>
+              <rect x="326" y="136" width="13" height="28" rx="2"/>
+              <rect x="288" y="147" width="40" height="6"/>
+            </g>
+          </g>
         </g>
       </svg>
       <div class="vct-phases">
@@ -742,9 +744,10 @@
       </div>
     </div>
     <p class="vct-note">
-      An oil-actuated cam phaser advances valve timing. Oil pressure fills the <b>advance</b> chambers, the vane rotor
-      keyed to the cam turns about 25 degrees against the housing, and a <b>lock pin</b> drops into its seat to hold the
-      phase. This is a schematic of the kind of unit I prototyped and tested.
+      A vane-type cam phaser, oil actuated. The oil control valve on the right shifts, amber oil travels the galleries
+      into the <b>advance</b> chambers, and the vane rotor keyed to the cam turns in step with how full those chambers get.
+      Oil then crosses to the <b>retard</b> side and the rotor eases back, and a <b>lock pin</b> seats to hold the phase.
+      This is a schematic of the kind of unit I prototyped and tested.
     </p>
   </div>
 
@@ -1550,11 +1553,15 @@
     }
   }
   function anyOpen() { return cards.some(function (o) { return o.open; }); }
+  var savedScrollY = 0;
   cards.forEach(function (t) {
     t.addEventListener('toggle', function () {
       if (t.open) {
         cards.forEach(function (o) { if (o !== t) o.open = false; });
         if (motionOn()) {
+          /* remember where we were: opening flattens the tall pinned track, which
+             collapses page height; we restore this exact position on close. */
+          savedScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
           root.classList.add('fk-open');
           document.body.style.overflow = 'hidden';
           addClose(t);
@@ -1563,6 +1570,11 @@
       } else if (!anyOpen() && motionOn()) {
         root.classList.remove('fk-open');
         document.body.style.overflow = '';
+        void track.offsetHeight; /* force reflow so the tall track is back before we restore scroll */
+        var prevSB = root.style.scrollBehavior;
+        root.style.scrollBehavior = 'auto'; /* restore instantly; the page uses smooth scrolling */
+        window.scrollTo(0, savedScrollY);
+        root.style.scrollBehavior = prevSB;
         leadersLaid = false;
         update();
       }
@@ -1572,65 +1584,86 @@
     if (e.key === 'Escape' && anyOpen()) cards.forEach(function (o) { o.open = false; });
   });
 
+  /* Choreography constants. The camera pulls back from 1.3 to 0.7 across the first half of
+     the pin (pleurat ease-out, k=2.2); cards emerge from behind the truck to a ring beside it. */
+  var S_START = 1.3, S_FINAL = 0.7, ZOOM_END = 0.5, K = 2.2;
+  var EM_START = 0.2, EM_STAGGER = 0.18, EM_DUR = 0.14, ORIGIN = 0.22;
+  var TW = 362.7, TH = 420, PY_FINAL = 10;               /* truck layout box + settled parallax */
+  var PART_VB = {                                         /* viewBox centers of the anchor parts */
+    'sensor-head': [152, 87], 'mast': [159, 236], 'drive-tire': [300, 392],
+    'chassis': [265, 338], 'operator-station': [293, 250]
+  };
+  var driveTire = document.getElementById('drive-tire');
+  var caster = document.getElementById('caster');
+
+  /* Leader lines and card emergence origins are computed against the truck's FINAL scale, so
+     they stay aimed at the parts while the truck is still zooming. Recomputed on resize only. */
   function layoutLeaders() {
     if (!leaders) return;
     var sb = stage.getBoundingClientRect();
     if (!sb.width) return;
     leaders.setAttribute('viewBox', '0 0 ' + sb.width.toFixed(1) + ' ' + sb.height.toFixed(1));
-    var midX = sb.left + sb.width / 2;
+    var ccx = sb.width / 2, ccy = sb.height / 2;
     cards.forEach(function (card, i) {
-      var part = document.getElementById(card.getAttribute('data-part'));
+      var vb = PART_VB[card.getAttribute('data-part')];
       var ln = lines[i];
-      if (!part || !ln) return;
-      /* card base center from its declared position, not its flown-in transform */
-      var cx = (parseFloat(card.getAttribute('data-cx')) / 100) * sb.width;
-      var cy = (parseFloat(card.getAttribute('data-cy')) / 100) * sb.height;
-      var cw = card.offsetWidth, ch = card.offsetHeight;
-      var absCx = sb.left + cx;
-      var ax = (absCx < midX) ? (absCx + cw / 2) : (absCx - cw / 2);
-      var ay = sb.top + cy;
-      var pb = part.getBoundingClientRect();
-      var px = pb.left + pb.width / 2, py = pb.top + pb.height / 2;
-      ln.setAttribute('x1', (ax - sb.left).toFixed(1));
-      ln.setAttribute('y1', (ay - sb.top).toFixed(1));
-      ln.setAttribute('x2', (px - sb.left).toFixed(1));
-      ln.setAttribute('y2', (py - sb.top).toFixed(1));
-      if (dots[i]) { dots[i].setAttribute('cx', (px - sb.left).toFixed(1)); dots[i].setAttribute('cy', (py - sb.top).toFixed(1)); dots[i].setAttribute('r', '3.2'); }
+      if (!vb || !ln) return;
+      var cxFrac = parseFloat(card.getAttribute('data-cx')) / 100;
+      var cyFrac = parseFloat(card.getAttribute('data-cy')) / 100;
+      var cw = card.offsetWidth;
+      var acx = cxFrac * sb.width, acy = cyFrac * sb.height;
+      var ax = (acx < ccx) ? (acx + cw / 2) : (acx - cw / 2);
+      var px = ccx + S_FINAL * TW * (vb[0] / 380 - 0.5);
+      var py = ccy + PY_FINAL + S_FINAL * TH * (vb[1] / 440 - 0.5);
+      ln.setAttribute('x1', ax.toFixed(1)); ln.setAttribute('y1', acy.toFixed(1));
+      ln.setAttribute('x2', px.toFixed(1)); ln.setAttribute('y2', py.toFixed(1));
+      var len = Math.hypot(px - ax, py - acy);
+      ln.setAttribute('stroke-dasharray', len.toFixed(1));
+      ln._len = len;
+      if (dots[i]) { dots[i].setAttribute('cx', px.toFixed(1)); dots[i].setAttribute('cy', py.toFixed(1)); dots[i].setAttribute('r', '3.2'); }
+      card._sx = (0.5 - cxFrac) * sb.width * ORIGIN;   /* emergence origin: just behind the truck */
+      card._sy = (0.5 - cyFrac) * sb.height * ORIGIN;
     });
   }
 
   function update() {
     if (!motionOn() || root.classList.contains('fk-open')) return;
+    if (!leadersLaid) { layoutLeaders(); leadersLaid = true; }
     var rect = track.getBoundingClientRect();
     var span = track.offsetHeight - window.innerHeight;
     var p = span > 0 ? (-rect.top) / span : 0;
     p = clamp(p);
 
-    /* stage 1 (0 - 0.2): truck draws in (fade + slight scale). */
-    var s1 = clamp(p / 0.2);
-    truck.style.setProperty('--fk-o', s1.toFixed(3));
-    truck.style.setProperty('--fk-s', (0.9 + 0.1 * s1).toFixed(3));
+    /* Camera pull-back: truck stays fully visible, scales 1.3 -> 0.7, with a light downward
+       parallax and the wheels turning a little as it recedes. */
+    var q = clamp(p / ZOOM_END);
+    var s = S_FINAL + (S_START - S_FINAL) * Math.pow(1 - q, K);
+    truck.style.setProperty('--fk-o', '1');
+    truck.style.setProperty('--fk-s', s.toFixed(4));
+    truck.style.setProperty('--fk-py', (q * PY_FINAL).toFixed(1) + 'px');
+    var wheel = (q * 55).toFixed(1);
+    if (driveTire) driveTire.setAttribute('transform', 'rotate(' + wheel + ' 300 392)');
+    if (caster) caster.setAttribute('transform', 'rotate(' + wheel + ' 150 398)');
 
-    /* stage 2 (0.2 - 0.5): cards fly in one by one from the edges. */
-    var t2 = clamp((p - 0.2) / 0.3);
+    /* Cards emerge one by one from behind the truck to their settled ring, leaders drawing on. */
     var n = cards.length;
     for (var i = 0; i < n; i++) {
       var card = cards[i];
-      var startFrac = (i / n) * 0.72;      /* staggered start, overlapping */
-      var cp = clamp((t2 - startFrac) / 0.4);
-      cp = 1 - Math.pow(1 - cp, 3);        /* ease-out */
-      var fx = parseFloat(card.getAttribute('data-fromx')) || 0;
-      var fy = parseFloat(card.getAttribute('data-fromy')) || 0;
-      card.style.setProperty('--tx', (fx * (1 - cp)).toFixed(1) + 'px');
-      card.style.setProperty('--ty', (fy * (1 - cp)).toFixed(1) + 'px');
+      var startFrac = EM_START + (i / n) * EM_STAGGER;
+      var cp = clamp((p - startFrac) / EM_DUR);
+      cp = 1 - Math.pow(1 - cp, 3);
+      var sx = card._sx || 0, sy = card._sy || 0;
+      card.style.setProperty('--tx', (sx * (1 - cp)).toFixed(1) + 'px');
+      card.style.setProperty('--ty', (sy * (1 - cp)).toFixed(1) + 'px');
+      card.style.setProperty('--csc', (0.18 + 0.82 * cp).toFixed(3));
       card.style.setProperty('--op', cp.toFixed(3));
-      if (lines[i]) lines[i].style.opacity = (cp * 0.85).toFixed(3);
-      if (dots[i]) dots[i].style.opacity = (cp * 0.85).toFixed(3);
+      if (cp > 0.9) card.classList.add('fk-landed'); else card.classList.remove('fk-landed');
+      var ln = lines[i];
+      if (ln) { ln.style.opacity = cp > 0.03 ? '1' : '0'; ln.style.strokeDashoffset = ((ln._len || 0) * (1 - cp)).toFixed(1); }
+      if (dots[i]) dots[i].style.opacity = (cp > 0.96 ? 1 : 0).toString();
     }
 
-    if (p >= 0.2 && !leadersLaid) { layoutLeaders(); leadersLaid = true; }
-
-    setStage(p < 0.2 ? 1 : (p < 0.5 ? 2 : (p < 0.75 ? 3 : 4)));
+    setStage(p < ZOOM_END ? (p < 0.12 ? 1 : 2) : (p < 0.75 ? 3 : 4));
   }
 
   var ticking = false;
@@ -1645,14 +1678,67 @@
   window.addEventListener('load', function () { leadersLaid = false; update(); });
 })();
 
-/* BorgWarner cam phaser: play the cutaway once when it scrolls into view. */
+/* BorgWarner vane cam phaser: a 6s timeline, played once when the cutaway scrolls into view.
+   The rotor angle is a direct function of the advance-oil fill, so it turns with the oil. */
 (function () {
   var wrap = document.querySelector('.vct-wrap');
   if (!wrap) return;
+  var rotor = wrap.querySelector('#vct-rotor');
+  var spool = wrap.querySelector('#vct-spool');
+  var pin = wrap.querySelector('#vct-pin');
+  var advSecs = wrap.querySelectorAll('.vct-adv');
+  var retSecs = wrap.querySelectorAll('.vct-ret');
+  var advGal = wrap.querySelectorAll('.vct-gal-adv line');
+  var retGal = wrap.querySelectorAll('.vct-gal-ret line');
+  var mainGal = wrap.querySelector('.vct-gal-main');
+  var l1 = wrap.querySelector('.vct-l1'), l2 = wrap.querySelector('.vct-l2'), l3 = wrap.querySelector('.vct-l3');
+  if (!rotor || !spool || !pin) return;
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (reduce || !('IntersectionObserver' in window)) { wrap.classList.add('is-final'); return; }
+
+  function clamp(v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
+  function smooth(a, b, t) { t = clamp((t - a) / (b - a)); return t * t * (3 - 2 * t); }
+  function len(el) { try { return el.getTotalLength(); } catch (e) { return 30; } }
+
+  function initDash(list) { list.forEach(function (g) { var L = len(g); g._L = L; g.style.strokeDasharray = L; g.style.strokeDashoffset = L; }); }
+  initDash(advGal); initDash(retGal);
+  var ML = mainGal ? len(mainGal) : 0;
+  if (mainGal) { mainGal.style.strokeDasharray = ML; mainGal.style.strokeDashoffset = ML; }
+
+  function frame(t) {
+    var advFill = clamp(smooth(0.10, 0.42, t) - 0.5 * smooth(0.60, 0.85, t));
+    var retFill = smooth(0.60, 0.85, t);
+    rotor.setAttribute('transform', 'rotate(' + (24 * advFill).toFixed(2) + ' 150 150)');
+    var spoolX = -10 * smooth(0.02, 0.10, t) + 20 * smooth(0.52, 0.60, t);
+    spool.setAttribute('transform', 'translate(' + spoolX.toFixed(1) + ' 0)');
+    advSecs.forEach(function (s) { s.style.opacity = (0.85 * advFill).toFixed(3); });
+    retSecs.forEach(function (s) { s.style.opacity = (0.12 + 0.73 * retFill).toFixed(3); });
+
+    var mflow = smooth(0.04, 0.30, t);
+    if (mainGal) { mainGal.style.strokeDashoffset = (ML * (1 - mflow)).toFixed(1); mainGal.style.opacity = mflow > 0.02 ? '1' : '0'; }
+    var advFlow = smooth(0.08, 0.40, t);
+    advGal.forEach(function (g) { g.style.strokeDashoffset = (g._L * (1 - advFlow)).toFixed(1); g.style.opacity = advFlow > 0.02 ? '1' : '0'; });
+    var retFlow = smooth(0.58, 0.82, t);
+    retGal.forEach(function (g) { g.style.strokeDashoffset = (g._L * (1 - retFlow)).toFixed(1); g.style.opacity = retFlow > 0.02 ? '1' : '0'; });
+
+    var pd = 0;
+    if (t >= 0.85) { var u = clamp((t - 0.85) / 0.15); pd = 14 * (1 - Math.pow(1 - u, 3)) + Math.sin(u * Math.PI) * 1.3; }
+    pin.setAttribute('transform', 'translate(0 ' + pd.toFixed(1) + ')');
+
+    if (l1) l1.style.opacity = (t > 0.05 && t < 0.45) ? '1' : '0.3';
+    if (l2) l2.style.opacity = (t > 0.12 && t < 0.86) ? '1' : '0.3';
+    if (l3) l3.style.opacity = (t >= 0.85) ? '1' : '0.3';
+  }
+
+  function play() {
+    var start = null, DUR = 6000;
+    function step(ts) { if (start == null) start = ts; var t = clamp((ts - start) / DUR); frame(t); if (t < 1) requestAnimationFrame(step); }
+    requestAnimationFrame(step);
+  }
+
+  frame(0);
+  if (reduce || !('IntersectionObserver' in window)) { frame(1); return; }
   var io = new IntersectionObserver(function (es) {
-    es.forEach(function (e) { if (e.isIntersecting) { wrap.classList.add('is-run'); io.disconnect(); } });
+    es.forEach(function (e) { if (e.isIntersecting) { play(); io.disconnect(); } });
   }, { threshold: 0.4 });
   io.observe(wrap);
 })();
