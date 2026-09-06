@@ -134,3 +134,47 @@ P3 Raymond + previous experience (simple VCT loop) + other projects + websites +
 P4 Reading panel, mobile, reduced motion, Lighthouse performance >= 85, click tests on all
    openers, writing-rules grep, every src exists. Then link from root nav "v2 preview".
 Each phase: `git add -A && git commit -m "v2: <phase>" && git push`, report frames + hash.
+
+## 7. Round 2 (Kambar, 2026-09-06): "naked, empty, lazy" -> make it alive
+Verdict on round 1: cubes and background too faint, structure too sparse, "02 / SIMULATE" labels
+read as AI. Round 2 replaces the chapter structure with fewer, stronger set pieces.
+
+### 7.1 Always on: floating cubes + dense background
+- Particle field is a VISIBLE actor: 160k points desktop, size 1.6, colour #b8b8b8 at hero (not
+  #d9d9d9), ribbons clearly readable at first paint (compare nirnor frame_013). Density never
+  below 70 percent.
+- Eight photo cubes float across the page continuously (slow drift + tumble), never hidden
+  between sections; they part around text (exclusion rule stays) but stay on screen.
+- Cube reveal: fade in per cube when its textures load, with a 2.5 s timeout after which the
+  cube shows with a neutral #e0e0e0 material so nothing can stay invisible.
+- No numbered section labels. Headings are plain words; the fluid category-word style stays.
+
+### 7.2 Background morphs (three, no more; "it will get annoying")
+Mechanism: each point has attractorPos and up to three shapePos targets (sampled from a mask
+image at build time: forklift, slicer stack, cube outline). Vertex shader mixes
+attractorPos -> shapePos[k] by uMorph[k] (0..1) with per-point noise so the form assembles
+from dust and dissolves back. uMorph driven by ScrollTrigger scrub 0.8, power2.inOut.
+1. EXPERIENCE: on the right the dots reform into the FORKLIFT silhouette (from the root SVG,
+   rasterised to a 1024 mask, ~45k points, slight breathing). Left column: The Raymond
+   Corporation, role, 2024 to now, the six systems as plain lines with their numbers, then
+   achievements (Outstanding Undergraduate Scholar 2022, Greater Good 2019, GPA 3.90 / 4.00),
+   then BorgWarner and Boston Beer as two short rows (VCT loop stays, small).
+2. SLICER: dots reform into a STACK OF SLICE CONTOURS (a nozzle-like solid sliced into ~40
+   horizontal rings, generated procedurally, rings light up bottom to top with scroll like a
+   print), beside the slicer story and its evidence.
+3. DARK STRIPE: full-bleed #1a1a1a band; the same field in white dots forms a wireframe CUBE
+   OUTLINE that slowly rotates while the manifesto sits rotated vertical on the left.
+
+### 7.3 Projects = grid of cubes that unfold
+- A 4x2 grid of the eight cubes (larger, ~180 px) under the heading "projects". Hover: cube lifts
+  and slows. Click: the cube glides to screen centre, the other cubes and text fade, and it UNFOLDS
+  into its cross net (six hinged face meshes, GSAP rotations, 1.1 s power3.inOut), the camera
+  frames the net, then DOM cards attach to each face by projection: face 1 title + year + one
+  line, face 2 Designed (image + 2 lines), face 3 Analyzed, face 4 Built, face 5 Proved with the
+  number, face 6 tools and a "full breakdown" link (existing reading panel). Close (X, Escape,
+  click outside) folds it back and returns it to the grid. Mobile: unfold becomes a vertical
+  stack of the six faces.
+### 7.4 Page order
+Hero (headline, floating cubes, dense ribbons) -> Experience (forklift morph) -> Slicer (stack
+morph) -> Projects (cube grid + unfold) -> Websites (small) -> Dark stripe (cube-outline morph +
+manifesto) -> Contact (cubes settle into a grid, details).
