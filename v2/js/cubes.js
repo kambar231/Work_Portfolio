@@ -1154,7 +1154,11 @@ export function createCubeHero({ onCubeClick } = {}) {
     const c = worldAtScreen(bandCx, bandCy, RZ);
     const p1 = clamp01(t / 0.25);                         // rotate to face-on
     const p2 = clamp01((t - 0.10) / 0.75);               // hinge flat
-    const e = easeInOut(clamp01(t));                      // glide + scale into the band
+    // Glide over a WIDER scroll window than the hinge (section p 0.30..0.82, not 0.30..0.70) so
+    // the same travel spreads across more scroll: the per-frame step at the easeInOut midpoint
+    // no longer spikes (~20 px), while the zero-velocity endpoints keep both handoffs continuous.
+    const pp = secProg[section] != null ? secProg[section] : (0.30 + 0.40 * t);
+    const e = easeInOut(clamp01((pp - 0.30) / 0.52));    // glide + scale into the band
     srig.quaternion.slerpQuaternions(srigStartQuat, _qIdent, easeInOut(p1));
     srig.position.set(
       srigStartPos.x + ((c.x - 0.5 * S) - srigStartPos.x) * e,
@@ -1186,9 +1190,29 @@ export function createCubeHero({ onCubeClick } = {}) {
     }
     return out;
   }
+  // six screen rects of the click-open (C3) rig while cube i is open, else [].
+  function rigFaceRects() {
+    const out = [];
+    if (!rig || !rigPivots) return out;
+    const w = window.innerWidth, h = window.innerHeight;
+    rig.updateWorldMatrix(true, true);
+    const faces = [rig.userData.front, rigPivots.right.mesh, rigPivots.left.mesh, rigPivots.top.mesh, rigPivots.bottom.mesh, rigPivots.back.mesh];
+    for (let j = 0; j < 6; j++) {
+      const m = faces[j]; if (!m) continue;
+      let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
+      for (let sx = -1; sx <= 1; sx += 2) for (let sy = -1; sy <= 1; sy += 2) {
+        _rv.set(sx * 0.5, sy * 0.5, 0); m.localToWorld(_rv); _rv.project(camera);
+        const X = (_rv.x * 0.5 + 0.5) * w, Y = (-_rv.y * 0.5 + 0.5) * h;
+        minx = Math.min(minx, X); maxx = Math.max(maxx, X); miny = Math.min(miny, Y); maxy = Math.max(maxy, Y);
+      }
+      out.push({ x: minx, y: miny, w: maxx - minx, h: maxy - miny });
+    }
+    return out;
+  }
   // six screen rects while cube i is open (scrub hinge or click-open), else [].
   function unfoldFaceRects(i) {
     if (srig && srigIndex === i) return scrubFaceRects();
+    if (rig && openIndex === i) return rigFaceRects();
     return [];
   }
 
@@ -1199,9 +1223,17 @@ export function createCubeHero({ onCubeClick } = {}) {
   const LABEL_H = 16;   // cube-label line box (12px uppercase, single line)
   function computeGrid6(shiftPx) {
     const vw = window.innerWidth, vh = window.innerHeight;
-    const lanes = domTextRects();
-    let headBottom = 0.13 * vh;
-    for (const r of lanes) if (r.y < 0.40 * vh && r.y + r.h > 0) headBottom = Math.max(headBottom, r.y + r.h);
+    // Page-locked: anchor the grid a fixed distance below the projects heading, read straight
+    // from its live rect so the whole block scrolls 1:1 with the page (the heading and the
+    // websites text can never pass through it). Fall back to the lane scan if the head is absent.
+    const headEl = document.querySelector('.projects-head');
+    let headBottom;
+    if (headEl) { headBottom = headEl.getBoundingClientRect().bottom; }
+    else {
+      const lanes = domTextRects();
+      headBottom = 0.13 * vh;
+      for (const r of lanes) if (r.y < 0.40 * vh && r.y + r.h > 0) headBottom = Math.max(headBottom, r.y + r.h);
+    }
     const gridTop = headBottom + 64;
     const minEdge = 0.055 * vw;
     const pitchXof = (e) => 1.58 * e;
@@ -1223,7 +1255,7 @@ export function createCubeHero({ onCubeClick } = {}) {
     for (let k = 0; k < PROJ6.length; k++) {
       const col = k % 3, row = Math.floor(k / 3);
       const px = cx + (col - 1) * pitchX;
-      const py = topRowCy + row * pitchY - (shiftPx || 0);
+      const py = topRowCy + row * pitchY;   // page-locked via headBottom; shiftPx is ignored
       const wpt = worldAtScreen(px, py, 0);
       grid6World[k].set(wpt.x, wpt.y, 0);
     }
@@ -1506,10 +1538,7 @@ export function createCubeHero({ onCubeClick } = {}) {
 
     // C5: while the projects/contact grid is on, size and place it from the live lanes.
     if (projT > 0.01 || contactT > 0.01) computeGridSlots();
-    if (scrubOn) {
-      const shift = Math.max(0, (secProg.projects - 0.6) / 0.4) * (window.innerHeight * 0.95);
-      computeGrid6(shift);
-    }
+    if (scrubOn) computeGrid6(0);   // grid is page-locked to the heading rect; no viewport shift
     // ---- pass A: every section sets a spring TARGET (group-local), scale, and rotation.
     // No position writes here; positions are integrated in pass B.
     for (let i = 0; i < meshes.length; i++) {
@@ -1550,7 +1579,9 @@ export function createCubeHero({ onCubeClick } = {}) {
           // face-on so the silhouette centroid equals the projected centre (hit test matches render)
           m.rotation.x += (0 - m.rotation.x) * 0.14;
           m.rotation.y += (0 - m.rotation.y) * 0.14;
-          _opArr[i] = 1;
+          // grid click: the clicked cube hinges open in place via the C3 click rig (openProject),
+          // so the closed mesh must vanish the same frame or it sits opaque over the rig.
+          _opArr[i] = (i === openIndex) ? 0 : 1;
         } else {
           // feature cube: fly in from the right (0..0.3), park in the band (..0.85), fold and
           // exit up-left (..1). Pure f(p) -> the spring reverses exactly. While its faces are
@@ -1564,8 +1595,9 @@ export function createCubeHero({ onCubeClick } = {}) {
           let sc;
           if (pp < 0.30) {
             const e = easeInOut(pp / 0.30);
-            // fly-in start: fully off the RIGHT edge at the entry scale (0.8)
-            const flyIn = offscreenPark(i, localAtVwVh(116, (bandCy / vh2) * 100), 0.8, ['right']);
+            // fly-in start: fully ABOVE the top edge at the band's own x, so the descent into
+            // the park point never crosses the morph shape or the padded section text.
+            const flyIn = offscreenPark(i, localAtVwVh((bandCx / vw2) * 100, -18), 0.8, ['top']);
             tgt[i].copy(flyIn).lerp(park, e);
             sc = 0.8 + (parkScale - 0.8) * e;
           } else if (pp < 0.85) {
