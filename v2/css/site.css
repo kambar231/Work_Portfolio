@@ -425,15 +425,13 @@ html.lenis, html.lenis body { height: auto; }
 .reveal-line.in { opacity: 1; transform: none; }
 .exp2-head { list-style: none; margin: 18px 0 0; padding: 0; }
 .exp2-head li { font-size: 15px; color: var(--grey2); line-height: 1.6; }
-.exp2-systems { list-style: none; margin: 26px 0 0; padding: 0; }
-.exp2-systems li { border-top: 1px solid var(--hair); }
-.exp2-systems li:last-child { border-bottom: 1px solid var(--hair); }
-.exp2-systems .ray-open { width: 100%; display: block; text-align: left; background: none; border: 0; cursor: pointer; font-family: inherit; padding: 13px 0; position: relative; opacity: 1; transform: none; }
-.exp2-systems .ray-open b { display: block; font-size: 20px; font-weight: 400; color: var(--ink); }
-.exp2-systems .ray-open span { display: block; margin-top: 3px; font-size: 13px; color: var(--label); }
-.exp2-systems .ray-open::after { content: ""; position: absolute; left: 0; bottom: 6px; height: 1px; width: 100%; background: var(--ink); transform: scaleX(0); transform-origin: left; transition: transform .3s ease; }
-.exp2-systems .ray-open:hover::after { transform: scaleX(1); }
-.exp2-sub { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--label); margin: 34px 0 12px; font-weight: 500; }
+/* Experience column: heading + dates pinned to the top, achievements to the bottom, so
+   the 34vh to 70vh band on the left is free for the Raymond cube to park and unfold. */
+#experience .exp2-pin { padding: 6vh 0; }
+#experience .exp2-col { max-width: 34vw; min-height: 88vh; display: flex; flex-direction: column; justify-content: space-between; }
+.exp2-top { margin: 0; }
+.exp2-bottom { margin: 0; }
+.exp2-sub { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--label); margin: 0 0 12px; font-weight: 500; }
 .exp2-ach { list-style: none; margin: 0; padding: 0; }
 .exp2-ach li { font-size: 15px; color: var(--grey2); line-height: 1.7; }
 .exp2-prev { margin: 30px 0 0; }
@@ -480,20 +478,22 @@ html.lenis, html.lenis body { height: auto; }
 #project-scrim.on { opacity: 1; }
 /* while a cube is open, lift the cube canvas (which draws the net) above the scrim */
 body.cube-open #cubes-canvas { z-index: 4; }
-.project-cards { position: fixed; inset: 0; z-index: 5; pointer-events: none; }
-.project-cards[aria-hidden="true"] { pointer-events: none; }
-.pc { position: absolute; left: 0; top: 0; width: 260px; background: rgba(255,255,255,0.95);
-  border: 1px solid var(--hair); border-radius: 5px; padding: 12px 14px; box-shadow: 0 6px 24px rgba(0,0,0,0.10);
-  pointer-events: auto; will-change: transform, opacity; }
-.pc-front { width: 260px; }
-.pc img { width: 100%; height: 116px; object-fit: cover; display: block; border-radius: 3px; margin: 0 0 9px; }
+/* Desktop unfold: the six faces are the 3D net (baked textures from the engine); the only
+   DOM over them is the Close button and one Full breakdown link, centred below the net. */
+.pc-link { position: fixed; left: 50%; bottom: 4vh; transform: translateX(-50%); z-index: 6;
+  font-family: inherit; font-size: 14px; background: var(--bg); color: var(--ink);
+  border: 1px solid var(--ink); border-radius: 999px; padding: 10px 24px; cursor: pointer;
+  text-decoration: none; }
+.pc-link:hover { background: var(--ink); color: var(--bg); }
+/* inner face-content styles, reused by the mobile vertical face stack (.pms-card) */
 .pc-kick { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: .12em; color: var(--label); margin: 0 0 5px; }
-.pc h3 { font-size: 20px; font-weight: 500; margin: 0 0 3px; color: var(--ink); line-height: 1.2; }
 .pc-year { display: block; font-size: 12px; color: var(--label); margin: 0 0 7px; }
-.pc p { font-size: 15px; line-height: 1.5; color: var(--grey2); margin: 0; }
 .pc-key { font-weight: 600; color: var(--ink); margin-top: 6px !important; }
 .pc-full { margin-top: 9px; font-size: 12px; font-family: inherit; background: none; border: 0; padding: 0;
   color: var(--ink); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.pms-card img { width: 100%; height: 140px; object-fit: cover; display: block; border-radius: 3px; margin: 0 0 9px; }
+.pms-card h3 { font-size: 20px; font-weight: 500; margin: 0 0 3px; color: var(--ink); line-height: 1.2; }
+.pms-card p { font-size: 15px; line-height: 1.5; color: var(--grey2); margin: 0; }
 .project-close { position: fixed; top: 22px; right: 24px; z-index: 6; width: 44px; height: 44px;
   border-radius: 999px; border: 1px solid var(--ink); background: var(--bg); color: var(--ink);
   font-size: 22px; line-height: 1; cursor: pointer; }
@@ -513,5 +513,5 @@ body.cube-open #cubes-canvas { z-index: 4; }
   .ev-strip { grid-template-columns: repeat(2, 1fr); }
   .slice-hairline { display: none; }
   .projects2 { min-height: auto; padding-bottom: 8vh; }
-  .project-cards, .project-close { display: none; }
+  .pc-link, .project-close { display: none; }
 }

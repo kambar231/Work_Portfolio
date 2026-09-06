@@ -60,27 +60,23 @@
     <section id="experience" class="exp2">
       <div class="exp2-pin"><div class="col">
         <div class="exp2-col">
-          <h2 class="exp-word">experience</h2>
-          <ul class="exp2-head reveal-line">
-            <li>The Raymond Corporation, Toyota Material Handling</li>
-            <li>Mechanical Systems Engineer, Controls</li>
-            <li>2024 to now</li>
-          </ul>
-          <ol class="exp2-systems">
-            <li class="reveal-line"><button type="button" class="ray-open" data-panel="ray-stability"><b>Performance Stability System</b><span>+14% performance, -10% battery draw</span></button></li>
-            <li class="reveal-line"><button type="button" class="ray-open" data-panel="ray-sensor"><b>Smart Environment Sensor Plus</b><span>Pedestrian detection, regenerative braking assist</span></button></li>
-            <li class="reveal-line"><button type="button" class="ray-open" data-panel="ray-weight"><b>Hydraulic Weight Sensing</b><span>Pressure transducers in the manifold</span></button></li>
-            <li class="reveal-line"><button type="button" class="ray-open" data-panel="ray-steer"><b>Steer Differentiation</b><span>Tighter turns, less tire wear</span></button></li>
-            <li class="reveal-line"><button type="button" class="ray-open" data-panel="ray-interface"><b>Interface Logic and Access Control</b><span>Controls gated by who is driving</span></button></li>
-            <li class="reveal-line"><button type="button" class="ray-open" data-panel="ray-frame"><b>Structural Frame Redesign</b><span>Strain-gauge validated, infinite fatigue life</span></button></li>
-          </ol>
-          <h3 class="exp2-sub reveal-line">achievements</h3>
-          <ul class="exp2-ach reveal-line">
-            <li>Outstanding Undergraduate Scholar, 2022, top 1 percent</li>
-            <li>Greater Good Award, 2019</li>
-            <li>GPA 3.90 BS and 4.00 MEng</li>
-            <li>Green Life Project: 600 volunteers, 2000 trees</li>
-          </ul>
+          <div class="exp2-top">
+            <h2 class="exp-word">experience</h2>
+            <ul class="exp2-head reveal-line">
+              <li>The Raymond Corporation, Toyota Material Handling</li>
+              <li>Mechanical Systems Engineer, Controls</li>
+              <li>2024 to now</li>
+            </ul>
+          </div>
+          <div class="exp2-bottom">
+            <h3 class="exp2-sub reveal-line">achievements</h3>
+            <ul class="exp2-ach reveal-line">
+              <li>Outstanding Undergraduate Scholar, 2022, top 1 percent</li>
+              <li>Greater Good Award, 2019</li>
+              <li>GPA 3.90 BS and 4.00 MEng</li>
+              <li>Green Life Project: 600 volunteers, 2000 trees</li>
+            </ul>
+          </div>
         </div>
       </div></div>
     </section>
@@ -199,8 +195,9 @@
 
   <!-- Projects unfold overlay: body-level so it stacks above the raised cube canvas -->
   <div id="project-scrim" aria-hidden="true"></div>
-  <div id="project-cards" class="project-cards" aria-hidden="true"></div>
   <button id="project-close" class="project-close" type="button" hidden aria-label="Close project">&times;</button>
+  <!-- one reading-panel link under the open net; hidden until a cube is open -->
+  <button id="project-full" class="pc-link" type="button" hidden>Full breakdown</button>
   <!-- mobile: click opens a vertical stack of the six face cards here -->
   <div id="project-stack" class="project-stack" hidden aria-hidden="true"></div>
 

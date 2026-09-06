@@ -36,6 +36,13 @@ const cubes = createCubeHero({
   onCubeClick: (i) => scrollToSection(cubes.sectionFor(i)),
 });
 
+// Raymond unfold state, shared by the experience ScrollTrigger and the pointer handlers.
+let raymondUnfoldT = 0;
+let raymondFaces = [];
+fetch('data/projects.json').then((r) => r.json())
+  .then((j) => { raymondFaces = (j.raymond && j.raymond.faces) || []; })
+  .catch(() => {});
+
 // shape-debug (?shape=forklift|slicer|cube): force one particle morph fully on and hide
 // every cube, so the silhouette can be screenshotted and scored (IoU) with no scroll/scrub
 // ambiguity. Scroll-driven motion is frozen shortly after boot.
@@ -200,9 +207,14 @@ if (expSec) {
         if (i === RAYMOND_CUBE) continue;
         cubes.exit(i);
       }
-      cubes.chapterPark(RAYMOND_CUBE, 'left', 1, { scale: 2.4, axvw: 30, ayvh: 52 });
+      // park the raymond cube left of the forklift (30vw / 52vh, scale 2.4). chapterPark
+      // ignores axvw/ayvh, so use the engine's setParkAnchor when it is available.
+      if (cubes.setParkAnchor) cubes.setParkAnchor(RAYMOND_CUBE, 30, 52, 2.4);
+      else cubes.chapterPark(RAYMOND_CUBE, 'left', 1, { scale: 2.4 });
     };
     const leaveExperience = () => {
+      if (cubes.setRaymondUnfold) cubes.setRaymondUnfold(0);
+      raymondUnfoldT = 0;
       for (let i = 0; i < cubes.count; i++) cubes.recall(i);
       cubes.chapterPark(RAYMOND_CUBE, 'left', 0);   // unpark -> back to drift
     };
@@ -215,6 +227,16 @@ if (expSec) {
         // experience; the slicer trigger owns the crossfade hand-off to the slice stack.
         const m = p < 0.30 ? p2(p / 0.30) : 1;
         particles.setMorph(0, m);
+        // Raymond cube unfolds into its six-face net over progress 0.25..0.55 (power2.inOut),
+        // holds open, then folds back over 0.85..0.95 so it returns to drift as slicer begins.
+        let ru;
+        if (p < 0.25) ru = 0;
+        else if (p <= 0.55) ru = p2((p - 0.25) / 0.30);
+        else if (p < 0.85) ru = 1;
+        else if (p <= 0.95) ru = 1 - p2((p - 0.85) / 0.10);
+        else ru = 0;
+        raymondUnfoldT = ru;
+        if (cubes.setRaymondUnfold) cubes.setRaymondUnfold(ru);
         expSec.classList.toggle('seen', p > 0.02);
         lines.forEach((el, k) => el.classList.toggle('in', p > 0.08 + k * 0.045));
       },
@@ -225,6 +247,9 @@ if (expSec) {
       // back exit above experience: no forklift here, so dissolve it
       onLeaveBack: () => { leaveExperience(); particles.setMorph(0, 0); },
     });
+    // verifier hooks: current unfold t and a screen rect for face j (when the engine exposes it)
+    window.__v2.raymondUnfold = () => raymondUnfoldT;
+    window.__v2.raymondFace = (j) => (cubes.raymondFaceRects ? cubes.raymondFaceRects()[j] : null);
   }
 }
 
@@ -284,7 +309,6 @@ if (slSec) {
 // ---- Projects: cubes settle into a grid; click one to unfold its six-face net ----
 const projSec = document.querySelector('#projects');
 if (projSec) {
-  const cardsEl = document.getElementById('project-cards');
   const closeBtn = document.getElementById('project-close');
   const stackEl = document.getElementById('project-stack');
   const head = projSec.querySelector('.projects-head');
@@ -320,57 +344,28 @@ if (projSec) {
     { key: 'back', build: (d) => `${imgFor(d, 5)}<span class="pc-kick">Tools</span><p>${d.tools}</p>` },
   ];
   let openIdx = -1;
-  const cardByFace = {};
 
-  function buildCards(i) {
-    openIdx = i;
-    const d = bySlot[i] || { title: cubes.labelFor(i), year: '', one: '', designed: '', analyzed: '', built: '', proved: '', key: '', tools: '', panel: '' };
-    cardsEl.innerHTML = '';
-    FACES.forEach((f) => {
-      const el = document.createElement('div');
-      el.className = 'pc pc-' + f.key;
-      el.innerHTML = f.build(d);
-      if (f.key === 'back' && d.panel) {
-        const b = document.createElement('button');
-        b.type = 'button'; b.className = 'pc-full'; b.textContent = 'Full breakdown';
-        b.addEventListener('click', () => { if (window.__v2panel) window.__v2panel.open(d.panel); });
-        el.appendChild(b);
-      }
-      cardsEl.appendChild(el);
-      cardByFace[f.key] = el;
-    });
-    cardsEl.setAttribute('aria-hidden', 'false');
-  }
-  // cards stay hidden through the unfold and fade in over 0.25 s once the net is complete
-  // (openT >= 0.985), so the first painted state is never a net with half-drawn cards.
-  let cardFadeStart = 0;
-  function positionCards() {
-    const a = cubes.faceAnchors();
-    if (!a) return;
-    const openT = a.front ? a.front.vis : 0;
-    let op;
-    if (openT >= 0.985) {
-      if (!cardFadeStart) cardFadeStart = performance.now();
-      op = Math.min(1, (performance.now() - cardFadeStart) / 250);
-    } else { cardFadeStart = 0; op = 0; }
-    for (const key in cardByFace) {
-      const el = cardByFace[key]; const p = a[key];
-      if (!p) continue;
-      el.style.transform = `translate(-50%, -50%) translate(${p.x.toFixed(1)}px, ${p.y.toFixed(1)}px)`;
-      el.style.opacity = op.toFixed(3);
-    }
-  }
-  let cardRAF = 0;
-  function tickCards() { positionCards(); if (cubes.projectOpenIndex() >= 0 || cubes.faceAnchors()) cardRAF = requestAnimationFrame(tickCards); }
-
+  // The six faces are the 3D net (baked textures from the engine); no DOM cards over them.
+  // The only overlay is the Close button and one Full breakdown link centred below the net.
   const scrim = document.getElementById('project-scrim');
+  const fullBtn = document.getElementById('project-full');
+  let openPanelName = '';
+  if (fullBtn) fullBtn.addEventListener('click', () => { if (openPanelName && window.__v2panel) window.__v2panel.open(openPanelName); });
   cubes.setProjectHandlers(
-    (i) => { buildCards(i); closeBtn.hidden = false; head.classList.add('dim');
+    (i) => {
+      openIdx = i;
+      const d = bySlot[i];
+      openPanelName = d && d.panel ? d.panel : '';
+      if (fullBtn) fullBtn.hidden = !openPanelName;
+      closeBtn.hidden = false; head.classList.add('dim');
       if (scrim) scrim.classList.add('on'); document.body.classList.add('cube-open');
-      cancelAnimationFrame(cardRAF); tickCards(); },
-    () => { closeBtn.hidden = true; head.classList.remove('dim');
+    },
+    () => {
+      openPanelName = '';
+      if (fullBtn) fullBtn.hidden = true;
+      closeBtn.hidden = true; head.classList.remove('dim');
       if (scrim) scrim.classList.remove('on'); document.body.classList.remove('cube-open');
-      setTimeout(() => { cancelAnimationFrame(cardRAF); cardsEl.innerHTML = ''; cardsEl.setAttribute('aria-hidden', 'true'); }, 950); },
+    },
   );
   closeBtn.addEventListener('click', () => cubes.closeProject());
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && cubes.projectOpenIndex() >= 0) cubes.closeProject(); });
@@ -455,6 +450,10 @@ window.addEventListener('pointermove', (e) => {
     cubes.setHover(i);
     document.body.style.cursor = i >= 0 ? 'pointer' : '';
   }
+  // hovering an unfolded Raymond face shows the pointer cursor
+  if (!mobile && raymondUnfoldT > 0.9 && cubes.raymondFaceAt) {
+    document.body.style.cursor = cubes.raymondFaceAt(nx, -ny) >= 0 ? 'pointer' : '';
+  }
 }, { passive: true });
 
 // ---- open a cube ONLY on a real click (pointerdown + pointerup within 6px and 400ms on
@@ -473,6 +472,16 @@ window.addEventListener('pointerup', (e) => {
   if (mobile || !d || e.target.closest(IGNORE_SEL)) return;
   const moved = Math.hypot(e.clientX - d.x, e.clientY - d.y);
   if (moved > 6 || performance.now() - d.t > 400) return;   // a drag/scroll, not a click
+  // a click on an unfolded Raymond face opens that system's reading panel
+  if (raymondUnfoldT > 0.9 && cubes.raymondFaceAt) {
+    const ndc = toNdc(e);
+    const j = cubes.raymondFaceAt(ndc.x, ndc.y);
+    if (j >= 0) {
+      const face = raymondFaces[j];
+      if (face && face.panel && window.__v2panel) window.__v2panel.open(face.panel);
+      return;
+    }
+  }
   const up = cubes.raycast(toNdc(e));
   if (cubes.projectsActive && cubes.projectsActive()) {
     if (cubes.projectOpenIndex() >= 0) {
