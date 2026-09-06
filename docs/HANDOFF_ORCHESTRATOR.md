@@ -34,26 +34,21 @@ text, no open unfold, no horizontal overflow, zero console errors; fps median >=
 (headful); 8-cube click test; 19 reading-panel test; contact grid slots within 6 px. Takes ~5
 minutes. Round 3 extends it (no-pop <= 14 px/frame, min opacity 0.98, panel-scroll test).
 
-## State at handoff (updated 2026-09-06 14:25 local, final)
-- origin/main = 61fc001 "v2: contact grid settle, shape exclusion" (the last part-4 finish round:
-  contact ends in the sorted grid with slot assertion; shape boxes are hard exclusions). The
-  implementer pushed it seconds before being stopped. Lead did NOT re-run the checker on it;
-  the checker agent's first job is `python v2/verify_all.py` on 61fc001 and to report the table.
-- Working tree is CLEAN (only untracked study frames). ROUND 3 HAS NOT STARTED: no engine code
-  exists yet. The implementer `v2-r2p2` is stopped. Start round 3 fresh with the fan-out plan in
-  the post-mortem section below; spec is docs/V2_SPEC.md section 8.
-- Kambar's round-3 asks, verbatim summary (all approved, "go ahead and cook"):
-  1 cubes never pop or reappear, always float (build a motion engine; springs, forces, exits
-    past the edge instead of hiding). 2 cubes are almost always dimmed because text is in front:
-    route around text lanes instead of dimming; only important cubes stay near. 3 forklift and
-    slicer stack too far right (centre at 62vw) and transitions too abrupt: forklift holds to the
-    end of experience and crossfades into the slice stack. 4 reading panels cannot scroll
-    (Performance Stability): fix + test. 5 a dedicated Raymond cube flies in, parks, unfolds with
-    the six systems on its faces instead of the list; each face opens its panel (two cubes 3+3 is
-    the fallback). 6 BorgWarner and Boston Beer move lower. 7 projects cubes laggy/jittery
-    (repulsion oscillation): engine fix. 8 unfolded cube shows cards with different pictures in
-    front of the faces, and each open face has a diagonal triangle seam: bake content into the
-    face textures, delete the cards, remove the seam.
+## State at handoff (updated 2026-09-06, round 3 pivot shipped)
+- origin/main = 5cd3d56 "v2: raymond park centred and on-screen, grid labels under each
+  cube". Round 3 was delivered through the pivot in section 9 of docs/V2_SPEC.md.
+- Commit chain by area (round 3):
+  - engine, v2/js/cubes.js: 25cfb6f, a8647b7, 930e80d, fa697b9, cd093c6, 5a8d861, 3b3799f,
+    0141e7b, 2247c47, e5ce0f5, 8b43245, 5cd3d56.
+  - morph, v2/js/particles.js: 78fda50, a49c2aa.
+  - page, v2/index.html + css + projects.json: 9ec27a0, 4162307, 107b268, 763a050, d55f98d,
+    b387422, 588c112.
+  - checker, v2/verify_all.py: c27d8d7, 6b802cf, c318905, e9a6f39, 7160d8e, df8a756, 8258235,
+    4525ac0, 436cf25, 92a60d7, c3ccac5.
+- The last full checker table is in the lead's report. Do not invent results.
+- Open items still waiting on Kambar: CubeSat and CatBot images, the forklift 3D model, and a
+  clear cast-part photo. Five of the six Raymond faces use the forklift placeholder image
+  until those assets arrive.
 
 ## Open items (need Kambar's material, nothing to do until he sends it)
 - CubeSat and CatBot images (placeholder slots exist on both pages).
@@ -79,23 +74,13 @@ docs/PLEURAT_ANIMATIONS.md, docs/CODEX_VS_OURS.md (abandoned direction), docs/WR
 Tools: C:\Users\kmangibayev\Code\Tools\webport\webgen.py (film/shot/serve), Playwright installed.
 Memory: ~/.claude/shared-memory/work-portfolio-project.md.
 
-## Efficiency post-mortem (Kambar, 2026-09-06: "something makes it very slow"). Do it differently.
-What happened: one implementer at a time, briefs of 5 to 8 features each, filming + Playwright
-tests + the 5-minute checker inside every round, lead review only after the whole part, so every
-part cost two rounds of 30 to 60 min.
-Run round 3 and everything after like this instead:
-1. FAN OUT BY FILE, one owner per file, all in parallel, no shared writes:
-   - engine agent: v2/js/cubes.js only (motion engine, unfold rig, baked-face textures)
-   - morph agent: v2/js/particles.js only (forklift/slicer centring, hold, crossfade)
-   - page agent: v2/index.html, v2/css/site.css, v2/data/projects.json (experience layout,
-     Raymond cube markup hooks, BorgWarner/Boston band, panel scroll CSS)
-   - checker agent: v2/verify_all.py only (no-pop, min-opacity, panel-scroll, seam crops)
-   Interfaces are already there: cubes.setTargets/setState/focus, particles uMorph uniforms,
-   main.js wires them. main.js is lead-arbitrated: only one agent may touch it per wave.
-2. ONE FEATURE PER BRIEF, 10 to 15 minutes of work, pushed as soon as its own file is green.
-3. Verification runs in parallel by the checker agent against the integrated tree, not by each
-   builder. Builders only run the fast file-level checks (node --check, a single screenshot).
-4. Lead reviews 2 frames per wave WHILE agents work (ask for an early screenshot at 5 min), so
-   fixes land in the same wave. No separate fix rounds.
-5. Timebox: any agent silent for 10 min gets a status ping; 20 min gets stopped and its WIP
-   handed to a fresh one (WIP stays on disk; never discard).
+## Process that worked (round 3, 2026-09-06). Keep doing it this way.
+- Fan out by file, one owner per file, no shared writes.
+- Report only to the lead. Never message another agent: a message resurrects a stopped agent,
+  which happened twice today.
+- Builders verify one feature per commit with one targeted check.
+- The checker runs only on the lead's ask.
+- The lead reviews frames of the final wave states only.
+- Per-frame section state is derived from the scroll position. ScrollTrigger onEnter and
+  onLeave do not fire on discrete jumps.
+- Positions are measured at spring rest.

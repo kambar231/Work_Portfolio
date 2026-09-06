@@ -221,3 +221,27 @@ Order: engine -> experience -> unfold. Every step passes v2/verify_all.py (exten
 - Remove the diagonal seam: use PlaneGeometry(1,1,1,1) with MeshBasicMaterial for open faces
   (no lighting-induced diagonal), toneMapped false, no alpha edges; verify with 400 px crops of
   every open face (assert no diagonal line via a Hough-style check or by eye in the report).
+
+
+## 9. Round 3 pivot (Kambar, 2026-09-06 ~16:00)
+- Cubes appear only in their own sections. Hero has none. Experience shows the Raymond
+  cube (cube 4) only. Slicer shows the slicer cube (cube 3) only. Projects and contact show
+  all eight. Every other section shows none. Free drift over text and the dimming logic are
+  both gone.
+- Clicking a cube opens that exact cube. The raycast hits the cube meshes; labels never
+  intercept the click.
+- Opening a cube uses no overlay. The cube itself hinges open from its own pose, glides to
+  centre in the last quarter of the open, and closes back the same way.
+- The Raymond cube flies in and parks centred in the free band between the employer lines and
+  the achievements. It unravels by hinging, scroll-driven: 0 to 0.55 folds into a cross net,
+  0.55 to 1 slides the faces into a 3 by 2 grid sized to that band. Faces are text-first:
+  system name, key number, one line.
+- The cross net at spec size does not fit next to a forklift at 62vw, hence 3 by 2.
+- Projects grid edge = min(9vw, 15vh). The block sits 40 px below the heading and shrinks to
+  fit the lanes.
+- Contact grid fills the largest lane-free rectangle.
+- Baked face type is 64 / 44 / 34 / 30 px on a 1024 px canvas.
+- The checker measures positions at spring rest. No-pop is normalised to a 60 fps frame. It
+  runs only on the lead's explicit ask, with --only / --range / --step targeted modes; a full
+  sweep runs once per wave.
+
