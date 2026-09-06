@@ -443,15 +443,17 @@ html.lenis, html.lenis body { height: auto; }
 
 /* ---- Previous employers band (own section, 60vh below experience) ---- */
 /* reveal-line and exp-word here are outside #experience, so main.js never animates
-   them; show them by default and lay the two rows side by side. */
+   them; show them by default. The forklift particle silhouette holds on the right
+   through this band, so both rows stack in a single left column capped at 42vw so
+   nothing crosses 46vw into the forklift. */
 .prev-band { position: relative; margin-top: 60vh; padding: 8vh 0 12vh; }
 .prev-band .exp-word { opacity: 1; transform: none; }
 .prev-band .reveal-line { opacity: 1; transform: none; }
-.prev-band .exp2-prev { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin: 30px 0 0; align-items: start; }
+.prev-band .exp2-prev { display: flex; flex-direction: column; gap: 28px; max-width: 34vw; margin: 30px 0 0; }
 .prev-band .exp2-row { margin-top: 0; }
 @media (max-width: 819px) {
   .prev-band { margin-top: 60vh; padding: 4vh 0 8vh; }
-  .prev-band .exp2-prev { grid-template-columns: 1fr; gap: 28px; }
+  .prev-band .exp2-prev { max-width: 100%; gap: 28px; }
 }
 
 .slicer-story { font-size: 16px; line-height: 1.7; color: var(--grey2); margin: 20px 0 0; max-width: 46ch; }
