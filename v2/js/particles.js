@@ -215,7 +215,6 @@ export function createParticles(opts = {}) {
   function loadShape(k, url) {
     fetch(url).then((r) => r.arrayBuffer()).then((buf) => {
       const src = new Float32Array(buf);
-      shapeNorm[k] = src;
       const M = src.length / 4;
       let minx = Infinity, maxx = -Infinity, miny = Infinity, maxy = -Infinity;
       for (let i = 0; i < M; i++) {
@@ -224,6 +223,19 @@ export function createParticles(opts = {}) {
         if (y < miny) miny = y; if (y > maxy) maxy = y;
       }
       shapeBounds[k] = { minx, maxx, miny, maxy };
+      // Spatially coherent correspondence for the crossfade: sort every shape's samples by the
+      // SAME key (12 horizontal bands bottom-first, then x within the band) before they are
+      // assigned to point indices. Index i of shape 0 and index i of shape 1 then land at
+      // matching spatial slots, so the 50/50 midpoint is a solid in-between blob rather than
+      // scattered dust. (Height-gated reveal still keys off aShape1.y, so it is unaffected.)
+      const BANDS = 12, yr = (maxy - miny) || 1;
+      const bandOf = (i) => Math.min(BANDS - 1, Math.max(0, Math.floor((src[i * 4 + 1] - miny) / yr * BANDS)));
+      const order = new Array(M);
+      for (let i = 0; i < M; i++) order[i] = i;
+      order.sort((p, q) => { const bp = bandOf(p), bq = bandOf(q); return bp !== bq ? bp - bq : src[p * 4] - src[q * 4]; });
+      const sorted = new Float32Array(src.length);
+      for (let i = 0; i < M; i++) { const o = order[i]; sorted[i * 4] = src[o * 4]; sorted[i * 4 + 1] = src[o * 4 + 1]; sorted[i * 4 + 2] = src[o * 4 + 2]; sorted[i * 4 + 3] = src[o * 4 + 3]; }
+      shapeNorm[k] = sorted;
       placeShape(k); calibrate(k); placeShape(k); shapeLoaded[k] = true;
       if (forcedK === k) uniforms['uMorph' + k].value = 1;   // apply a pending debug force
     }).catch(() => {});
