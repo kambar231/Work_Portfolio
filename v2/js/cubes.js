@@ -461,6 +461,11 @@ export function createCubeHero({ onCubeClick } = {}) {
       for (let i = 0; i < meshes.length; i++) {
         if (!visibleSet.has(i)) { delete parkTargets[i]; override[i] = null; }
       }
+      // Authoritative: a cube leaving the set cannot keep an open rig. On a discrete jump the
+      // experience scrub never drives setRaymondUnfold back to 0, so the rig would linger into
+      // the next section; snap it (and any open project unfold) closed here.
+      if (!visibleSet.has(raymondCubeIndex()) && (raymondRig || raymondT > 0)) { raymondT = 0; disposeRaymondRig(); }
+      if (openIndex >= 0 && !visibleSet.has(openIndex)) { openIndex = -1; openT = 0; disposeRig(); }
     }
   }
 
@@ -790,9 +795,12 @@ export function createCubeHero({ onCubeClick } = {}) {
   //   0.65-1.00  glide + scale the open net to the framed centre
   function updateOpenRig(t) {
     if (!rig) return;
-    const p1 = Math.min(1, t / 0.25);
-    const p2 = Math.min(1, Math.max(0, (t - 0.25) / 0.40));
-    const p3 = Math.min(1, Math.max(0, (t - 0.65) / 0.35));
+    // Hold at the cube's pose while it rotates face-on and hinges fully OPEN, then glide the
+    // open net to the framed centre. The glide is the LAST 25% so the cube is visibly
+    // unfolding in place (anchored) for the first three quarters of the motion.
+    const p1 = Math.min(1, t / 0.22);                          // rotate to face-on
+    const p2 = Math.min(1, Math.max(0, (t - 0.12) / 0.53));    // hinge open (done by t=0.65)
+    const p3 = Math.min(1, Math.max(0, (t - 0.75) / 0.25));    // glide to centre (last quarter)
     rig.position.lerpVectors(rigStartPos, rigEndPos, easeInOut(p3));
     rig.scale.setScalar(rigStartScale + (rigEndScale - rigStartScale) * easeInOut(p3));
     rig.quaternion.slerpQuaternions(rigStartQuat, _qIdent, easeInOut(p1));
@@ -809,7 +817,7 @@ export function createCubeHero({ onCubeClick } = {}) {
     openIndex = i;
     buildRig(i);
     const g = window.gsap;
-    if (g) g.fromTo({ p: 0 }, { p: 0 }, { p: 1, duration: 1.2, ease: 'power2.inOut', onUpdate: function () { openT = this.targets()[0].p; updateOpenRig(openT); } });
+    if (g) g.fromTo({ p: 0 }, { p: 0 }, { p: 1, duration: 1.5, ease: 'none', onUpdate: function () { openT = this.targets()[0].p; updateOpenRig(openT); } });
     else { openT = 1; updateOpenRig(1); }
     if (onProjectOpen) onProjectOpen(i);
   }
@@ -1208,18 +1216,19 @@ export function createCubeHero({ onCubeClick } = {}) {
       const m = meshes[i];
       let tumbleScale = 1;
       _opArr[i] = 1; _forceable[i] = false; _avoid[i] = false; _avoidPair[i] = false;
-      if (visibleSet && visibleSet.has(i)) revealTargets[i] = 1;   // C1: re-entering the set fades in
       const bob = Math.sin(t * 0.6 + i) * BOB_AMP;
       const pt = parkTargets[i];
       const tr = _tr[i];
       const ov = override[i];
       if (visibleSet && !visibleSet.has(i)) {
-        // C1: not in this section's visible set -> exit off-screen and fade out; skipped by
-        // hit tests and by the checker gates (opacity 0). No park/target/lane work applies.
+        // C1: not in this section's visible set -> exit off-screen by POSITION at full speed.
+        // Opacity stays 1 the whole way (MIN-OPACITY gate + Kambar's no-dimming rule); the cube
+        // is skipped by hit tests (raycast filters the set) and leaves overlap/text gates as
+        // soon as its box clears the viewport. No park/target/lane work applies.
         const ex = exitTargetLocal(i);
         tgt[i].set(ex.x, ex.y, ex.z);
         scaleTarget[i] = 1;
-        revealTargets[i] = 0;               // fade to 0 so gates and clicks ignore it
+        revealTargets[i] = 1;               // never dim an on-screen cube
         if (moving) { m.rotation.x += TUMBLE_X * fs; m.rotation.y += TUMBLE_Y * fs; }
       } else if (projT > 0.01) {
         // 4x2 centred grid; open cube hides (its unfold rig shows), the rest hold at 0.06
