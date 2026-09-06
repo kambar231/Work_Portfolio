@@ -626,13 +626,17 @@ def run_click_test(pg):
         y0 = pg.evaluate("() => window.scrollY")
         pg.evaluate(f"() => window.__v2.openProject({i})")
         pg.wait_for_timeout(1500)
-        # by now the net is complete (~1.1 s) plus >350 ms; cards must be fully faded in
+        # baked faces replaced the DOM cards (commit 107b268): the meaningful check is that the
+        # unfolded cube exposes six face anchors, all inside the viewport.
         chk = pg.evaluate("""() => {
-          const a = window.__v2.faceAnchors(); const cs = window.__v2.cardCentres();
-          let maxd = null, minop = 1;
-          if (a) { maxd = 0; cs.forEach(c => { const d = Math.hypot(c.x-a[c.key].x, c.y-a[c.key].y); if (d>maxd) maxd=d; if (c.op<minop) minop=c.op; }); }
-          return { open: window.__v2.projectOpen(), n: cs.length,
-                   maxd: maxd===null?null:+maxd.toFixed(2), minop: +minop.toFixed(2) };
+          const a = window.__v2.faceAnchors();
+          const vw = window.innerWidth, vh = window.innerHeight;
+          let n = 0, inside = 0;
+          if (a) for (const k in a) {
+            const p = a[k]; n++;
+            if (p && p.x >= 0 && p.y >= 0 && p.x <= vw && p.y <= vh) inside++;
+          }
+          return { open: window.__v2.projectOpen(), n, inside };
         }""")
         pg.screenshot(path=str(OUT_DIR / f"open_{i}.png"))
         if i % 2 == 0:
@@ -642,8 +646,8 @@ def run_click_test(pg):
         pg.wait_for_timeout(1100)
         y1 = pg.evaluate("() => window.scrollY")
         after = pg.evaluate("() => window.__v2.projectOpen()")
-        ok = (chk["open"] == i and chk["n"] == 6 and chk["maxd"] is not None
-              and chk["maxd"] <= 8 and chk["minop"] >= 0.95 and after == -1 and abs(y1 - y0) < 2)
+        ok = (chk["open"] == i and chk["n"] == 6 and chk["inside"] == 6
+              and after == -1 and abs(y1 - y0) < 2)
         if not ok:
             fails.append({"cube": i, **chk, "after": after, "dscroll": round(y1 - y0, 1)})
     return fails
