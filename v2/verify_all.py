@@ -23,6 +23,7 @@ import argparse
 import functools
 import http.server
 import io
+import json
 import os
 import socketserver
 import statistics
@@ -260,6 +261,7 @@ def main():
         contact_fail = run_contact_test(pg, sh, vh)
         panel_scroll_info = run_panel_scroll_test(pg)
         panel_scroll_fail = None if panel_scroll_info.get("ok") else panel_scroll_info
+        raymond = run_raymond_test(pg)
         seam_report = run_seam_test(pg)
         if click_fail:
             failures.append(("click-test", click_fail, 0))
@@ -277,6 +279,8 @@ def main():
             failures.append(("min-opacity", f"min cube op {min_op} at y={min_op_y}", min_op))
         if panel_scroll_fail:
             failures.append(("panel-scroll", panel_scroll_fail, 0))
+        if raymond["status"] == "FAIL":
+            failures.append(("raymond", raymond["fails"], 0))
         seam_flagged = sum(s["flagged"] for s in seam_report)
         if seam_flagged > 0:
             failures.append(("seam-crops", [s for s in seam_report if s["flagged"]], seam_flagged))
@@ -316,6 +320,12 @@ def main():
     _row("PANEL-SCROLL", not panel_scroll_fail,
          f"panel={panel_scroll_info.get('id')} scrollHeight={panel_scroll_info.get('scrollHeight')} "
          f"scrollTop={panel_scroll_info.get('scrollTop')}")
+    if raymond["status"] == "SKIP":
+        print(f"{'RAYMOND':<16} {'SKIP':>7}  {raymond.get('reason')} "
+              f"(unfold={raymond.get('unfold')}, faces_present={raymond.get('faces_present')})")
+    else:
+        _row("RAYMOND", raymond["status"] == "OK",
+             f"unfold={raymond['unfold']} fails={len(raymond['fails'])} {raymond['fails'] if raymond['fails'] else ''}")
     seam_flagged = sum(s["flagged"] for s in seam_report)
     _row("SEAM-CROPS", seam_flagged == 0,
          "  ".join(f"cube{s['cube']}:{s['flagged']}/{s['faces']}" for s in seam_report))
@@ -494,7 +504,103 @@ def run_seam_test(pg):
         pg.keyboard.press("Escape")
         pg.wait_for_timeout(1000)
         report.append({"cube": i, "faces": faces, "flagged": flagged})
+
+    # Raymond cube: crop its six unfolded faces too (6 more crops) if the unfold rects exist
+    if _scroll_experience_half(pg):
+        rfaces = _raymond_face_rects(pg)
+        if all(f is not None for f in rfaces):
+            png = pg.screenshot()
+            img = Image.open(io.BytesIO(png)).convert("RGB")
+            W, H = img.size
+            flagged = 0
+            for j, f in enumerate(rfaces):
+                cx, cy = int(f["x"] + f["w"] / 2), int(f["y"] + f["h"] / 2)
+                left = max(0, min(W - 400, cx - 200))
+                top = max(0, min(H - 400, cy - 200))
+                crop = img.crop((left, top, left + 400, top + 400))
+                crop.save(str(FACES_DIR / f"raymond_face{j}.png"))
+                if _diagonal_seam_flag(np.asarray(crop.convert("L"))):
+                    flagged += 1
+            report.append({"cube": "ray", "faces": 6, "flagged": flagged})
+        else:
+            report.append({"cube": "ray", "faces": 0, "flagged": 0})
     return report
+
+
+def _scroll_experience_half(pg):
+    # position the page at experience progress 0.5 (where the raymond cube is unfolded).
+    rng = pg.evaluate("() => window.__v2.triggerRange('#experience')")
+    if not rng:
+        return False
+    y = rng["start"] + 0.5 * (rng["end"] - rng["start"])
+    pg.evaluate(f"() => window.__v2.scrollToY({y})")
+    pg.wait_for_timeout(2500)
+    return True
+
+
+def _raymond_face_rects(pg):
+    # six raymond face rects normalised to {x,y,w,h}, or None per face if the hook is absent.
+    return pg.evaluate("""() => {
+      const out = [];
+      for (let j = 0; j < 6; j++) {
+        const r = (typeof window.__v2.raymondFace === 'function') ? window.__v2.raymondFace(j) : null;
+        out.push(r ? { x: r.x, y: r.y, w: (r.width != null ? r.width : r.w),
+                       h: (r.height != null ? r.height : r.h) } : null);
+      }
+      return out;
+    }""")
+
+
+def run_raymond_test(pg):
+    # verify the raymond cube unfolds at experience 0.5: unfold >= 0.95, six face rects clear of
+    # text and the forklift morph, all on-screen, and each face click opens its reading panel.
+    if not _scroll_experience_half(pg):
+        return {"status": "SKIP", "reason": "no #experience trigger range"}
+    unfold = pg.evaluate("() => (typeof window.__v2.raymondUnfold === 'function') ? window.__v2.raymondUnfold() : null")
+    faces = _raymond_face_rects(pg)
+    if unfold is None or any(f is None for f in faces):
+        return {"status": "SKIP", "reason": "raymond unfold hooks not implemented yet",
+                "unfold": unfold, "faces_present": sum(1 for f in faces if f)}
+
+    ctx = pg.evaluate(f"""() => {{
+      const mb = (typeof window.__v2.morphBox === 'function') ? window.__v2.morphBox(0) : null;
+      const texts = Array.from(document.querySelectorAll('{TEXT_SELECTORS}'))
+        .map(e => e.getBoundingClientRect())
+        .filter(r => r.width > 4 && r.height > 4 && r.bottom > 0 && r.top < window.innerHeight)
+        .map(r => ({{ x: r.x, y: r.y, w: r.width, h: r.height }}));
+      return {{ mb, texts, vw: window.innerWidth, vh: window.innerHeight }};
+    }}""")
+
+    fails = []
+    if unfold < 0.95:
+        fails.append({"unfold": round(unfold, 3)})
+    for j, f in enumerate(faces):
+        if not (f["x"] >= -1 and f["y"] >= -1
+                and f["x"] + f["w"] <= ctx["vw"] + 1 and f["y"] + f["h"] <= ctx["vh"] + 1):
+            fails.append({"face": j, "offscreen": {k: round(v, 1) for k, v in f.items()}})
+        for r in ctx["texts"]:
+            if boxes_intersect(f, {"x": r["x"] - 40, "y": r["y"] - 40, "w": r["w"] + 80, "h": r["h"] + 80}):
+                fails.append({"face": j, "on_text": True})
+                break
+        if ctx["mb"] and boxes_intersect(f, ctx["mb"]):
+            fails.append({"face": j, "on_forklift": True})
+
+    pg.screenshot(path=str(OUT_DIR / "raymond_open.png"))
+
+    # each face click must open the panel named in projects.json raymond.faces[j].panel
+    panels = [f["panel"] for f in json.loads((REPO_ROOT / "v2" / "data" / "projects.json").read_text(encoding="utf-8"))["raymond"]["faces"]]
+    for j, f in enumerate(faces):
+        cx, cy = f["x"] + f["w"] / 2, f["y"] + f["h"] / 2
+        pg.mouse.click(cx, cy)
+        pg.wait_for_timeout(800)
+        want = "panel-" + panels[j]
+        opened = pg.evaluate(f"() => {{ const p = document.getElementById('{want}'); return !!p && !p.hidden && p.classList.contains('open'); }}")
+        pg.keyboard.press("Escape")
+        pg.wait_for_timeout(400)
+        if not opened:
+            fails.append({"face": j, "panel_expected": want, "opened": False})
+
+    return {"status": "FAIL" if fails else "OK", "unfold": round(unfold, 3), "fails": fails}
 
 
 def run_click_test(pg):
