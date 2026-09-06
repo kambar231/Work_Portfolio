@@ -53,11 +53,9 @@ const PARALLAX_MAX = 0.05;    // rad (kept small so the sorted cluster stays put
 // damped spring moves the cube; repulsion + lane avoidance are soft forces added to velocity.
 const OMEGA = 2.2, ZETA = 1.0;       // critically damped spring (settles, never overshoots)
 const DT_MAX = 0.05;                 // clamp dt so a stall never launches a cube
-const MAX_PX_FRAME = 14;             // no cube's projected centre moves > 14 px per 1/60 s
+const MAX_PX_FRAME = 12;             // no cube's projected centre moves > 12 px per 1/60 s
 const CUBE_SHRINK = 0.68;            // inscribed footprint (matches verify_all.py)
-const REPULSE_GAIN = 8.0;            // cube-cube soft repulsion (1/s)
-const LANE_GAIN = 12.0;             // lane / shape avoidance (1/s)
-const LANE_PAD = 40, SHAPE_PAD = 34; // screen px pad around soft lanes / hard shape rects
+const REPULSE_GAIN = 10.0;           // cube-cube repulsion (1/s), stiffer than omega^2 at contact
 
 // cube -> faces, soft label, target section. Each cube shows ONLY its own project's
 // images so the parked cube in a chapter is that project. Face order is [px,nx,py,ny,pz,nz].
@@ -643,6 +641,7 @@ export function createCubeHero({ onCubeClick } = {}) {
   resize();
   // initial spawn: the ONLY direct position write. Every later change is integration.
   for (let i = 0; i < meshes.length; i++) { meshes[i].position.copy(base[i]); tgt[i].copy(base[i]); }
+  window.__dbgT = () => { const w = window.innerWidth, h = window.innerHeight; return tgt.map((v, i) => { const q = v.clone(); group.localToWorld(q); q.project(camera); const q1 = v.clone(); q1.x += 1; group.localToWorld(q1); q1.project(camera); const sx = (q.x * 0.5 + 0.5) * w; const ppu = Math.abs((q1.x * 0.5 + 0.5) * w - sx); return { i, sx: Math.round(sx), sy: Math.round((-q.y * 0.5 + 0.5) * h), ppu: Math.round(ppu), sc: +scaleTarget[i].toFixed(2), av: _avoid[i] }; }); };
 
   // ---- cube-cube overlap resolution ----
   // After all cubes are positioned, push any overlapping pair apart so no two projected
@@ -651,7 +650,9 @@ export function createCubeHero({ onCubeClick } = {}) {
   // grid and contact states (never the open unfold cube). Positions are nudged so the
   // rendered frame is always overlap-free.
   const _c0 = new THREE.Vector3(), _c1 = new THREE.Vector3();
+  const _tp = new THREE.Vector3(), _tp1 = new THREE.Vector3();
   const _sc = new Array(CUBES.length).fill(null);
+  const _avoid = new Array(CUBES.length).fill(true);   // cubes that must dodge text/shape/each other
   const OVERLAP_MARGIN = 8;
   function gatherBoxes() {
     const w = window.innerWidth, h = window.innerHeight;
@@ -680,18 +681,17 @@ export function createCubeHero({ onCubeClick } = {}) {
     }
     return n;
   }
-  // Soft forces: add cube-cube repulsion and lane/shape avoidance to VELOCITY (never a
-  // position write). Called each frame before integration. Only drifting cubes (forceable)
-  // receive a push; grid/park/track cubes keep their authoritative spring targets but still
-  // act as repulsors so drifters part around them. Settled grids are non-overlapping targets
-  // so forces are skipped there (they would fight the exact slots).
+  // Velocity-only backstop: stiff cube-cube repulsion so any transient penetration (before
+  // the spring reaches the de-conflicted targets) resolves within ~0.5 s. Lanes and shapes
+  // are handled as HARD constraints on the TARGETS (see projectTargets), not here, so the
+  // spring never has to fight a soft push. Repulsion gain exceeds omega^2 near contact and
+  // is zero beyond the footprints. Skipped in the settled projects/contact grid.
   function computeForces(dtc, forceable) {
     if (projT > 0.5 || contactT > 0.5) return;
     const n = gatherBoxes();
     if (n < 1) return;
     for (let a = 0; a < meshes.length; a++) {
       const A = _sc[a]; if (!A || !forceable[a]) continue;
-      // cube-cube repulsion on the inscribed footprint, with a smooth (linear) falloff
       for (let b = 0; b < meshes.length; b++) {
         if (b === a) continue;
         const B = _sc[b]; if (!B) continue;
@@ -699,42 +699,117 @@ export function createCubeHero({ onCubeClick } = {}) {
         const ox = (A.hx + B.hx) * CUBE_SHRINK + OVERLAP_MARGIN - Math.abs(dx);
         const oy = (A.hy + B.hy) * CUBE_SHRINK + OVERLAP_MARGIN - Math.abs(dy);
         if (ox <= 0 || oy <= 0) continue;              // no footprint overlap -> no force
-        // push A along the axis of least penetration, away from B
         if (ox < oy) vel[a].x += ((dx >= 0 ? ox : -ox) / A.ppu) * REPULSE_GAIN * dtc;
         else         vel[a].y += (-(dy >= 0 ? oy : -oy) / A.ppu) * REPULSE_GAIN * dtc;
       }
-      // lane avoidance: text columns are soft lanes (steer sideways to the nearest free
-      // side); morph shapes are hard lanes with a larger pad and full MTV push-out.
-      const hxS = A.hx * CUBE_SHRINK, hyS = A.hy * CUBE_SHRINK;
-      const softLanes = excludeRects.length ? excludeRects : textRects;
-      for (const r of softLanes) {
-        const L = A.cx - (r.x - hxS - LANE_PAD), R = (r.x + r.w + hxS + LANE_PAD) - A.cx;
-        const T = A.cy - (r.y - hyS - LANE_PAD), Bp = (r.y + r.h + hyS + LANE_PAD) - A.cy;
-        if (L <= 0 || R <= 0 || T <= 0 || Bp <= 0) continue;   // not over the column
-        const shift = L < R ? -L : R;                          // out the nearer side
-        vel[a].x += (shift / A.ppu) * LANE_GAIN * dtc;
+    }
+  }
+
+  // ---- HARD lane / shape / overlap constraints on the spring targets ----
+  // Mirrors verify_all.py TEXT_SELECTORS so the engine steers around exactly the rects the
+  // checker reads. The checker judges cube-on-text on the FULL projected box (+40 px) and
+  // overlap / on-shape on the inscribed 0.68 footprint, so we clear targets by a full-box
+  // half-extent for text and a shrunk one for shapes/pairs.
+  const TEXT_LANE_SEL = '.display,.hero-sub,.exp-word,.exp2-head,.exp2-systems,.exp2-ach,'
+    + '.exp2-prev,.slicer-story,.slicer-key,.ev-strip,.flat-head,.projects-head,.web-lead,'
+    + '.web-tiles,.ds-left,.edu,.contact-inner,.prev-band';
+  const _lane = [];
+  function domTextRects() {
+    _lane.length = 0;
+    const vh = window.innerHeight;
+    document.querySelectorAll(TEXT_LANE_SEL).forEach((e) => {
+      const r = e.getBoundingClientRect();
+      if (r.width > 4 && r.height > 4 && r.bottom > 0 && r.top < vh) _lane.push({ x: r.x, y: r.y, w: r.width, h: r.height });
+    });
+    return _lane;
+  }
+  const _scn = [];   // per-cube target projected to screen: {sx,sy,ox,oy,ppu,hpx,avoid}
+  function projectTargets() {
+    const w = window.innerWidth, h = window.innerHeight;
+    for (let i = 0; i < meshes.length; i++) {
+      _tp.copy(tgt[i]); group.localToWorld(_tp); _tp.project(camera);
+      const sx = (_tp.x * 0.5 + 0.5) * w, sy = (-_tp.y * 0.5 + 0.5) * h;
+      _tp1.set(tgt[i].x + 1, tgt[i].y, tgt[i].z); group.localToWorld(_tp1); _tp1.project(camera);
+      const ppu = Math.max(1, Math.abs((_tp1.x * 0.5 + 0.5) * w - sx));
+      // Real projected AABB half-extents (matches meshBox, which the checker measures): a
+      // tumbling cube's box is up to ~1.7x its edge, so ppu*scale badly undersizes it. Using
+      // the actual box makes the de-conflict / lane clearances agree with the checker exactly.
+      const bx = meshBox(i);
+      const hx = Math.max(bx.w * 0.5, ppu * scaleTarget[i] * 0.5);
+      const hy = Math.max(bx.h * 0.5, ppu * scaleTarget[i] * 0.5);
+      _scn[i] = { sx, sy, ox: sx, oy: sy, ppu, hx, hy, avoid: _avoid[i] };
+    }
+    const lanes = domTextRects();
+    for (let pass = 0; pass < 10; pass++) {
+      // push avoid targets fully out of every text lane (+40, full box) and shape rect
+      for (let i = 0; i < meshes.length; i++) {
+        const S = _scn[i]; if (!S.avoid) continue;
+        const hpx = S.hx, hpy = S.hy, PAD = 42;   // full-box half per axis (+2 over the checker's 40)
+        for (const r of lanes) {
+          const L = S.sx - (r.x - hpx - PAD), R = (r.x + r.w + hpx + PAD) - S.sx;
+          const T = S.sy - (r.y - hpy - PAD), B = (r.y + r.h + hpy + PAD) - S.sy;
+          if (L <= 0 || R <= 0 || T <= 0 || B <= 0) continue;
+          // push out the least-penetration side that stays on-screen (a wide block is escaped
+          // vertically, a tall column horizontally)
+          const goR = r.x + r.w + hpx + PAD, goL = r.x - hpx - PAD;
+          const goD = r.y + r.h + hpy + PAD, goU = r.y - hpy - PAD;
+          let best = Infinity, pick = '';
+          if (goR < w - hpx && R < best) { best = R; pick = 'R'; }
+          if (goL > hpx && L < best) { best = L; pick = 'L'; }
+          if (goU > hpy && T < best) { best = T; pick = 'U'; }
+          if (goD < h - hpy && B < best) { best = B; pick = 'D'; }
+          if (!pick) { S.sx = r.x < w / 2 ? goR : goL; continue; }   // none fits: exit sideways
+          if (pick === 'R') S.sx = goR; else if (pick === 'L') S.sx = goL;
+          else if (pick === 'U') S.sy = goU; else S.sy = goD;
+        }
+        const hsx = S.hx * 0.68 + 2, hsy = S.hy * 0.68 + 2;   // shrunk footprint (checker judges shapes on the 0.68 box)
+        for (const r of shapeRects) {
+          const L = S.sx - (r.x - hsx), R = (r.x + r.w + hsx) - S.sx;
+          const T = S.sy - (r.y - hsy), B = (r.y + r.h + hsy) - S.sy;
+          if (L <= 0 || R <= 0 || T <= 0 || B <= 0) continue;
+          const mn = Math.min(L, R, T, B);
+          if (mn === L) S.sx = r.x - hsx; else if (mn === R) S.sx = r.x + r.w + hsx;
+          else if (mn === T) S.sy = r.y - hsy; else S.sy = r.y + r.h + hsy;
+        }
       }
-      for (const r of shapeRects) {
-        const L = A.cx - (r.x - hxS - SHAPE_PAD), R = (r.x + r.w + hxS + SHAPE_PAD) - A.cx;
-        const T = A.cy - (r.y - hyS - SHAPE_PAD), Bp = (r.y + r.h + hyS + SHAPE_PAD) - A.cy;
-        if (L <= 0 || R <= 0 || T <= 0 || Bp <= 0) continue;
-        const mn = Math.min(L, R, T, Bp);
-        if (mn === L)       vel[a].x += (-L / A.ppu) * LANE_GAIN * dtc;
-        else if (mn === R)  vel[a].x += (R / A.ppu) * LANE_GAIN * dtc;
-        else if (mn === T)  vel[a].y += (T / A.ppu) * LANE_GAIN * dtc;   // screen up = +local y
-        else                vel[a].y += (-Bp / A.ppu) * LANE_GAIN * dtc;
+      // de-conflict target footprints (0.68) so no two clear by less than 12 px
+      for (let a = 0; a < meshes.length; a++) {
+        const A = _scn[a]; if (!A.avoid) continue;
+        for (let b = 0; b < meshes.length; b++) {
+          if (b === a) continue;
+          const B = _scn[b];
+          const dx = A.sx - B.sx, dy = A.sy - B.sy;
+          // real shrunk (0.68) box half-extents per axis + a small gap so the checker's
+          // overlap (shrunk-box intersection, threshold 0.5 px) always clears
+          const ox = (A.hx + B.hx) * 0.68 + 6 - Math.abs(dx);
+          const oy = (A.hy + B.hy) * 0.68 + 6 - Math.abs(dy);
+          if (ox <= 0 || oy <= 0) continue;
+          const share = B.avoid ? 0.5 : 1.0;   // an immovable (grid/park) target does not yield
+          if (ox < oy) { const s = dx >= 0 ? ox : -ox; A.sx += s * share; if (B.avoid) B.sx -= s * 0.5; }
+          else { const s = dy >= 0 ? oy : -oy; A.sy += s * share; if (B.avoid) B.sy -= s * 0.5; }
+        }
       }
+    }
+    // write the adjusted screen centres back into the local spring targets
+    for (let i = 0; i < meshes.length; i++) {
+      const S = _scn[i]; if (!S.avoid) continue;
+      tgt[i].x += (S.sx - S.ox) / S.ppu;
+      tgt[i].y += -(S.sy - S.oy) / S.ppu;
     }
   }
 
   // a target 1.3x past the nearest horizontal viewport edge (an exit lane the cube drifts
   // out to and holds, so a hidden cube leaves by position, never by opacity)
   function exitTargetLocal(i) {
-    meshes[i].getWorldPosition(_c0); _c0.project(camera);
-    const ndcX = _c0.x >= 0 ? 1.3 : -1.3;
+    // Exit straight UP off the top (never crosses the left text column or the centred morph
+    // shape). Spread the eight cubes by INDEX across the width so same-column cubes (i, i+4)
+    // do not pile onto one x and overlap off-screen; the de-conflict then has nothing to undo.
     const z = base[i].z;
+    const halfH = (camera.position.z - z) * tanHalf();
     const halfW = (camera.position.z - z) * tanHalf() * camera.aspect;
-    return { x: ndcX * halfW - group.position.x, y: base[i].y, z };
+    const frac = meshes.length > 1 ? i / (meshes.length - 1) : 0.5;   // 0..1 across the row
+    const x = (-0.82 + 1.64 * frac) * halfW - group.position.x;
+    return { x, y: 1.3 * halfH - group.position.y, z };
   }
 
   const _tmp = new THREE.Vector3(), _acc = new THREE.Vector3(), _delta = new THREE.Vector3();
@@ -770,7 +845,7 @@ export function createCubeHero({ onCubeClick } = {}) {
     for (let i = 0; i < meshes.length; i++) {
       const m = meshes[i];
       let tumbleScale = 1;
-      _opArr[i] = 1; _forceable[i] = false;
+      _opArr[i] = 1; _forceable[i] = false; _avoid[i] = false;
       const bob = Math.sin(t * 0.6 + i) * BOB_AMP;
       const pt = parkTargets[i];
       const tr = _tr[i];
@@ -825,23 +900,41 @@ export function createCubeHero({ onCubeClick } = {}) {
         // explicit setTargets() override (world units)
         tgt[i].set(ov.x - group.position.x, ov.y - group.position.y, ov.z);
         scaleTarget[i] = ov.scale || 1;
-        _forceable[i] = !ov.parked;
+        _forceable[i] = !ov.parked; _avoid[i] = !ov.parked;
         if (moving && !ov.parked) { m.rotation.x += TUMBLE_X * fs; m.rotation.y += TUMBLE_Y * fs; }
+      } else if (excludeRects.length) {
+        // crowded section (experience / slicer): eight cubes cannot fit the free band beside
+        // the text column and the morph shape, so the drift cubes exit to alternating edges
+        // (opacity stays 1). Nearest edge (shortest trip under the 12 px cap), staggered.
+        const ex = exitTargetLocal(i);
+        tgt[i].set(ex.x, ex.y, ex.z);
+        scaleTarget[i] = 1;
+        _forceable[i] = true; _avoid[i] = true;
+        if (moving) { m.rotation.x += TUMBLE_X * fs; m.rotation.y += TUMBLE_Y * fs; }
       } else {
-        // free drift: slow sine wander around the unravel home; a slow tumble via angVel
-        const dx = Math.sin(t * 0.07 + i * 1.3) * 0.7;
-        const dy = Math.cos(t * 0.05 + i) * 0.5;
+        // free drift: slow sine wander around the unravel home (none at the calm hero grid);
+        // a slow tumble via angVel
+        const wander = Math.min(1, unravel * 3);
+        const dx = Math.sin(t * 0.07 + i * 1.3) * 0.7 * wander;
+        const dy = Math.cos(t * 0.05 + i) * 0.5 * wander;
         tgt[i].set(base[i].x + dx, base[i].y + bob + dy, base[i].z);
         scaleTarget[i] = 1;
-        _forceable[i] = true;
+        _forceable[i] = true; _avoid[i] = true;
+        // Tumble ramps with unravel: the calm sorted grid faces forward (small AABB, so the
+        // tight rows clear), and the scattered cloud spins freely once the cubes have spread.
+        const spin = Math.min(1, unravel * 2.2);
         const damp = Math.min(1, 4 * dtc);
-        angVel[i].x += (TUMBLE_X * 60 - angVel[i].x) * damp;
-        angVel[i].y += (TUMBLE_Y * 60 - angVel[i].y) * damp;
+        angVel[i].x += (TUMBLE_X * 60 * spin - angVel[i].x) * damp;
+        angVel[i].y += (TUMBLE_Y * 60 * spin - angVel[i].y) * damp;
         if (moving) { m.rotation.x += angVel[i].x * dtc; m.rotation.y += angVel[i].y * dtc; }
+        // ease residual rotation back to face-on at the calm grid so the box stays compact
+        if (spin < 0.05) { m.rotation.x += (0.1 - m.rotation.x) * Math.min(1, 0.1 * fs); m.rotation.y += (0.14 - m.rotation.y) * Math.min(1, 0.1 * fs); }
       }
     }
 
-    // ---- soft forces (repulsion + lanes) added to velocity, never position ----
+    // ---- hard constraints: project targets clear of text lanes, shapes, and each other ----
+    projectTargets();
+    // ---- velocity-only repulsion backstop for transient penetrations ----
     computeForces(dtc, _forceable);
 
     // ---- pass B: critically damped spring integrates every cube toward its target ----
@@ -877,6 +970,7 @@ export function createCubeHero({ onCubeClick } = {}) {
     frame, setUnravel, setState, focus, raycast, setPointer, ready,
     cubeBoxes, labelBoxes, chapterPark, setTrack, setExclude, setTextRects, setShapeRects, setLanes, setTargets, exit, recall, chapterDim, setCloudDim, setMobileHide, setForceHidden, meshBox,
     setProjects, setContact, gridSlots, cubeCenters, shapeRectsNow, setHover, openProject, closeProject, projectOpenIndex, faceAnchors, setProjectHandlers,
+    _dbgTargets: () => { const w = window.innerWidth, h = window.innerHeight; return tgt.map((v, i) => { const q = v.clone(); group.localToWorld(q); q.project(camera); return { i, sx: +((q.x * 0.5 + 0.5) * w).toFixed(0), sy: +((-q.y * 0.5 + 0.5) * h).toFixed(0), avoid: _avoid[i] }; }); },
     projectsActive: () => projActive,
     labelFor: (i) => (CUBES[i] ? CUBES[i].label : ''),
     cubeOpacity: (i) => meshes[i].material[0].opacity,
