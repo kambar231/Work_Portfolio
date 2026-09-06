@@ -198,9 +198,15 @@ body { background: transparent; overflow-x: hidden; }
 .panel {
   position: fixed; inset: 0; z-index: 50; background: var(--bg);
   opacity: 0; visibility: hidden; transition: opacity .35s ease;
+  /* the panel itself is the scroll container: content taller than the viewport
+     scrolls inside it, Lenis leaves it alone (data-lenis-prevent on each panel). */
+  overflow-y: auto; max-height: 100vh;
+  overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
 }
 .panel.open { opacity: 1; visibility: visible; }
-.panel-scroll { position: absolute; inset: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+/* panel-scroll is no longer the scroller (chapters.js still resets its scrollTop,
+   which is a harmless no-op); it just flows so the panel can overflow and scroll. */
+.panel-scroll { position: static; overflow: visible; }
 .panel-col { max-width: 900px; margin: 0 auto; padding: 84px 40px 120px; }
 .panel-close {
   position: sticky; top: 0; float: right; margin: -20px -8px 0 0;
@@ -436,6 +442,19 @@ html.lenis, html.lenis body { height: auto; }
 .exp2-rowtext h4 { font-size: 18px; font-weight: 500; margin: 0 0 6px; }
 .exp2-rowtext h4 span { font-size: 13px; color: var(--label); font-weight: 400; margin-left: 6px; }
 .exp2-rowtext p { font-size: 14px; color: var(--grey2); line-height: 1.6; margin: 0 0 8px; max-width: 52ch; }
+
+/* ---- Previous employers band (own section, 60vh below experience) ---- */
+/* reveal-line and exp-word here are outside #experience, so main.js never animates
+   them; show them by default and lay the two rows side by side. */
+.prev-band { position: relative; margin-top: 60vh; padding: 8vh 0 12vh; }
+.prev-band .exp-word { opacity: 1; transform: none; }
+.prev-band .reveal-line { opacity: 1; transform: none; }
+.prev-band .exp2-prev { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin: 30px 0 0; align-items: start; }
+.prev-band .exp2-row { margin-top: 0; }
+@media (max-width: 819px) {
+  .prev-band { margin-top: 60vh; padding: 4vh 0 8vh; }
+  .prev-band .exp2-prev { grid-template-columns: 1fr; gap: 28px; }
+}
 
 .slicer-story { font-size: 16px; line-height: 1.7; color: var(--grey2); margin: 20px 0 0; max-width: 46ch; }
 .slicer-key { font-size: 18px; font-weight: 500; color: var(--ink); margin: 14px 0 0; }

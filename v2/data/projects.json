@@ -97,5 +97,16 @@
       "tools": "Simulink, MATLAB, ode45",
       "images": ["flight-dynamics", "flight-1"], "panel": "flight"
     }
-  ]
+  ],
+  "raymond": {
+    "cube": 4,
+    "faces": [
+      { "id": "ray-stability", "name": "Performance Stability System", "number": "+14% performance, -10% battery draw", "line": "Reads load state off the CAN bus and decides how much performance to allow.", "panel": "ray-stability", "image": "assets/cubes/raymond-forklift.png" },
+      { "id": "ray-sensor", "name": "Smart Environment Sensor Plus", "number": "Pedestrian detection", "line": "Stereo cameras and speed-based zoning turn a detection into a brake demand.", "panel": "ray-sensor", "image": "assets/img/sens-plus-flyer.jpg" },
+      { "id": "ray-weight", "name": "Hydraulic Weight Sensing", "number": "Pressure transducers in the manifold", "line": "Transducers inline in the hydraulic manifold weigh the load continuously.", "panel": "ray-weight", "image": "assets/cubes/raymond-forklift.png" },
+      { "id": "ray-steer", "name": "Steer Differentiation", "number": "Tighter turns, less tire wear", "line": "AC steer logic differentiates the drive tires to tighten the turn.", "panel": "ray-steer", "image": "assets/cubes/raymond-forklift.png" },
+      { "id": "ray-interface", "name": "Interface Logic and Access Control", "number": "Controls gated by who is driving", "line": "A role-aware state machine shows each user only the controls they should reach.", "panel": "ray-interface", "image": "assets/cubes/raymond-forklift.png" },
+      { "id": "ray-frame", "name": "Structural Frame Redesign", "number": "Infinite fatigue life", "line": "FEA drove the welds to infinite fatigue life, strain-gauge validated in the field.", "panel": "ray-frame", "image": "assets/cubes/raymond-forklift.png" }
+    ]
+  }
 }
