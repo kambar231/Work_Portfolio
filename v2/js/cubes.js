@@ -512,8 +512,8 @@ export function createCubeHero({ onCubeClick } = {}) {
         meshes[i].getWorldPosition(_p);
         _p.project(camera);
         x = (_p.x * 0.5 + 0.5) * w;
-        // directly under THIS cube, below its projected box (~0.71*edge half) in the row gap
-        y = (-_p.y * 0.5 + 0.5) * h + gEdge * 0.71 + 16;
+        // directly under THIS cube: 8px below its projected box bottom (~0.71*edge half)
+        y = (-_p.y * 0.5 + 0.5) * h + gEdge * 0.71 + 8;
         op = mobileHide ? 0 : (_p.z < 1 ? 1 : 0);
       } else {
         meshes[i].getWorldPosition(_p);
@@ -1147,7 +1147,9 @@ export function createCubeHero({ onCubeClick } = {}) {
     scrubBand(section);
     const vh = window.innerHeight, RZ = 1.0;
     const ppu = (vh * 0.5) / ((camera.position.z - RZ) * tanHalf());
-    let S = Math.min((bandW - 24) / (4 * ppu), (bandH - 24) / (3 * ppu));
+    // 0.85 headroom: mid-hinge (t~0.5) faces tilt toward the camera and project larger than the
+    // flat 4x3 net, so the union of the six face rects at t=0.5 and t=1 stays inside the band.
+    let S = Math.min((bandW - 24) / (4 * ppu), (bandH - 24) / (3 * ppu)) * 0.85;
     S = Math.max(0.2, S);
     const c = worldAtScreen(bandCx, bandCy, RZ);
     const p1 = clamp01(t / 0.25);                         // rotate to face-on
@@ -1194,7 +1196,7 @@ export function createCubeHero({ onCubeClick } = {}) {
   // 3x2 grid. `edge` is the rendered cube FACE size; a nearly face-on cube projects to an AABB
   // ~1.4x that (perspective + slight tilt), so cells are pitched by that box plus a label gap:
   // pitchX = 1.55*edge, pitchY = 1.5*edge + labelGap. Labels sit in the row's lower gap.
-  const LABEL_GAP = 40;
+  const LABEL_H = 16;   // cube-label line box (12px uppercase, single line)
   function computeGrid6(shiftPx) {
     const vw = window.innerWidth, vh = window.innerHeight;
     const lanes = domTextRects();
@@ -1203,10 +1205,12 @@ export function createCubeHero({ onCubeClick } = {}) {
     const gridTop = headBottom + 64;
     const minEdge = 0.055 * vw;
     const pitchXof = (e) => 1.58 * e;
-    const pitchYof = (e) => 1.5 * e + LABEL_GAP;
+    // row pitch holds this cube's box, its label row below it, and 8px clearance on each side of
+    // the label: center-to-center = box + 8 + LABEL_H + 8 = 1.42e + LABEL_H + 16.
+    const pitchYof = (e) => 1.42 * e + LABEL_H + 16;
     const box = (e) => 1.42 * e;                          // projected AABB of a face-on cube
     const fits = (e) => {
-      const totH = pitchYof(e) + box(e);                  // two rows: top box + one pitch down + box
+      const totH = pitchYof(e) + box(e) + LABEL_H + 8;    // second row's box plus its label row
       const totW = 2 * pitchXof(e) + box(e);
       return (gridTop + totH <= vh - 12) && (totW <= vw * 0.9);
     };
@@ -1553,7 +1557,10 @@ export function createCubeHero({ onCubeClick } = {}) {
           // hinged open the closed cube is hidden (opacity 0); the scrub rig shows the faces.
           scrubBand(owner);
           const park = localAtVwVh((bandCx / vw2) * 100, (bandCy / vh2) * 100);
-          const parkScale = Math.max(1.0, Math.min(2.6, (0.5 * Math.min(bandW, bandH)) / CUBE_PX));
+          // largest scale whose projected box (~1.5 * scale * ppu at the park plane) fits the
+          // band in both dims, so the closed cube never spills right over the morph shape.
+          const ppuPark = (vh2 * 0.5) / ((camera.position.z - PARK_Z) * tanHalf());
+          const parkScale = Math.max(1.0, Math.min(2.6, (Math.min(bandW, bandH) - 24) / (1.5 * ppuPark)));
           let sc;
           if (pp < 0.30) {
             const e = easeInOut(pp / 0.30);
