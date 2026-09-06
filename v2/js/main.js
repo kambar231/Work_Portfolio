@@ -29,6 +29,19 @@ const cubes = createCubeHero({
   onCubeClick: (i) => scrollToSection(cubes.sectionFor(i)),
 });
 
+// verifier hooks: drive the unravel and read screen bounding boxes from Playwright
+window.__v2 = {
+  freeze: () => ScrollTrigger.getAll().forEach((s) => s.disable(false)),
+  setUnravel: (p) => cubes.setUnravel(p),
+  cubeBoxes: () => cubes.cubeBoxes(),
+  labelBoxes: () => cubes.labelBoxes(),
+  headlineBox: () => {
+    const el = document.querySelector('.display');
+    const r = el.getBoundingClientRect();
+    return { x: r.x, y: r.y, w: r.width, h: r.height };
+  },
+};
+
 function scrollToSection(sel) {
   if (!sel) return;
   const el = document.querySelector(sel);
@@ -113,14 +126,22 @@ function splitGlyphs() {
   const text = el.textContent;
   el.textContent = '';
   let d = 0;
-  for (const ch of text) {
-    const span = document.createElement('span');
-    span.className = 'glyph';
-    span.textContent = ch;
-    span.style.animationDelay = (d * 18) + 'ms';
-    el.appendChild(span);
-    if (ch !== ' ') d++;
-  }
+  const words = text.split(' ');
+  words.forEach((word, wi) => {
+    // each word is a nowrap unit so lines only ever break at spaces, never inside a word
+    const wspan = document.createElement('span');
+    wspan.className = 'word';
+    for (const ch of word) {
+      const g = document.createElement('span');
+      g.className = 'glyph';
+      g.textContent = ch;
+      g.style.animationDelay = (d * 18) + 'ms';
+      wspan.appendChild(g);
+      d++;
+    }
+    el.appendChild(wspan);
+    if (wi < words.length - 1) el.appendChild(document.createTextNode(' '));
+  });
 }
 
 splitGlyphs();

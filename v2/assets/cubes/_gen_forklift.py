@@ -6,7 +6,7 @@ from playwright.sync_api import sync_playwright
 
 OUT = os.path.join(os.path.dirname(__file__), "raymond-forklift.png")
 
-SVG = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 440" fill="none" stroke="#15607a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" width="380" height="440">
+SVG = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 440" fill="none" stroke="#0f4a5e" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" width="380" height="440">
   <g><line x1="198" y1="96" x2="338" y2="96"/><line x1="206" y1="96" x2="206" y2="300"/><line x1="238" y1="96" x2="238" y2="120"/><line x1="304" y1="96" x2="304" y2="120"/></g>
   <g><line x1="332" y1="110" x2="332" y2="300"/><rect x="314" y="206" width="20" height="12" rx="2"/><circle cx="252" cy="248" r="14"/><line x1="252" y1="262" x2="252" y2="300"/></g>
   <rect x="190" y="300" width="150" height="76" rx="10"/><line x1="205" y1="336" x2="325" y2="336"/><path d="M188,314 L168,300 M188,300 L168,318"/>
@@ -18,7 +18,7 @@ SVG = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 440" fill="non
 </svg>'''
 
 HTML = f'''<!doctype html><html><head><meta charset="utf-8"><style>
-html,body{{margin:0}} .box{{width:512px;height:512px;background:#ffffff;display:flex;align-items:center;justify-content:center}}
+html,body{{margin:0}} .box{{width:512px;height:512px;background:linear-gradient(150deg,#e7edf0,#c9d6dd);display:flex;align-items:center;justify-content:center}}
 .box svg{{width:400px;height:463px}}</style></head>
 <body><div class="box">{SVG}</div></body></html>'''
 

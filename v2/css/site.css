@@ -63,22 +63,28 @@ body { background: transparent; overflow-x: hidden; }
   max-width: var(--col-max); margin: 0 auto; padding: 0 40px; width: 100%;
 }
 
-/* ---- Hero ---- */
-#hero {
-  position: relative; min-height: 100vh; display: flex; flex-direction: column;
-  justify-content: flex-end; padding-bottom: 12vh;
+/* ---- Hero ----
+   The headline block lives in the lower-left; the cubes occupy the upper-right, so the
+   two never overlap. The headline bottom edge sits near 78vh. */
+#hero { position: relative; min-height: 100vh; }
+.hero-inner {
+  position: absolute; left: 0; right: 0; bottom: 8vh;   /* block bottom near 92vh */
 }
-.hero-inner { position: relative; }
 
 .display {
-  font-weight: 300; line-height: 1.02; letter-spacing: -0.02em;
-  font-size: min(150px, 10.4vw); color: var(--ink); margin: 0;
-  max-width: 12ch;
+  font-weight: 300; line-height: 1.04; letter-spacing: -0.02em;
+  font-size: min(120px, 8.2vw); color: var(--ink); margin: 0;
+  max-width: 64vw;
+  text-wrap: balance;               /* balance lines; never break inside a word */
+  overflow-wrap: normal;
+  word-break: keep-all;
+  hyphens: none;
 }
-.display .glyph { display: inline-block; white-space: pre; }
+.display .word { display: inline-block; white-space: nowrap; }
+.display .glyph { display: inline-block; }
 
 .hero-sub {
-  margin: 28px 0 0; font-size: 16px; line-height: 1.7; color: var(--grey2);
+  margin: 26px 0 0; font-size: 16px; line-height: 1.7; color: var(--grey2);
   font-weight: 400; max-width: 46ch;
 }
 
