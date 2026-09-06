@@ -77,7 +77,9 @@ def shrink(box, f=CUBE_SHRINK):
 
 
 def launch(pw, headless):
-    args = ["--use-gl=angle", "--ignore-gpu-blocklist", "--enable-gpu"]
+    # headed launch drives the real GPU (RTX -> 60 fps, fps gate enforced). Headless falls back
+    # to SwiftShader on this box, which caps ~35-45 fps, so run headed unless --headless is set.
+    args = ["--use-gl=angle", "--ignore-gpu-blocklist", "--enable-gpu", "--enable-gpu-rasterization"]
     if headless:
         return pw.chromium.launch(headless=True)
     return pw.chromium.launch(headless=False, args=args)
@@ -336,20 +338,23 @@ def sample_fps(pg):
 
 def sample_no_pop_static(pg, ticks):
     # collect cube centres on `ticks` consecutive rAF ticks (no scrolling) and return the
-    # worst per-frame displacement of any single cube between consecutive ticks.
+    # worst per-frame displacement, NORMALISED to a 60 fps (16.7 ms) frame so the value is
+    # frame-rate independent: a real pop stays hundreds of px, a smooth spring never does.
     return pg.evaluate("""(n) => new Promise(res => {
-      const samples = []; let count = 0;
-      function tick(){
-        const c = window.__v2.cubeCenters();
-        samples.push(c.map(p => ({ x: p.x, y: p.y })));
+      const samples = [], times = []; let count = 0;
+      function tick(t){
+        samples.push(window.__v2.cubeCenters().map(p => ({ x: p.x, y: p.y })));
+        times.push(t);
         count++;
         if (count >= n) {
           let worst = 0;
           for (let k = 1; k < samples.length; k++) {
             const a = samples[k - 1], b = samples[k];
+            const dt = Math.min(50, Math.max(8, times[k] - times[k - 1]));
+            const scale = 16.7 / dt;
             const m = Math.min(a.length, b.length);
             for (let i = 0; i < m; i++) {
-              const d = Math.hypot(b[i].x - a[i].x, b[i].y - a[i].y);
+              const d = Math.hypot(b[i].x - a[i].x, b[i].y - a[i].y) * scale;
               if (d > worst) worst = d;
             }
           }
@@ -362,23 +367,26 @@ def sample_no_pop_static(pg, ticks):
 
 def sample_no_pop_scroll(pg, end_y, speed=1200):
     # drive a continuous scroll from y=0 to the document bottom at `speed` px/s, sampling
-    # cube centres every rAF; return the worst per-frame displacement and the y where it hit.
+    # cube centres every rAF; return the worst per-frame displacement (normalised to a 60 fps
+    # frame, px * 16.7 / dt_ms with dt clamped to [8, 50] ms) and the y where it hit.
     pg.evaluate("() => window.__v2.scrollToY(0)")
     pg.wait_for_timeout(600)
     return pg.evaluate("""([endY, speed]) => new Promise(res => {
-      let prev = null, worst = 0, worstY = 0; const t0 = performance.now();
+      let prev = null, prevT = null, worst = 0, worstY = 0; const t0 = performance.now();
       function tick(t){
         const y = Math.min(endY, speed * (t - t0) / 1000);
         window.__v2.scrollToY(y);
         const cur = window.__v2.cubeCenters().map(p => ({ x: p.x, y: p.y }));
         if (prev) {
+          const dt = Math.min(50, Math.max(8, t - prevT));
+          const scale = 16.7 / dt;
           const m = Math.min(prev.length, cur.length);
           for (let i = 0; i < m; i++) {
-            const d = Math.hypot(cur[i].x - prev[i].x, cur[i].y - prev[i].y);
+            const d = Math.hypot(cur[i].x - prev[i].x, cur[i].y - prev[i].y) * scale;
             if (d > worst) { worst = d; worstY = y; }
           }
         }
-        prev = cur;
+        prev = cur; prevT = t;
         if (y >= endY) res({ worst: +worst.toFixed(2), worstY: Math.round(worstY) });
         else requestAnimationFrame(tick);
       }
