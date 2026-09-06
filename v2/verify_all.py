@@ -119,14 +119,32 @@ def main():
         print(f"renderer: {renderer!r}")
         print(f"warm-up fps {warm:.0f} -> {'GPU (fps gate enforced)' if gpu else 'software render (fps reported only)'}")
 
-        positions = list(range(0, max(1, sh - vh) + args.step, args.step))
+        end_y = max(0, sh - vh)
+        print(f"document end (scrollHeight - innerHeight) = {end_y}")
+        positions = list(range(0, end_y + args.step, args.step))
+        last_idx = len(positions) - 1
         for idx, y in enumerate(positions):
             pg.evaluate(f"() => window.__v2.scrollToY({y})")
-            pg.wait_for_timeout(320)
+            # the last position is the document end: let the contact grid finish settling
+            pg.wait_for_timeout(2200 if idx == last_idx else 320)
             checks = {}
 
+            # at the document end, every cube must be on its grid slot (< 6 px)
+            if idx == last_idx:
+                slot = pg.evaluate("""() => {
+                  const s = window.__v2.gridSlots(); const c = window.__v2.cubeCenters();
+                  let maxd = 0; for (let i = 0; i < 8; i++) maxd = Math.max(maxd, Math.hypot(c[i].x-s[i].x, c[i].y-s[i].y));
+                  return +maxd.toFixed(1);
+                }""")
+                checks["g_contact_on_slot"] = slot <= 6
+                if slot > 6:
+                    failures.append(("contact-end-slot", f"max slot dist {slot} px", 0))
+
             cubes = pg.evaluate("() => window.__v2.allCubes()")
-            vis = [c for c in cubes if c["op"] > 0.12 and c["box"]["w"] > 0]
+            # the cube layer is faded out entirely inside the dark stripe; when the canvas is
+            # invisible there are no cubes to check for overlap / text / shape
+            cubes_visible = pg.evaluate("() => window.__v2.cubesCanvasOpacity()") > 0.1
+            vis = [c for c in cubes if c["op"] > 0.12 and c["box"]["w"] > 0] if cubes_visible else []
             overlap = 0.0
             for i in range(len(vis)):
                 for j in range(i + 1, len(vis)):
@@ -142,7 +160,7 @@ def main():
                 .filter(r => r.width > 4 && r.height > 4 && r.bottom > 0 && r.top < window.innerHeight)
                 .map(r => ({{x:r.x, y:r.y, w:r.width, h:r.height}}))""")
             bright_on_text = False
-            for c in cubes:
+            for c in (cubes if cubes_visible else []):
                 if c["op"] <= 0.35:
                     continue
                 bx = c["box"]
@@ -154,20 +172,21 @@ def main():
                     break
             checks["b_no_bright_cube_on_text"] = not bright_on_text
 
-            # no cube brighter than 0.35 inside an active morph shape's box (+60 px)
-            shapes = pg.evaluate("() => [0,1,2].filter(k => window.__v2.morphVal(k) > 0.25)"
-                                 ".map(k => window.__v2.morphBox(k)).filter(Boolean)")
-            bright_on_shape = False
-            for c in cubes:
-                if c["op"] <= 0.35:
+            # HARD exclusion: no visible cube (dimmed or not) may sit inside an active morph
+            # shape box. Use the engine's OWN shape rects (already +60) and the inscribed
+            # footprint, so the check and the engine agree exactly.
+            shape_rects = pg.evaluate("() => window.__v2.shapeRects()")
+            cube_on_shape = False
+            for c in (cubes if cubes_visible else []):
+                if c["op"] < 0.05:
                     continue
-                for s in shapes:
-                    if boxes_intersect(c["box"], {"x": s["x"] - 60, "y": s["y"] - 60, "w": s["w"] + 120, "h": s["h"] + 120}):
-                        bright_on_shape = True
+                for s in shape_rects:
+                    if boxes_intersect(shrink(c["box"]), s, pad=-1.0):
+                        cube_on_shape = True
                         break
-                if bright_on_shape:
+                if cube_on_shape:
                     break
-            checks["f_no_bright_cube_on_shape"] = not bright_on_shape
+            checks["f_no_cube_on_shape"] = not cube_on_shape
 
             open_idx = pg.evaluate("() => window.__v2.projectOpen()")
             cards = pg.evaluate("() => document.querySelectorAll('#project-cards .pc').length")

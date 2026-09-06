@@ -416,6 +416,8 @@ window.__v2.openProject = (i) => cubes.openProject(i);
 window.__v2.projectOpen = () => cubes.projectOpenIndex();
 window.__v2.faceAnchors = () => cubes.faceAnchors();
 window.__v2.gridSlots = () => cubes.gridSlots();
+window.__v2.shapeRects = () => cubes.shapeRectsNow();
+window.__v2.cubesCanvasOpacity = () => parseFloat(getComputedStyle(document.getElementById('cubes-canvas')).opacity || '1');
 window.__v2.cubeCenters = () => cubes.cubeCenters();
 window.__v2.cardCentres = () => Array.from(document.querySelectorAll('#project-cards .pc')).map((el) => {
   const r = el.getBoundingClientRect();
@@ -524,15 +526,17 @@ function refreshTextRects() {
       rects.push({ x: r.x, y: r.y, w: r.width, h: r.height });
     }
   }
-  // while a morph shape is active, its bounding box (expanded ~60 px) is an avoid zone too,
-  // so drifting cubes fade off the forklift / slice stack / cube outline
+  cubes.setTextRects(rects);
+  // a morph shape (forklift / slice stack / cube outline) is a HARD exclusion, expanded
+  // 60 px, that every cube is pushed clear of while it is active
+  const shapes = [];
   for (let k = 0; k < 3; k++) {
     if (particles.morphVal(k) > 0.25) {
       const b = particles.morphBox(k);
-      if (b) rects.push({ x: b.x - 20, y: b.y - 20, w: b.w + 40, h: b.h + 40 });
+      if (b) shapes.push({ x: b.x - 60, y: b.y - 60, w: b.w + 120, h: b.h + 120 });
     }
   }
-  cubes.setTextRects(rects);
+  cubes.setShapeRects(shapes);
 }
 
 // ---- master loop + FPS guard ----

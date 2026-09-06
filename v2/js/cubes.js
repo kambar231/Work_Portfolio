@@ -456,6 +456,11 @@ export function createCubeHero({ onCubeClick } = {}) {
   // on one is faded so the copy stays readable ("cubes part around text").
   let textRects = [];
   function setTextRects(rects) { textRects = rects || []; }
+  // active morph shape boxes (screen px, already padded): a HARD exclusion — every cube,
+  // dimmed or not, is pushed clear so the silhouette is never crossed.
+  let shapeRects = [];
+  function setShapeRects(rects) { shapeRects = rects || []; }
+  function shapeRectsNow() { return shapeRects; }
   const _ex = new THREE.Vector3();
   function partAroundText(wx, wy, wz) {
     if (!excludeRects.length) return wx;
@@ -661,8 +666,8 @@ export function createCubeHero({ onCubeClick } = {}) {
       m.getWorldPosition(_c0); _c1.copy(_c0); _c1.x += 1;
       _c0.project(camera); _c1.project(camera);
       const ppu = Math.max(1, Math.abs((_c1.x - _c0.x) * 0.5 * w));
-      _sc[i] = { cx: (minx + maxx) / 2, cy: (miny + maxy) / 2, dx: 0, dy: 0,
-        hx: (maxx - minx) / 2, hy: (maxy - miny) / 2, wz: m.position.z, ppu };
+      const cx = (minx + maxx) / 2, cy = (miny + maxy) / 2;
+      _sc[i] = { cx, cy, ix: cx, iy: cy, hx: (maxx - minx) / 2, hy: (maxy - miny) / 2, wz: m.position.z, ppu };
       n++;
     }
     return n;
@@ -672,13 +677,30 @@ export function createCubeHero({ onCubeClick } = {}) {
     // push there so cubes stay exactly on their slots (their tilt-inflated AABBs would
     // otherwise cascade the grid apart). Repulsion still runs for the drifting cloud.
     const inGrid = projT > 0.5 || contactT > 0.5;
-    let n = 0;
-    for (let pass = 0; pass < 3 && !inGrid; pass++) {
-      n = gatherBoxes();
-      if (n < 2) break;
-      let anyOverlap = false;
-      for (let iter = 0; iter < 8; iter++) {
+    // Resolve cube-cube separation AND the hard shape exclusion together, iterated so the
+    // two never fight (pushing a cube out of a shape does not leave it overlapping another).
+    for (let pass = 0; pass < 4 && !inGrid; pass++) {
+      const n = gatherBoxes();
+      if (n < 1) break;
+      let any = false;
+      for (let iter = 0; iter < 12; iter++) {
         let moved = false;
+        // push each cube fully out of every active shape box (hard exclusion)
+        for (let i = 0; i < meshes.length; i++) {
+          const S = _sc[i]; if (!S) continue;
+          const hxS = S.hx * OVERLAP_SHRINK, hyS = S.hy * OVERLAP_SHRINK;
+          for (const r of shapeRects) {
+            const L = S.cx - (r.x - hxS), R = (r.x + r.w + hxS) - S.cx;
+            const T = S.cy - (r.y - hyS), B = (r.y + r.h + hyS) - S.cy;
+            if (L > 0 && R > 0 && T > 0 && B > 0) {
+              const mn = Math.min(L, R, T, B);
+              if (mn === L) S.cx = r.x - hxS; else if (mn === R) S.cx = r.x + r.w + hxS;
+              else if (mn === T) S.cy = r.y - hyS; else S.cy = r.y + r.h + hyS;
+              moved = true; any = true;
+            }
+          }
+        }
+        // separate overlapping cube pairs
         for (let a = 0; a < meshes.length; a++) {
           const A = _sc[a]; if (!A) continue;
           for (let b = a + 1; b < meshes.length; b++) {
@@ -686,25 +708,25 @@ export function createCubeHero({ onCubeClick } = {}) {
             const dx = B.cx - A.cx, dy = B.cy - A.cy;
             const ox = ((A.hx + B.hx) * OVERLAP_SHRINK + OVERLAP_MARGIN) - Math.abs(dx);
             const oy = ((A.hy + B.hy) * OVERLAP_SHRINK + OVERLAP_MARGIN) - Math.abs(dy);
-            if (ox <= 0 || oy <= 0) continue;              // already separated on an axis
+            if (ox <= 0 || oy <= 0) continue;
             const wa = A.wz >= B.wz ? 0.32 : 0.68, wb = 1 - wa;
-            if (ox < oy) { const s = (dx < 0 ? -1 : 1) * ox; A.cx -= s * wa; B.cx += s * wb; A.dx -= s * wa; B.dx += s * wb; }
-            else { const s = (dy < 0 ? -1 : 1) * oy; A.cy -= s * wa; B.cy += s * wb; A.dy -= s * wa; B.dy += s * wb; }
-            moved = true; anyOverlap = true;
+            if (ox < oy) { const s = (dx < 0 ? -1 : 1) * ox; A.cx -= s * wa; B.cx += s * wb; }
+            else { const s = (dy < 0 ? -1 : 1) * oy; A.cy -= s * wa; B.cy += s * wb; }
+            moved = true; any = true;
           }
         }
         if (!moved) break;
       }
       for (let i = 0; i < meshes.length; i++) {
         const S = _sc[i]; if (!S) continue;
-        meshes[i].position.x += S.dx / S.ppu;
-        meshes[i].position.y += -S.dy / S.ppu;
+        meshes[i].position.x += (S.cx - S.ix) / S.ppu;
+        meshes[i].position.y += -(S.cy - S.iy) / S.ppu;
       }
-      if (!anyOverlap) break;
+      if (!any) break;
     }
     // fade any cube whose (resolved) box overlaps a visible text rect, so text stays clear
     if (textRects.length) {
-      if (n === 0) gatherBoxes();               // ensure boxes exist even for a single cube
+      gatherBoxes();                            // fresh boxes at the final positions
       const PAD = 40;
       for (let i = 0; i < meshes.length; i++) {
         const S = _sc[i]; if (!S) continue;
@@ -783,8 +805,9 @@ export function createCubeHero({ onCubeClick } = {}) {
         m.position.set(base[i].x + (_tmp.x - base[i].x) * e,
           base[i].y + (_tmp.y - base[i].y) * e,
           base[i].z + (_tmp.z - base[i].z) * e);
-        m.rotation.x += (0.1 - m.rotation.x) * 0.12;
-        m.rotation.y += (0.14 - m.rotation.y) * 0.12;
+        // flatten to a front-facing tilt quickly so the grid settles clean
+        m.rotation.x += (0.06 - m.rotation.x) * 0.2;
+        m.rotation.y += (0.08 - m.rotation.y) * 0.2;
         m.scale.setScalar(1 + (PROJ_SCALE - 1) * e);
         cubeReveal[i] += (revealTargets[i] - cubeReveal[i]) * Math.min(1, 0.12 * fs);
         setCubeOpacity(m, cubeReveal[i]);
@@ -838,8 +861,8 @@ export function createCubeHero({ onCubeClick } = {}) {
 
   return {
     frame, setUnravel, setState, focus, raycast, setPointer, ready,
-    cubeBoxes, labelBoxes, chapterPark, setTrack, setExclude, setTextRects, chapterDim, setCloudDim, setMobileHide, setForceHidden, meshBox,
-    setProjects, setContact, gridSlots, cubeCenters, setHover, openProject, closeProject, projectOpenIndex, faceAnchors, setProjectHandlers,
+    cubeBoxes, labelBoxes, chapterPark, setTrack, setExclude, setTextRects, setShapeRects, chapterDim, setCloudDim, setMobileHide, setForceHidden, meshBox,
+    setProjects, setContact, gridSlots, cubeCenters, shapeRectsNow, setHover, openProject, closeProject, projectOpenIndex, faceAnchors, setProjectHandlers,
     projectsActive: () => projActive,
     labelFor: (i) => (CUBES[i] ? CUBES[i].label : ''),
     cubeOpacity: (i) => meshes[i].material[0].opacity,
