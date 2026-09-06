@@ -259,6 +259,7 @@ if (slSec) {
   const slLines = Array.from(slSec.querySelectorAll('.reveal-line'));
   const hair = slSec.querySelector('.slice-hairline');
   const hairLabel = slSec.querySelector('.slice-label');
+  const slCol = slSec.querySelector('.exp2-col');   // the text column (story, ev-strip, button)
   const p2s = (x) => (x < 0.5 ? 2 * x * x : 1 - (-2 * x + 2) * (-2 * x + 2) * 0.5);
   if (reduced || mobile) {
     slSec.classList.add('seen');
@@ -287,6 +288,14 @@ if (slSec) {
         particles.setSliceReveal(p < 0.75 ? reveal : 1);
         slSec.classList.toggle('seen', p > 0.02);
         slLines.forEach((el, k) => el.classList.toggle('in', p > 0.08 + k * 0.05));
+        // fade the whole text column out over the last 13% of the section, so its ev-strip
+        // and "Read the full breakdown" button are gone before the projects grid fades in
+        // just below (the column otherwise lingers over the top of the cube grid).
+        if (slCol) {
+          const fo = p > 0.87 ? Math.max(0, 1 - (p - 0.87) / 0.13) : 1;
+          slCol.style.opacity = fo.toFixed(3);
+          slCol.style.pointerEvents = fo < 0.99 ? 'none' : '';
+        }
         // DOM layer hairline follows the top built ring while the stack grows
         if (hair && particles.sliceTop) {
           const on = p > 0.15 && p < 0.78 && m > 0.5;
@@ -298,10 +307,11 @@ if (slSec) {
           }
         }
       },
-      // forward past slicer: stack dissolves, forklift already 0
-      onLeave: () => { particles.setMorph(1, 0); if (hair) hair.style.opacity = '0'; },
-      // back up into the previous band: hand the shape back to the held forklift, no gap
-      onLeaveBack: () => { particles.setMorph(1, 0); particles.setMorph(0, 1); if (hair) hair.style.opacity = '0'; },
+      // forward past slicer: stack dissolves, forklift already 0, column fully faded
+      onLeave: () => { particles.setMorph(1, 0); if (hair) hair.style.opacity = '0'; if (slCol) { slCol.style.opacity = '0'; slCol.style.pointerEvents = 'none'; } },
+      // back up into the previous band: hand the shape back to the held forklift, no gap;
+      // restore the column so it reads normally on the way back through the section
+      onLeaveBack: () => { particles.setMorph(1, 0); particles.setMorph(0, 1); if (hair) hair.style.opacity = '0'; if (slCol) { slCol.style.opacity = ''; slCol.style.pointerEvents = ''; } },
     });
   }
 }
