@@ -33,3 +33,6 @@ docs/nirnor-study/run_*/
 
 # codex build study - frames git-ignored, markdown committed
 docs/codex-study/**/*.png
+
+# v2 phase verification frames
+docs/v2-film/
