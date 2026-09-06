@@ -174,6 +174,68 @@ export function createCubeHero({ onCubeClick } = {}) {
 
   const ready = Promise.all(loads);
 
+  // ---- project / raymond content (spec 8.3 baked faces) ----
+  // projByCube[cubeIndex] = the projects.json entry; raymondData = the raymond block.
+  let projByCube = {}, raymondData = null, raymondFacesOverride = null;
+  fetch('data/projects.json').then((r) => r.json()).then((j) => {
+    (j.projects || []).forEach((p) => { if (p.cube != null) projByCube[p.cube] = p; });
+    raymondData = j.raymond || null;
+  }).catch(() => {});
+
+  // ---- baked face texture: 1024px canvas, image cover in the top 58%, a white band with a
+  // small label, title, key line and one-line summary. CanvasTexture, sRGB, anisotropy 8.
+  // The band draws immediately; the image is redrawn in when it loads (spec 8.3). ----
+  const ACCENT = '#b8552e';
+  function wrapText(ctx, text, x, y, maxW, lh, maxLines) {
+    const words = String(text || '').split(/\s+/).filter(Boolean); let line = '', n = 0;
+    for (const wd of words) {
+      const test = line ? line + ' ' + wd : wd;
+      if (ctx.measureText(test).width > maxW && line) {
+        ctx.fillText(line, x, y); y += lh; line = wd; n++;
+        if (maxLines && n >= maxLines) { return y; }
+      } else line = test;
+    }
+    if (line) { ctx.fillText(line, x, y); y += lh; }
+    return y;
+  }
+  function makeBakedFace({ image, imageEl, title, key, summary, label }) {
+    const SZ = 1024, IMG_H = Math.round(SZ * 0.58);
+    const cv = document.createElement('canvas'); cv.width = SZ; cv.height = SZ;
+    const ctx = cv.getContext('2d');
+    const tex = new THREE.CanvasTexture(cv);
+    tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
+    function draw(img) {
+      ctx.fillStyle = '#141414'; ctx.fillRect(0, 0, SZ, IMG_H);
+      if (img && img.width) {
+        const ar = img.width / img.height, box = SZ / IMG_H;
+        let dw, dh, dx, dy;
+        if (ar > box) { dh = IMG_H; dw = dh * ar; dx = (SZ - dw) / 2; dy = 0; }
+        else { dw = SZ; dh = dw / ar; dx = 0; dy = (IMG_H - dh) / 2; }
+        ctx.drawImage(img, dx, dy, dw, dh);
+      }
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(0, IMG_H, SZ, SZ - IMG_H);
+      const padX = 52; let ty = IMG_H + 44; ctx.textBaseline = 'top';
+      ctx.fillStyle = ACCENT; ctx.font = '600 26px Roboto, system-ui, sans-serif';
+      ctx.fillText(String(label || '').toUpperCase(), padX, ty); ty += 44;
+      ctx.fillStyle = '#141414'; ctx.font = '500 44px Roboto, system-ui, sans-serif';
+      ty = wrapText(ctx, title, padX, ty, SZ - 2 * padX, 52, 2) + 10;
+      if (key) { ctx.fillStyle = '#3a3a3a'; ctx.font = '400 30px Roboto, system-ui, sans-serif';
+        ty = wrapText(ctx, key, padX, ty, SZ - 2 * padX, 38, 2) + 8; }
+      ctx.fillStyle = '#5a5a5a'; ctx.font = '400 26px Roboto, system-ui, sans-serif';
+      wrapText(ctx, summary, padX, ty, SZ - 2 * padX, 34, 4);
+      tex.needsUpdate = true;
+    }
+    // an already-decoded texture image (no network load, so no 404 for stale data paths)
+    if (imageEl && imageEl.width) { draw(imageEl); }
+    else { draw(null); if (image) { const im = new Image(); im.onload = () => draw(im); im.onerror = () => {}; im.src = image; } }
+    return tex;
+  }
+  function cubeImg(name) {
+    if (!name) return null;
+    if (name.indexOf('/') >= 0) return name;                       // already a path
+    return 'assets/cubes/' + (name.endsWith('.png') ? name.slice(0, -4) : name) + '.webp';
+  }
+
   // ---- camera + grid placement ----
   function tanHalf() { return Math.tan((FOV * Math.PI / 180) / 2); }
 
@@ -454,8 +516,15 @@ export function createCubeHero({ onCubeClick } = {}) {
   function chapterPark(i, side, t, opts) {
     t = Math.min(1, Math.max(0, t));
     if (t <= 0.001) { delete parkTargets[i]; return; }
-    parkTargets[i] = { axvw: side === 'left' ? 24 : 76, ayvh: 48,
+    parkTargets[i] = {
+      axvw: (opts && opts.axvw != null) ? opts.axvw : (side === 'left' ? 24 : 76),
+      ayvh: (opts && opts.ayvh != null) ? opts.ayvh : 48,
       scale: (opts && opts.scale) || PARK_SCALE, tumble: (opts && opts.tumble != null) ? opts.tumble : 1, t };
+  }
+  // spec 8.2: park cube i at an explicit viewport anchor (vw%, vh%) at `scale`, through the
+  // same spring as every other park target (main.js uses this for the Raymond cube).
+  function setParkAnchor(i, vw, vh, scale) {
+    parkTargets[i] = { axvw: vw, ayvh: vh, scale: scale || PARK_SCALE, tumble: 0, t: 1 };
   }
   // Track DOM anchors (Other Projects): each listed cube follows its anchor element's
   // screen rect every frame, so the cubes scroll WITH the columns and stay in the
@@ -524,12 +593,33 @@ export function createCubeHero({ onCubeClick } = {}) {
   let rig = null, rigPivots = null;
   const FACE_MAP = { right: 0, left: 1, top: 2, bottom: 3, front: 4, back: 5 };
   function unfoldScale() { return (0.92 * window.innerHeight) / (3 * CUBE_PX); }
+  // spec 8.3: content for each face of a project cube, indexed by FACE_MAP value (0..5).
+  // front = overview, the five other faces = the DESIGNED/ANALYZED/BUILT/PROVED/TOOLS steps.
+  function projectFaceSpecs(i) {
+    const p = projByCube[i]; const imgs = (p && p.images) || [];
+    const im = (k) => cubeImg(imgs.length ? imgs[k % imgs.length] : null);
+    const t = (p && p.title) || (CUBES[i] && CUBES[i].label) || '';
+    const s = [];
+    s[FACE_MAP.front] = { image: im(0), title: t, key: (p && p.key) || '', summary: (p && p.one) || '', label: (p && p.year) || 'PROJECT' };
+    s[FACE_MAP.right] = { image: im(1), title: t, summary: (p && p.designed) || '', label: 'DESIGNED' };
+    s[FACE_MAP.left] = { image: im(2), title: t, summary: (p && p.analyzed) || '', label: 'ANALYZED' };
+    s[FACE_MAP.top] = { image: im(3), title: t, summary: (p && p.built) || '', label: 'BUILT' };
+    s[FACE_MAP.bottom] = { image: im(4), title: t, summary: (p && p.proved) || '', label: 'PROVED' };
+    s[FACE_MAP.back] = { image: im(5), title: t, summary: (p && p.tools) || '', label: 'TOOLS' };
+    return s;
+  }
   function buildRig(i) {
     disposeRig();
+    const specs = projectFaceSpecs(i);
     const mats = meshes[i].material;
-    const faceMat = (idx) => new THREE.MeshBasicMaterial({ map: mats[idx].map || null,
-      color: mats[idx].map ? 0xffffff : 0xe0e0e0, side: THREE.DoubleSide, transparent: true, opacity: 1 });
-    const plane = new THREE.PlaneGeometry(1, 1);
+    // draw each face from the cube's ALREADY-LOADED texture image (guaranteed to exist, no
+    // second network request) so stale projects.json image names never 404.
+    for (let idx = 0; idx < 6; idx++) { specs[idx].imageEl = mats[idx] && mats[idx].map && mats[idx].map.image; specs[idx].image = null; }
+    // seam-free (spec 8.4): MeshBasicMaterial, toneMapped off, FrontSide, no transparency, so
+    // there is no lighting-induced diagonal across the plane.
+    const faceMat = (idx) => new THREE.MeshBasicMaterial({ map: makeBakedFace(specs[idx]),
+      color: 0xffffff, side: THREE.FrontSide, toneMapped: false, transparent: false });
+    const plane = new THREE.PlaneGeometry(1, 1, 1, 1);
     rig = new THREE.Group();
     const S = unfoldScale();
     rig.scale.setScalar(S);
@@ -612,6 +702,97 @@ export function createCubeHero({ onCubeClick } = {}) {
   }
   function setHover(i) { hoverIndex = i; }
   function projectOpenIndex() { return openIndex; }
+
+  // ---- Raymond 3x2 unfold rig (spec 8.2, grid override, not the cross net) ----
+  // Cube 4 (deploy) unfolds into six baked faces in a 3-col x 2-row grid centred on its park
+  // point. Faces hinge open over the first half of t, then slide into their grid slots over the
+  // second half. Scroll-driven: setRaymondUnfold(t) sets t; updateRaymondRig() runs each frame.
+  let raymondT = 0, raymondRig = null, raymondFaceMeshes = [];
+  let RAY_CENTER_VW = 30, RAY_CENTER_VH = 52, RAY_FACE_VH = 15, RAY_GAP_VH = 1;
+  function raymondCubeIndex() { return (raymondData && raymondData.cube != null) ? raymondData.cube : 4; }
+  function raymondFacesList() { return raymondFacesOverride || (raymondData && raymondData.faces) || []; }
+  function setRaymondFaces(list) { raymondFacesOverride = list || null; if (raymondRig) disposeRaymondRig(); }
+  function buildRaymondRig() {
+    disposeRaymondRig();
+    const faces = raymondFacesList();
+    raymondRig = new THREE.Group();
+    const plane = new THREE.PlaneGeometry(1, 1, 1, 1);
+    raymondFaceMeshes = [];
+    for (let j = 0; j < 6; j++) {
+      const f = faces[j] || {};
+      const tex = makeBakedFace({ image: f.image, title: f.name || '', key: f.number || '',
+        summary: f.line || '', label: f.name || 'SYSTEM' });
+      const mat = new THREE.MeshBasicMaterial({ map: tex, color: 0xffffff, side: THREE.FrontSide, toneMapped: false, transparent: false });
+      const m = new THREE.Mesh(plane, mat);
+      raymondRig.add(m); raymondFaceMeshes.push(m);
+    }
+    group.add(raymondRig);
+  }
+  function disposeRaymondRig() {
+    if (!raymondRig) return;
+    group.remove(raymondRig);
+    raymondRig.traverse((c) => { if (c.geometry) c.geometry.dispose(); if (c.material) { if (c.material.map) c.material.map.dispose(); c.material.dispose(); } });
+    raymondRig = null; raymondFaceMeshes = [];
+  }
+  function setRaymondUnfold(t) {
+    t = Math.min(1, Math.max(0, t));
+    raymondT = t;
+    if (t <= 0.001) { disposeRaymondRig(); return; }
+    if (!raymondRig) buildRaymondRig();
+  }
+  function raymondSlotPx(j) {
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const face = (RAY_FACE_VH / 100) * vh, gap = (RAY_GAP_VH / 100) * vh, step = face + gap;
+    const col = j % 3, row = Math.floor(j / 3);
+    return { x: (RAY_CENTER_VW / 100) * vw + (col - 1) * step, y: (RAY_CENTER_VH / 100) * vh + (row - 0.5) * step, size: face };
+  }
+  const _rv = new THREE.Vector3();
+  function updateRaymondRig() {
+    if (!raymondRig || !raymondFaceMeshes.length) return;
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const halfHz = (camera.position.z - PARK_Z) * tanHalf();
+    const faceWorld = (RAY_FACE_VH / 100) * 2 * halfHz;         // 15vh -> world units at PARK_Z
+    const hinge = easeInOut(Math.min(1, raymondT / 0.5));
+    const slide = easeInOut(Math.max(0, (raymondT - 0.5) / 0.5));
+    const centerLocal = anchorLocalXY(RAY_CENTER_VW, RAY_CENTER_VH);
+    for (let j = 0; j < 6; j++) {
+      const m = raymondFaceMeshes[j];
+      const slot = raymondSlotPx(j);
+      const target = anchorLocalXY((slot.x / vw) * 100, (slot.y / vh) * 100);
+      m.position.lerpVectors(centerLocal, target, slide);
+      const sc = faceWorld * (0.32 + 0.68 * hinge);
+      m.scale.set(sc, sc, sc);
+      const col = j % 3, foldSign = col === 0 ? 1 : (col === 2 ? -1 : 0);
+      m.rotation.set((Math.floor(j / 3) === 0 ? 1 : -1) * (1 - hinge) * 0.9, foldSign * (1 - hinge) * (Math.PI / 2), 0);
+    }
+    const rc = raymondCubeIndex();
+    if (raymondT > 0.02 && meshes[rc]) setCubeOpacity(meshes[rc], 0);   // hide parked cube behind rig
+  }
+  function raymondFaceRects() {
+    const out = [];
+    if (!raymondRig || !raymondFaceMeshes.length) { for (let j = 0; j < 6; j++) out.push(null); return out; }
+    const w = window.innerWidth, h = window.innerHeight;
+    raymondRig.updateWorldMatrix(true, true);
+    for (let j = 0; j < 6; j++) {
+      const m = raymondFaceMeshes[j];
+      let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
+      for (let sx = -1; sx <= 1; sx += 2) for (let sy = -1; sy <= 1; sy += 2) {
+        _rv.set(sx * 0.5, sy * 0.5, 0); m.localToWorld(_rv); _rv.project(camera);
+        const X = (_rv.x * 0.5 + 0.5) * w, Y = (-_rv.y * 0.5 + 0.5) * h;
+        minx = Math.min(minx, X); maxx = Math.max(maxx, X); miny = Math.min(miny, Y); maxy = Math.max(maxy, Y);
+      }
+      out.push({ x: minx, y: miny, w: maxx - minx, h: maxy - miny });
+    }
+    return out;
+  }
+  function raymondFaceAt(ndcX, ndcY) {
+    if (raymondT <= 0.9) return -1;
+    const w = window.innerWidth, h = window.innerHeight;
+    const px = (ndcX * 0.5 + 0.5) * w, py = (-ndcY * 0.5 + 0.5) * h;
+    const rects = raymondFaceRects();
+    for (let j = 0; j < 6; j++) { const r = rects[j]; if (r && px >= r.x && px <= r.x + r.w && py >= r.y && py <= r.y + r.h) return j; }
+    return -1;
+  }
    // screen centres of the eight grid slots (for the contact-settle verifier)
   function gridSlots() {
     const w = window.innerWidth, h = window.innerHeight; const out = [];
@@ -962,6 +1143,7 @@ export function createCubeHero({ onCubeClick } = {}) {
       setCubeOpacity(m, _opArr[i] * cubeReveal[i]);
     }
 
+    updateRaymondRig();   // Raymond faces + hide the parked cube behind the rig (after opacity)
     renderer.render(scene, camera);
     updateLabels();
   }
@@ -970,6 +1152,7 @@ export function createCubeHero({ onCubeClick } = {}) {
     frame, setUnravel, setState, focus, raycast, setPointer, ready,
     cubeBoxes, labelBoxes, chapterPark, setTrack, setExclude, setTextRects, setShapeRects, setLanes, setTargets, exit, recall, chapterDim, setCloudDim, setMobileHide, setForceHidden, meshBox,
     setProjects, setContact, gridSlots, cubeCenters, shapeRectsNow, setHover, openProject, closeProject, projectOpenIndex, faceAnchors, setProjectHandlers,
+    setParkAnchor, setRaymondUnfold, setRaymondFaces, raymondFaceRects, raymondFaceAt,
     _dbgTargets: () => { const w = window.innerWidth, h = window.innerHeight; return tgt.map((v, i) => { const q = v.clone(); group.localToWorld(q); q.project(camera); return { i, sx: +((q.x * 0.5 + 0.5) * w).toFixed(0), sy: +((-q.y * 0.5 + 0.5) * h).toFixed(0), avoid: _avoid[i] }; }); },
     projectsActive: () => projActive,
     labelFor: (i) => (CUBES[i] ? CUBES[i].label : ''),
