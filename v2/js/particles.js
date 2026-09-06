@@ -161,6 +161,9 @@ export function createParticles(opts = {}) {
          // size: 1.6 dust -> 1.3 fill / 1.9 edge
          float shapeSz = mix(1.3, 1.9, isEdge);
          float sz = mix(size, shapeSz, inShape * mA);
+         // portrait points are sparse where the face is light; enlarge them so the
+         // whole bust reads solid even though the suit carries most of the points.
+         sz *= 1.0 + 0.85 * uMorph3 * inShape;
          // background dust drops to 15% opacity once the morph is past 0.4, so the silhouette stands alone
          float dim = (1.0 - inShape) * smoothstep(0.4, 0.6, mA);
          vOpa = mix(1.0, 0.15, dim);
@@ -199,12 +202,12 @@ export function createParticles(opts = {}) {
   // than its world height under perspective, so calibrate() tunes this until the ON-SCREEN
   // height matches the 62vh target. A flat shape (forklift) converges to ~1.
   const adj = [1, 1, 1, 1];
-  const calTarget = [0.62, 0.62, 0.62, 0.86];   // on-screen height fraction each shape calibrates to
+  const calTarget = [0.62, 0.62, 0.62, 0.80];   // on-screen height fraction each shape calibrates to
   const PLACE = {
     0: () => placeAt(0, 0.62, 0.50, 0.62 * adj[0]),   // forklift, centred at 62vw/50vh, 62vh tall
     1: () => placeAt(1, 0.62, 0.50, 0.62 * adj[1]),   // slice stack, same box (crossfades with forklift)
     2: () => { const halfW = visH * aspect() * 0.5; return { s: 0.55 * visH, cx: 0.48 * halfW, cy: 0, cz: 0 }; }, // cube outline, right half, 55vh
-    3: () => placeAt(3, 0.62, 0.50, 0.86 * adj[3]),   // hero portrait, centred at 62vw/50vh, 86vh tall
+    3: () => placeAt(3, 0.82, 0.50, 0.80 * adj[3]),   // hero portrait, right of the headline (82vw/50vh), 80vh tall
   };
   const slicePlace = { lo: -1, hi: 1, cx: 0, cz: 0, s: 1 };
   function placeShape(k) {
@@ -264,8 +267,8 @@ export function createParticles(opts = {}) {
   // the PNG alpha. The samples are stored stride-4 (x,y,z,cls) like the other shapes, plus a
   // parallel darkness value per point, and sorted by the SAME y-band/x key for coherent
   // crossfades. y is flipped so the portrait stands upright.
-  const PORTRAIT_TARGET = Math.min(55000, maxCount);
-  const PORTRAIT_POW = 1.6;
+  const PORTRAIT_TARGET = Math.min(95000, maxCount);
+  const PORTRAIT_POW = 2.8;
   function loadPortraitShape(k, url) {
     const img = new Image();
     img.crossOrigin = 'anonymous';
