@@ -1,0 +1,101 @@
+{
+  "_note": "Project copy for the round-2 projects cube grid (part 2). One entry per cube; the Designed/Analyzed/Built/Proved copy and images are the same as the reading panels in index.html. Sourced from the root index.html and copy.md; no invented facts.",
+  "projects": [
+    {
+      "id": "polymer", "cube": 0, "title": "Polymer Lithography Simulation", "year": "2020",
+      "one": "Block copolymer phase separation, simulated to guide the lab.",
+      "ctx": "RIT Honors research, Dr. Padmanabhan. LAMMPS.",
+      "designed": "The same system settles into holes, spheres, stripes, or lamellae depending on chemistry. Which pattern you get is the design space.",
+      "analyzed": "About 100 lines of molecular dynamics with the Weeks-Chandler-Andersen potential, run in LAMMPS on the RIT cluster across thousands of cases.",
+      "built": "The build is the simulation itself. No physical rig.",
+      "proved": "The runs reached clean separated end states; the interaction parameter falls with temperature and rises with repulsion, a starting map for the lab.",
+      "key": "Simulation bridged to experiment.",
+      "tools": "LAMMPS, WCA potential, RIT cluster",
+      "images": ["polymer-2", "polymer-phase-sep", "polymer-1", "polymer-3"], "panel": "polymer"
+    },
+    {
+      "id": "casting", "cube": 1, "title": "Additive Manufacturing and Investment Casting", "year": "2023 to 2024",
+      "one": "Molten aluminium into a printed ceramic mold.",
+      "ctx": "RIT, AMPrint Center. Fusion 360, nTopology, CFD.",
+      "designed": "Negative mold in Fusion 360, pour holes up top and drains at the bottom, tilted 2 degrees so a 90 degree overhang stayed printable; a truncated-octahedron lattice in nTopology keeps the shell from warping.",
+      "analyzed": "Transient CFD with air and liquid aluminium at 1273 K, checking for an early freeze or trapped air.",
+      "built": "The mold prints and the pour is designed. No clean photo of the finished cast nozzle yet.",
+      "proved": "The CFD showed a complete fill before any metal was melted. You find the cold shut on the screen, not in a ruined mold.",
+      "key": "Molten aluminium into a printed ceramic mold.",
+      "tools": "Fusion 360, nTopology, CFD",
+      "images": ["casting-2", "casting-5", "casting-3", "casting-1", "casting-4"], "panel": "casting"
+    },
+    {
+      "id": "cnc", "cube": 2, "title": "PrintNC Build, CNC Router", "year": "personal, operational",
+      "one": "A steel CNC router I built on the third floor of an apartment.",
+      "ctx": "Fusion 360, steel frame, 2.2 kW spindle.",
+      "designed": "Worked from the PrintNC reference in Fusion 360, sized for the cut area I wanted.",
+      "analyzed": "Rigidity is in the steel. The spindle and its VFD needed an EMI line filter, shielded cabling, and a star ground away from the logic.",
+      "built": "Welded steel frame, assembled gantry, water-cooled spindle, wired and running.",
+      "proved": "It cuts. The first pass was rough, the second came out with clean vertical walls, and it now cuts parts for other projects.",
+      "key": "1200 by 800 mm, holds 0.1 mm.",
+      "tools": "Fusion 360, steel, 2.2 kW spindle",
+      "images": ["cnc-render", "cnc-build", "cnc-machine", "cnc-cut-clean"], "panel": "cnc"
+    },
+    {
+      "id": "slicer", "cube": 3, "title": "3D Slicer and G-code Generator", "year": "2025 to 2026",
+      "one": "I wrote the thing that tells my printer what to do.",
+      "ctx": "Personal. Python, PyQt.",
+      "designed": "A small pipeline that exposes every stage: load an STL, set layer height and resolution, slice, generate.",
+      "analyzed": "Every layer is computed and drawn, so I can see the wall paths and check geometry at each height.",
+      "built": "The working program slices a real STL and writes G-code end to end.",
+      "proved": "It generates usable G-code from an arbitrary STL. It is the base for research on tilted and curved slicing planes.",
+      "key": "STL to G-code, written from scratch.",
+      "tools": "Python, PyQt",
+      "images": ["slicer-software", "slicer-layer-plot", "slicer-stl-viewer", "slicer-stl-detail"], "panel": "slicer"
+    },
+    {
+      "id": "printing", "cube": 5, "title": "3D Printing and Fabrication", "year": "ongoing",
+      "one": "A hand-wound electric motor that spins, and overheats.",
+      "ctx": "Personal, started at RIT. FDM, PLA and PETG.",
+      "designed": "An electric motor from scratch, printed stator and rotor, copper wound by hand around the teeth.",
+      "analyzed": "The prototype runs but overheats: load-bearing parts are PLA that softens under heat. The fix is PETG or PA-CF. That's the finding.",
+      "built": "Stator wound by hand, motor assembled on its bearing; the same practice produced a MagSafe stand and an Iron Man helmet.",
+      "proved": "The motor spins, proving the geometry and the winding. The MagSafe stand costs about 4 dollars of PLA against a 69 dollar store version.",
+      "key": "About 4 dollars of PLA against a 69 dollar store version.",
+      "tools": "FDM, PLA, PETG, CAD",
+      "images": ["motor-exploded", "motor-wound-pair", "motor-desk", "magsafe-stand-hero"], "panel": "printing"
+    },
+    {
+      "id": "pendulum", "cube": 6, "title": "Double Pendulum Experiment", "year": "RIT coursework",
+      "one": "Model and rig agree for about a second and a half.",
+      "ctx": "MATLAB, Kinovea.",
+      "designed": "A Lagrangian model of the two-arm pendulum, integrated as ODEs in MATLAB.",
+      "analyzed": "The rig captured at 120 fps, dots tracked in Kinovea; a Monte Carlo envelope from 1000 runs sets the band.",
+      "built": "Two solid arms on bearings, top arm released from 45 degrees against a hard stopper.",
+      "proved": "Model and rig agree for about a second and a half; the disagreement after quantifies the bearing friction and imperfect release.",
+      "key": "Agreement for about 1.5 seconds, then chaos.",
+      "tools": "MATLAB, Kinovea",
+      "images": ["pendulum-1", "pendulum-2", "pendulum-3"], "panel": "pendulum"
+    },
+    {
+      "id": "cannon", "cube": 6, "title": "Vacuum Cannon Experiment", "year": "RIT coursework",
+      "one": "Predicted against measured across 10 runs.",
+      "ctx": "MATLAB.",
+      "designed": "A 1.52 m PVC pipe sealed at both ends, a vacuum pump, and a ballistic block that records displacement.",
+      "analyzed": "Exit velocity recovered with an Eulerian method integrating the net pressure force, using a Vena Contracta inlet coefficient.",
+      "built": "The taped PVC tube and pump. No separate build photo.",
+      "proved": "Predicted against measured across 10 runs at 2 and 8 kPa; friction is the next physics to add.",
+      "key": "10 runs at 2 and 8 kPa.",
+      "tools": "MATLAB",
+      "images": ["cannon-1", "cannon-2", "cannon-3"], "panel": "cannon"
+    },
+    {
+      "id": "flight", "cube": 7, "title": "Flight Dynamics Simulation", "year": "RIT coursework",
+      "one": "A quaternion attitude model across nine aircraft.",
+      "ctx": "Simulink, MATLAB, ode45.",
+      "designed": "A quaternion attitude model rather than Euler angles, to avoid gimbal lock and integration singularities.",
+      "analyzed": "A run applies a stick, rudder, or aileron step and logs the response; nine aircraft through the same conditions.",
+      "built": "A model, not hardware: the Simulink and MATLAB code that runs the nine configurations.",
+      "proved": "The logged response curves compare directly against real flight-test data.",
+      "key": "Nine aircraft through the same step inputs.",
+      "tools": "Simulink, MATLAB, ode45",
+      "images": ["flight-dynamics", "flight-1"], "panel": "flight"
+    }
+  ]
+}

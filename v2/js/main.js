@@ -116,26 +116,57 @@ function updateProgress() {
   const max = document.documentElement.scrollHeight - window.innerHeight;
   const p = max > 0 ? Math.min(1, window.scrollY / max) : 0;
   progressBar.style.height = (p * 100) + 'vh';
-  const mid = window.scrollY + window.innerHeight * 0.5;
-  let cur = 0;
-  chapterSecs.forEach((s, i) => { if (s.offsetTop <= mid) cur = i; });
-  progressNum.textContent = String(cur).padStart(2, '0');
-  progressNum.style.top = (p * 100) + 'vh';
 }
 
 // Persistent cloud dim: while any chapter text (origin..websites) is on screen the
 // non-parked cubes stay <=0.35 opacity so they never compete with the text. Off in the
 // hero (bright unravel) and from the manifesto on (dark band + contact reassembly).
 if (!reduced && !mobile) {
-  ScrollTrigger.create({ trigger: '#origin', start: 'top 85%',
+  ScrollTrigger.create({ trigger: '#experience', start: 'top 85%',
     onEnter: () => cubes.setCloudDim(1), onLeaveBack: () => cubes.setCloudDim(0) });
   ScrollTrigger.create({ trigger: '#contact', start: 'top 30%',
     onEnter: () => cubes.setCloudDim(0), onLeaveBack: () => cubes.setCloudDim(1) });
 }
 
+// ---- Experience: dots reform into the forklift; content reveals line by line ----
+const expSec = document.querySelector('#experience');
+if (expSec) {
+  const lines = Array.from(expSec.querySelectorAll('.reveal-line'));
+  const p2 = (x) => (x < 0.5 ? 2 * x * x : 1 - (-2 * x + 2) * (-2 * x + 2) * 0.5);
+  if (reduced || mobile) {
+    expSec.classList.add('seen');
+    lines.forEach((el) => el.classList.add('in'));
+  } else {
+    const expCol = expSec.querySelector('.exp2-col');
+    ScrollTrigger.create({
+      trigger: expSec, start: 'top top', end: '+=180%', pin: expSec.querySelector('.exp2-pin'),
+      pinSpacing: true, scrub: 0.8,
+      onUpdate: (self) => {
+        const p = self.progress;
+        let m;
+        if (p < 0.6) m = p2(p / 0.6);
+        else if (p < 0.75) m = 1;
+        else m = 1 - p2((p - 0.75) / 0.25);
+        particles.setMorph(0, m);
+        expSec.classList.toggle('seen', p > 0.02);
+        lines.forEach((el, k) => el.classList.toggle('in', p > 0.08 + k * 0.045));
+        // the drifting cubes part around the experience copy while it is on screen
+        if (expCol && cubes.setExclude) {
+          const r = expCol.getBoundingClientRect();
+          cubes.setExclude([{ x: r.x, y: r.y, w: r.width, h: r.height }]);
+        }
+      },
+      onLeave: () => { particles.setMorph(0, 0); if (cubes.setExclude) cubes.setExclude([]); },
+      onLeaveBack: () => { particles.setMorph(0, 0); if (cubes.setExclude) cubes.setExclude([]); },
+    });
+  }
+}
+
 // verifier hook: parked-cube box vs a chapter's text column
 window.__v2.parkCube = (i, side, t) => { cubes.setUnravel(1); cubes.chapterPark(i, side, t); };
 window.__v2.meshBox = (i) => cubes.meshBox(i);
+window.__v2.setMorph = (k, v) => particles.setMorph(k, v);
+window.__v2.morphBox = (k) => particles.morphBox(k);
 window.__v2.allCubes = () => Array.from({ length: cubes.count }, (_, i) => ({ box: cubes.meshBox(i), op: cubes.cubeOpacity(i) }));
 window.__v2.state = () => cubes.getState();
 

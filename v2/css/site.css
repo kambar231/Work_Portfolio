@@ -398,3 +398,42 @@ html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
 .lenis.lenis-stopped { overflow: hidden; }
 .lenis.lenis-smooth iframe { pointer-events: none; }
+
+/* ======================= ROUND 2: EXPERIENCE ======================= */
+.exp2 { position: relative; }
+.exp2-pin { position: relative; min-height: 100vh; display: flex; align-items: center; padding: 12vh 0; }
+.exp2-col { max-width: 48%; }   /* forklift morph occupies the right 45% */
+.exp-word {
+  font-weight: 300; font-size: min(96px, 6.6vw); line-height: 1; margin: 0 0 4px;
+  text-transform: lowercase; color: var(--ink); letter-spacing: -0.01em;
+  opacity: 0; transform: translateY(16px); transition: opacity .7s ease, transform .7s ease;
+}
+.exp2.seen .exp-word { opacity: 1; transform: none; }
+.reveal-line { opacity: 0; transform: translateY(16px); transition: opacity .6s ease, transform .6s ease; }
+.reveal-line.in { opacity: 1; transform: none; }
+.exp2-head { list-style: none; margin: 18px 0 0; padding: 0; }
+.exp2-head li { font-size: 15px; color: var(--grey2); line-height: 1.6; }
+.exp2-systems { list-style: none; margin: 26px 0 0; padding: 0; }
+.exp2-systems li { border-top: 1px solid var(--hair); }
+.exp2-systems li:last-child { border-bottom: 1px solid var(--hair); }
+.exp2-systems .ray-open { width: 100%; display: block; text-align: left; background: none; border: 0; cursor: pointer; font-family: inherit; padding: 13px 0; position: relative; opacity: 1; transform: none; }
+.exp2-systems .ray-open b { display: block; font-size: 20px; font-weight: 400; color: var(--ink); }
+.exp2-systems .ray-open span { display: block; margin-top: 3px; font-size: 13px; color: var(--label); }
+.exp2-systems .ray-open::after { content: ""; position: absolute; left: 0; bottom: 6px; height: 1px; width: 100%; background: var(--ink); transform: scaleX(0); transform-origin: left; transition: transform .3s ease; }
+.exp2-systems .ray-open:hover::after { transform: scaleX(1); }
+.exp2-sub { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--label); margin: 34px 0 12px; font-weight: 500; }
+.exp2-ach { list-style: none; margin: 0; padding: 0; }
+.exp2-ach li { font-size: 15px; color: var(--grey2); line-height: 1.7; }
+.exp2-prev { margin: 30px 0 0; }
+.exp2-row { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: center; margin-top: 22px; }
+.exp2-row .vct { width: 128px; }
+.exp2-rowtext h4 { font-size: 18px; font-weight: 500; margin: 0 0 6px; }
+.exp2-rowtext h4 span { font-size: 13px; color: var(--label); font-weight: 400; margin-left: 6px; }
+.exp2-rowtext p { font-size: 14px; color: var(--grey2); line-height: 1.6; margin: 0 0 8px; max-width: 52ch; }
+
+@media (max-width: 819px) {
+  .exp2-pin { min-height: auto; padding: 12vh 0 6vh; }
+  .exp2-col { max-width: 100%; }
+  .exp2-row { grid-template-columns: 1fr; }
+  .exp2-row .vct { width: 60%; margin-top: 10px; }
+}

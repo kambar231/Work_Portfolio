@@ -112,6 +112,11 @@ export function createCubeHero({ onCubeClick } = {}) {
   // ever shown as flat grey; cubeReveal[i] lerps toward revealTargets[i]
   const cubeReveal = new Array(CUBES.length).fill(0);
   const revealTargets = new Array(CUBES.length).fill(0);
+  // safety: after 2.5s every cube shows regardless (neutral #e0e0e0 for any missing face)
+  setTimeout(() => {
+    for (let i = 0; i < revealTargets.length; i++) revealTargets[i] = 1;
+    for (const m of meshes) for (const mat of m.material) if (!mat.map) mat.color.set(0xe0e0e0);
+  }, 2500);
 
   const meshes = [];
   const gridLocal = [];   // sorted slot, relative to the group centre
@@ -425,6 +430,29 @@ export function createCubeHero({ onCubeClick } = {}) {
   const _tr = {};   // index -> {el, scale} for on-screen anchors this frame
   function setTrack(list) { trackList = list || []; }
 
+  // Exclusion: screen-px rects the drifting cloud must part around (e.g. a text column).
+  // A cube whose projected box would overlap a rect is pushed horizontally clear (to the
+  // right, since the reserved text columns sit on the left) so the copy stays readable.
+  let excludeRects = [];
+  function setExclude(rects) { excludeRects = rects || []; }
+  const _ex = new THREE.Vector3();
+  function partAroundText(wx, wy, wz) {
+    if (!excludeRects.length) return wx;
+    const vw = window.innerWidth, vh = window.innerHeight;
+    _ex.set(wx, wy, wz).add(group.position).project(camera);
+    const sx = (_ex.x * 0.5 + 0.5) * vw, sy = (-_ex.y * 0.5 + 0.5) * vh;
+    _ex.set(wx + 0.5, wy, wz).add(group.position).project(camera);
+    const halfPx = Math.max(1, Math.abs((_ex.x * 0.5 + 0.5) * vw - sx));
+    const PAD = 20;
+    let shiftPx = 0;
+    for (const r of excludeRects) {
+      const vOverlap = sy + halfPx > r.y - PAD && sy - halfPx < r.y + r.h + PAD;
+      const hOverlap = sx + halfPx > r.x - PAD && sx - halfPx < r.x + r.w + PAD;
+      if (vOverlap && hOverlap) shiftPx = Math.max(shiftPx, r.x + r.w + PAD + halfPx - sx);
+    }
+    return shiftPx > 0 ? wx + shiftPx * (0.5 / halfPx) : wx;
+  }
+
   const anyParked = () => Object.keys(parkTargets).length > 0 || trackList.length > 0;
   // recede the whole cloud (used by the origin chapter, which parks no project cube)
   function chapterDim(t) { dimAllT = Math.min(1, Math.max(0, t)); }
@@ -491,8 +519,14 @@ export function createCubeHero({ onCubeClick } = {}) {
         op = 0;
       } else {
         const recede = Math.max(parked ? 1 : 0, dimE, cloudDim);
-        m.position.set(base[i].x, base[i].y + bob, base[i].z - recede * RECEDE_Z);
-        op = 1 - 0.65 * recede;      // down to 0.35 in the background
+        // slow continuous drift so the cloud is always alive across the page
+        const dx = Math.sin(t * 0.07 + i * 1.3) * 0.7;
+        const dy = Math.cos(t * 0.05 + i) * 0.5;
+        const wz = base[i].z - recede * RECEDE_Z;
+        const wy = base[i].y + bob + dy;
+        const wx = partAroundText(base[i].x + dx, wy, wz);
+        m.position.set(wx, wy, wz);
+        op = 1 - 0.4 * recede;       // never fainter than 0.6 (cubes stay visible)
       }
       if (moving) { m.rotation.x += TUMBLE_X * fs * tumbleScale; m.rotation.y += TUMBLE_Y * fs * tumbleScale; }
       m.scale.setScalar(targetScale);
@@ -507,7 +541,7 @@ export function createCubeHero({ onCubeClick } = {}) {
 
   return {
     frame, setUnravel, setState, focus, raycast, setPointer, ready,
-    cubeBoxes, labelBoxes, chapterPark, setTrack, chapterDim, setCloudDim, setMobileHide, meshBox,
+    cubeBoxes, labelBoxes, chapterPark, setTrack, setExclude, chapterDim, setCloudDim, setMobileHide, meshBox,
     cubeOpacity: (i) => meshes[i].material[0].opacity,
     getState: () => ({ unravel, parked: Object.keys(parkTargets).map(Number) }),
     capDpr() { renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5)); resize(); },
