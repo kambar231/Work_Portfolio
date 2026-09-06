@@ -255,3 +255,136 @@ body { background: transparent; overflow-x: hidden; }
   .evidence { grid-template-columns: repeat(2, 1fr); gap: 20px; }
   .panel-col { padding: 72px 22px 100px; }
 }
+
+/* ============================ PHASE 3 ============================ */
+
+/* Flat (unpinned) chapters */
+.ch-flat { position: relative; padding: 14vh 0; }
+.flat-head {
+  font-weight: 300; font-size: min(48px, 5.4vw); line-height: 1.02; margin: 14px 0 0;
+  text-transform: lowercase; color: var(--ink); letter-spacing: -0.01em;
+}
+.flat-head.sm-head { font-size: min(40px, 4.6vw); }
+
+/* ---- Raymond: cube left, deploy word + systems list on the right ---- */
+.ray-inner { max-width: 40rem; }
+.ray-systems { list-style: none; margin: 34px 0 0; padding: 0; text-align: left; }
+.ray-sys { border-top: 1px solid var(--hair); }
+.ray-sys:last-child { border-bottom: 1px solid var(--hair); }
+.ray-open {
+  width: 100%; display: block; text-align: left; background: none; border: 0; cursor: pointer;
+  font-family: inherit; padding: 16px 0; position: relative;
+  opacity: 0; transform: translateY(10px);
+}
+.ray-sys.shown .ray-open { opacity: 1; transform: none; transition: opacity .6s ease, transform .6s ease; }
+.rs-title { display: block; font-size: 22px; font-weight: 300; color: var(--ink); }
+.rs-key { display: block; margin-top: 4px; font-size: 12px; color: var(--label); letter-spacing: .02em; }
+.ray-open::after {
+  content: ""; position: absolute; left: 0; bottom: 8px; height: 1px; width: 100%;
+  background: var(--ink); transform: scaleX(0); transform-origin: left; transition: transform .3s ease;
+}
+.ray-open:hover::after { transform: scaleX(1); }
+
+/* ---- Experience ---- */
+.exp-row { display: grid; grid-template-columns: 1.3fr 1fr; gap: 48px; align-items: start; margin-top: 40px; }
+.exp-row:nth-child(3) { grid-template-columns: 1.3fr 1fr; }
+.exp-title { font-size: 24px; font-weight: 400; margin: 0 0 12px; }
+.exp-title span { font-size: 14px; color: var(--label); font-weight: 400; margin-left: 8px; }
+.exp-text p { font-size: 17px; line-height: 1.7; color: var(--ink); margin: 0 0 12px; max-width: 48ch; }
+.exp-key { font-weight: 700; }
+.exp-visual { display: flex; justify-content: center; }
+
+/* VCT loop, thin strokes, amber oil, ADVANCE/RETARD swap */
+.vct { width: min(300px, 70%); height: auto; }
+.vct-housing { fill: none; stroke: var(--ink); stroke-width: 1.2; }
+.vct-hub { fill: #fff; stroke: var(--ink); stroke-width: 1.2; }
+.vct-vane { fill: var(--ink); }
+.vct-bolt { fill: none; stroke: var(--ink); stroke-width: 1.2; }
+.vct-lock { fill: none; stroke: var(--ink); stroke-width: 1.2; }
+.vct-inlet { fill: none; stroke: var(--ink); stroke-width: 1.2; }
+.vct-oil path { fill: #d9a441; }
+.vct-rotor { transform-origin: 120px 120px; animation: vct-rot 5s ease-in-out infinite; }
+.vct-oil-adv { opacity: 0; animation: vct-adv 5s ease-in-out infinite; }
+.vct-oil-ret { opacity: 0; animation: vct-ret 5s ease-in-out infinite; }
+.vct-label { text-anchor: middle; font-size: 11px; letter-spacing: .18em; fill: var(--label); }
+.vct-adv { animation: vct-ladv 5s step-end infinite; }
+.vct-ret { animation: vct-lret 5s step-end infinite; opacity: 0; }
+@keyframes vct-rot { 0%{transform:rotate(0)} 40%{transform:rotate(24deg)} 50%{transform:rotate(24deg)} 90%{transform:rotate(0)} 100%{transform:rotate(0)} }
+@keyframes vct-adv { 0%{opacity:0} 40%{opacity:.6} 50%{opacity:.6} 60%{opacity:0} 100%{opacity:0} }
+@keyframes vct-ret { 0%{opacity:0} 55%{opacity:0} 90%{opacity:.6} 100%{opacity:.5} }
+@keyframes vct-ladv { 0%{opacity:1} 50%{opacity:1} 51%{opacity:0} 100%{opacity:0} }
+@keyframes vct-lret { 0%{opacity:0} 50%{opacity:0} 51%{opacity:1} 100%{opacity:1} }
+
+/* ---- Other work ---- */
+.others-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px; margin-top: 30vh; }
+.oth-title { font-size: 22px; font-weight: 400; margin: 0 0 12px; }
+.oth-col p { font-size: 15px; line-height: 1.6; color: var(--grey2); margin: 0 0 10px; }
+.oth-key { color: var(--ink) !important; font-weight: 500; }
+.ch-open.sm { font-size: 11px; margin: 8px 14px 0 0; }
+.rit-row { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; margin-top: 48px; border-top: 1px solid var(--hair); padding-top: 24px; }
+.rit-row h4 { font-size: 16px; font-weight: 500; margin: 0 0 8px; }
+.rit-row p { font-size: 14px; color: var(--grey2); margin: 0 0 6px; }
+.rit-row .slot { font-size: 12px; color: var(--label); font-style: italic; }
+
+/* ---- Websites ---- */
+.web-lead { font-size: 18px; color: var(--grey2); margin: 18px 0 28px; }
+.web-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.web-tile { display: block; text-decoration: none; color: var(--ink); }
+.web-tile img { width: 100%; height: 150px; object-fit: cover; display: block; }
+.web-tile-text { display: flex; flex-direction: column; }
+.wt-numera { height: 150px; display: flex; align-items: center; justify-content: center; background: #1a1a1a; color: #fff; font-weight: 700; letter-spacing: .12em; font-size: 22px; }
+.wt-name { display: block; margin-top: 10px; font-size: 13px; text-transform: uppercase; letter-spacing: .1em; }
+.wt-desc { display: block; margin-top: 4px; font-size: 12px; color: var(--label); }
+
+/* ---- About + manifesto ---- */
+.ch-about { position: relative; }
+.about-lead { padding: 20vh 40px 14vh; text-align: center; }
+.soul {
+  font-family: "Ibarra Real Nova", Georgia, serif; font-style: italic; font-weight: 400;
+  font-size: min(64px, 4.6vw); color: var(--ink); margin: 0; line-height: 1.1;
+}
+.manifesto-band {
+  position: relative; background: var(--ink); color: #fff; min-height: 100vh;
+  display: flex; align-items: center; justify-content: space-between; padding: 0 8vw; overflow: hidden;
+}
+.manifesto {
+  writing-mode: vertical-rl; transform: rotate(180deg);
+  font-weight: 300; font-size: 22px; letter-spacing: .08em; text-transform: uppercase; color: #fff;
+  max-height: 76vh; margin: 0;
+}
+.manifesto-stack { width: 42vw; height: 60vh; }
+.edu { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; padding: 12vh 40px; background: var(--bg); position: relative; }
+.edu-col h3 { font-size: 14px; text-transform: uppercase; letter-spacing: .12em; margin: 0 0 14px; }
+.edu-col p { font-size: 16px; line-height: 1.7; color: var(--grey2); margin: 0 0 12px; }
+
+/* ---- Contact ---- */
+.ch-contact { position: relative; min-height: 100vh; display: flex; align-items: flex-end; padding-bottom: 12vh; }
+.contact-list { list-style: none; margin: 24px 0 0; padding: 0; }
+.contact-list li { margin: 6px 0; }
+.contact-list a { font-size: 22px; color: var(--ink); text-decoration: none; }
+.contact-list a:hover { opacity: .55; }
+.contact-pill {
+  display: inline-block; margin: 28px 0 0; background: var(--ink); color: #fff; text-decoration: none;
+  padding: 14px 34px; border-radius: 999px; font-size: 13px; text-transform: uppercase; letter-spacing: .14em;
+}
+.contact-foot { margin: 34px 0 0; font-size: 13px; color: var(--label); }
+.contact-foot a { color: var(--ink); }
+
+/* ---- Progress rail ---- */
+.progress { position: fixed; left: 0; top: 0; bottom: 0; width: 40px; z-index: 6; pointer-events: none; }
+.progress-bar { position: absolute; left: 22px; top: 0; width: 1px; height: 0; background: var(--ink); }
+.progress-num { position: absolute; left: 16px; top: 0; font-size: 12px; color: var(--label); transform: translateY(-2px); }
+
+@media (max-width: 760px) {
+  .exp-row, .others-grid, .web-tiles, .edu, .rit-row { grid-template-columns: 1fr; gap: 24px; }
+  .manifesto-band { flex-direction: column; justify-content: center; gap: 6vh; padding: 12vh 8vw; }
+  .manifesto { writing-mode: horizontal-tb; transform: none; font-size: 20px; }
+  .manifesto-stack { width: 70vw; height: 40vh; }
+  .about-lead { padding: 12vh 22px 8vh; }
+  .progress { display: none; }
+  .ray-inner { max-width: 100%; }
+}
+
+/* fade the photo cubes over the manifesto (particles + wireframe stack carry it) */
+.hide-cubes #cubes-canvas { opacity: 0.06; transition: opacity .6s ease; }
+#cubes-canvas { transition: opacity .6s ease; }

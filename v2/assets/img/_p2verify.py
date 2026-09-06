@@ -22,6 +22,10 @@ def shots(pg, w, tag):
             pg.screenshot(path=os.path.join(OUT, name))
     print(f"[{tag}] chapter shots written")
 
+def intersect(a, b, pad=0):
+    return not (a["x"] + a["w"] + pad < b["x"] or b["x"] + b["w"] + pad < a["x"]
+                or a["y"] + a["h"] + pad < b["y"] or b["y"] + b["h"] + pad < a["y"])
+
 fails = 0
 with sync_playwright() as p:
     b = p.chromium.launch()
@@ -29,6 +33,26 @@ with sync_playwright() as p:
     pg = b.new_page(viewport={"width": 1440, "height": 900}, device_scale_factor=1)
     pg.goto(URL, wait_until="load"); pg.wait_for_timeout(1200)
     shots(pg, 1440, "d")
+
+    # ---- Fix B: no cube brighter than 0.35 sits inside a text rect (+40px), 8 positions ----
+    for sel in ["#origin", "#polymer", "#casting", "#cnc", "#slicer"]:
+        top = pg.evaluate(f"() => document.querySelector('{sel}').getBoundingClientRect().top + window.scrollY")
+        bad_here = 0
+        for k in range(8):
+            pg.evaluate("(y) => window.__v2.scrollToY(y)", top + k * 220)
+            pg.wait_for_timeout(320)
+            text = pg.evaluate(f"() => window.__v2.textColBox('{sel}')")
+            cubes_st = pg.evaluate("() => window.__v2.allCubes()")
+            if not text:
+                continue
+            for c in cubes_st:
+                if c["op"] > 0.36 and intersect(c["box"], text, 40):
+                    bad_here += 1
+        if bad_here:
+            fails += 1
+            print(f"Fix B {sel}: FAIL ({bad_here} bright cube/text overlaps across 8 positions)")
+        else:
+            print(f"Fix B {sel}: PASS (no bright cube over text)")
 
     # ---- reading panel click test ----
     for name in PANELS:

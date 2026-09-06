@@ -69,6 +69,13 @@ with sync_playwright() as p:
         chapters = [(0, "right", "#polymer"), (1, "left", "#casting"),
                     (2, "right", "#cnc"), (3, "left", "#slicer")]
         for idx, side, sel in chapters:
+            # the chapter must own the matching cube index (Fix A)
+            data_cube = pg.evaluate(f"() => parseInt(document.querySelector('{sel}').dataset.cube, 10)")
+            if data_cube != idx:
+                fails += 1
+                print(f"[{W}] FAIL {sel}: data-cube {data_cube} != chapter index {idx}")
+            else:
+                print(f"[{W}] PASS {sel}: owns cube {idx}")
             pg.evaluate(f"() => window.__v2.parkCube({idx}, '{side}', 1)")
             pg.wait_for_timeout(120)
             cube = pg.evaluate(f"() => window.__v2.meshBox({idx})")

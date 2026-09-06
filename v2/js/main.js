@@ -10,6 +10,7 @@ import Lenis from 'lenis';
 import { createParticles } from './particles.js';
 import { createCubeHero } from './cubes.js';
 import { initChapters } from './chapters.js';
+import { initManifestoStack } from './manifesto.js';
 
 window.gsap = gsap;                       // let cubes.js use GSAP for setState/focus
 gsap.registerPlugin(ScrollTrigger);
@@ -73,12 +74,52 @@ if (!reduced) {
   cubes.setUnravel(0);
 }
 
-// ---- chapters (phase 2) ----
-initChapters({ gsap, ScrollTrigger, cubes, lenis, reduced });
+// ---- chapters (phase 2 + 3) ----
+initChapters({ gsap, ScrollTrigger, cubes, lenis, reduced, initManifestoStack });
+
+// ---- nav + in-page anchors use smooth Lenis scroll ----
+document.querySelectorAll('a[href^="#"]').forEach((a) => {
+  a.addEventListener('click', (e) => {
+    const el = document.querySelector(a.getAttribute('href'));
+    if (!el) return;
+    e.preventDefault();
+    if (lenis) lenis.scrollTo(el, { offset: 0 });
+    else el.scrollIntoView({ behavior: 'smooth' });
+  });
+});
+
+// ---- scroll progress rail (bar height + current chapter number) ----
+const progressBar = document.querySelector('.progress-bar');
+const progressNum = document.querySelector('.progress-num');
+const chapterSecs = ['hero', 'origin', 'polymer', 'casting', 'cnc', 'slicer', 'raymond',
+  'experience', 'others', 'websites', 'about', 'contact']
+  .map((id) => document.getElementById(id)).filter(Boolean);
+function updateProgress() {
+  if (!progressBar) return;
+  const max = document.documentElement.scrollHeight - window.innerHeight;
+  const p = max > 0 ? Math.min(1, window.scrollY / max) : 0;
+  progressBar.style.height = (p * 100) + 'vh';
+  const mid = window.scrollY + window.innerHeight * 0.5;
+  let cur = 0;
+  chapterSecs.forEach((s, i) => { if (s.offsetTop <= mid) cur = i; });
+  progressNum.textContent = String(cur).padStart(2, '0');
+  progressNum.style.top = (p * 100) + 'vh';
+}
+
+// Persistent cloud dim: while any chapter text (origin..websites) is on screen the
+// non-parked cubes stay <=0.35 opacity so they never compete with the text. Off in the
+// hero (bright unravel) and from the manifesto on (dark band + contact reassembly).
+if (!reduced) {
+  ScrollTrigger.create({ trigger: '#origin', start: 'top 85%',
+    onEnter: () => cubes.setCloudDim(1), onLeaveBack: () => cubes.setCloudDim(0) });
+  ScrollTrigger.create({ trigger: '#contact', start: 'top 75%',
+    onEnter: () => cubes.setCloudDim(0), onLeaveBack: () => cubes.setCloudDim(1) });
+}
 
 // verifier hook: parked-cube box vs a chapter's text column
 window.__v2.parkCube = (i, side, t) => { cubes.setUnravel(1); cubes.chapterPark(i, side, t); };
 window.__v2.meshBox = (i) => cubes.meshBox(i);
+window.__v2.allCubes = () => Array.from({ length: cubes.count }, (_, i) => ({ box: cubes.meshBox(i), op: cubes.cubeOpacity(i) }));
 window.__v2.state = () => cubes.getState();
 
 window.__v2.scrollToY = (y) => { if (lenis) lenis.scrollTo(y, { immediate: true }); else window.scrollTo(0, y); };
@@ -124,6 +165,7 @@ function loop(now) {
   if (lenis) lenis.raf(now);
   particles.frame(now, dt, scrollProgress(), moving);
   cubes.frame(now, dt, moving);
+  updateProgress();
 
   // count rAF for 5 s after load; if under 50 fps, halve the particle count
   if (!fpsChecked) {

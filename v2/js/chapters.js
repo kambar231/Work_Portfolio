@@ -22,7 +22,7 @@ function splitWord(el) {
   }
 }
 
-export function initChapters({ gsap, ScrollTrigger, cubes, lenis, reduced }) {
+export function initChapters({ gsap, ScrollTrigger, cubes, lenis, reduced, initManifestoStack }) {
   const sections = Array.from(document.querySelectorAll('.ch'));
   const mobile = window.innerWidth < 760;   // on phones: no pin, cubes stay a faint cloud
 
@@ -31,22 +31,21 @@ export function initChapters({ gsap, ScrollTrigger, cubes, lenis, reduced }) {
     if (word) splitWord(word);
     const cubeIndex = parseInt(section.dataset.cube, 10);
     const side = section.dataset.side === 'left' ? 'left' : 'right';
+    const raymond = section.id === 'raymond';
+    const sysItems = raymond ? Array.from(section.querySelectorAll('.ray-sys')) : [];
+    const parkOpts = raymond ? { scale: 2.2, tumble: 0 } : undefined;
 
     // reveal on enter (once)
     ScrollTrigger.create({
-      trigger: section,
-      start: 'top 72%',
-      once: true,
-      onEnter: () => {
-        section.classList.add('in');
-        if (word) word.classList.add('reveal');
-      },
+      trigger: section, start: 'top 72%', once: true,
+      onEnter: () => { section.classList.add('in'); if (word) word.classList.add('reveal'); },
     });
 
     if (reduced || mobile) {
       // static: no pin, everything visible, cubes stay in the cloud (dimmed on mobile via CSS)
       section.classList.add('in');
       if (word) word.classList.add('reveal');
+      sysItems.forEach((el) => el.classList.add('shown'));
       return;
     }
 
@@ -55,19 +54,68 @@ export function initChapters({ gsap, ScrollTrigger, cubes, lenis, reduced }) {
     ScrollTrigger.create({
       trigger: section,
       start: 'top top',
-      end: '+=100%',
+      end: raymond ? '+=220%' : '+=100%',
       pin: pin,
       pinSpacing: true,
       scrub: 0.6,
       onUpdate: (self) => {
-        const t = Math.sin(self.progress * Math.PI); // 0 in, 1 mid, 0 out
-        if (cubeIndex >= 0) cubes.chapterPark(cubeIndex, side, t);
-        else cubes.chapterDim(t);
+        const p = self.progress;
+        if (raymond) {
+          // park and hold across the whole pin, release at the very end; reveal systems
+          const t = p < 0.9 ? Math.min(1, p / 0.14) : Math.max(0, 1 - (p - 0.9) / 0.1);
+          cubes.chapterPark(cubeIndex, side, t, parkOpts);
+          sysItems.forEach((el, k) => el.classList.toggle('shown', p > 0.12 + k * 0.1));
+        } else if (cubeIndex >= 0) {
+          cubes.chapterPark(cubeIndex, side, Math.sin(p * Math.PI));
+        } else {
+          cubes.chapterDim(Math.sin(p * Math.PI));
+        }
       },
       onLeave: () => { cubeIndex >= 0 ? cubes.chapterPark(cubeIndex, side, 0) : cubes.chapterDim(0); },
       onLeaveBack: () => { cubeIndex >= 0 ? cubes.chapterPark(cubeIndex, side, 0) : cubes.chapterDim(0); },
     });
   });
+
+  // ---- Other work: cubes 5,6,7 park small above the three columns ----
+  const others = document.getElementById('others');
+  if (others && !reduced && !mobile) {
+    const trio = [
+      { i: 5, axvw: 22, ayvh: 19, scale: 1.2 },
+      { i: 6, axvw: 50, ayvh: 19, scale: 1.2 },
+      { i: 7, axvw: 78, ayvh: 19, scale: 1.2 },
+    ];
+    // park only while the columns are the main thing on screen (clear of experience above)
+    ScrollTrigger.create({
+      trigger: others, start: 'top 38%', end: 'bottom 62%',
+      onEnter: () => cubes.parkTrio(trio, 1),
+      onEnterBack: () => cubes.parkTrio(trio, 1),
+      onLeave: () => cubes.parkTrio(trio, 0),
+      onLeaveBack: () => cubes.parkTrio(trio, 0),
+    });
+  }
+
+  // ---- About: fade the photo cubes out over the manifesto, so the plume + wireframe
+  // stack carry it; bring them back for the contact reassembly ----
+  if (!reduced && !mobile) {
+    ScrollTrigger.create({
+      trigger: '#about', start: 'top 70%', endTrigger: '#contact', end: 'top 80%',
+      onToggle: (self) => document.body.classList.toggle('hide-cubes', self.isActive),
+    });
+  }
+
+  // ---- Contact: cubes glide back into the sorted grid as contact enters ----
+  const contact = document.getElementById('contact');
+  if (contact && !reduced && !mobile) {
+    gsap.to({ p: 1 }, {
+      p: 0, ease: 'none',
+      scrollTrigger: { trigger: contact, start: 'top 85%', end: 'bottom bottom', scrub: 0.6 },
+      onUpdate: function () { cubes.setUnravel(this.targets()[0].p); },
+    });
+  }
+
+  // ---- manifesto wireframe cube stack ----
+  const stackEl = document.querySelector('.manifesto-stack');
+  if (stackEl && initManifestoStack) initManifestoStack(stackEl, !reduced);
 
   // ---- reading panels ----
   const panels = document.getElementById('panels');
@@ -102,7 +150,7 @@ export function initChapters({ gsap, ScrollTrigger, cubes, lenis, reduced }) {
     panels.setAttribute('aria-hidden', 'true');
   }
 
-  document.querySelectorAll('.ch-open').forEach((btn) => {
+  document.querySelectorAll('.ch-open, .ray-open').forEach((btn) => {
     btn.addEventListener('click', () => open(btn.dataset.panel));
   });
   document.querySelectorAll('.panel-close').forEach((btn) => {

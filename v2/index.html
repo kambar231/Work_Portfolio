@@ -151,12 +151,166 @@
         <div class="ev-col"><span class="ev-label">Proved</span><img loading="lazy" src="assets/img/slicer-stl-detail.jpg" alt="Slicer viewer close up at 0.2 mm layer height" /><p>It generates usable G-code from an arbitrary STL. It's the base for research on tilted and curved slicing planes, which is why I wrote it.</p></div>
       </div></div>
     </section>
-    <section id="raymond" class="chapter"><div class="col"><span class="kicker">06 / deploy</span><h2>raymond</h2><p class="note">Chapter content arrives in phase 3.</p></div></section>
-    <section id="experience" class="chapter"><div class="col"><span class="kicker">07 / before</span><h2>experience</h2><p class="note">Chapter content arrives in phase 3.</p></div></section>
-    <section id="others" class="chapter"><div class="col"><span class="kicker">08 / more</span><h2>other projects</h2><p class="note">Chapter content arrives in phase 3.</p></div></section>
-    <section id="websites" class="chapter"><div class="col"><span class="kicker">09 / web</span><h2>websites</h2><p class="note">Chapter content arrives in phase 3.</p></div></section>
-    <section id="about" class="chapter"><div class="col"><span class="kicker">10 / about</span><h2>about</h2><p class="note">Chapter content arrives in phase 3.</p></div></section>
-    <section id="contact" class="chapter"><div class="col"><span class="kicker">11 / contact</span><h2>contact</h2><p class="note">Chapter content arrives in phase 3.</p></div></section>
+    <!-- Chapter 6: The Raymond Corporation (biggest chapter) -->
+    <section id="raymond" class="ch ch-raymond" data-side="left" data-cube="4">
+      <div class="ch-pin"><div class="col ch-inner ray-inner">
+        <span class="ch-label">06 / deploy</span>
+        <h2 class="ch-word" data-word="deploy">deploy</h2>
+        <ul class="ch-list">
+          <li>The Raymond Corporation, Toyota Material Handling</li>
+          <li>Mechanical Systems Engineer, Controls</li>
+          <li>2024 to now</li>
+        </ul>
+        <p class="ch-story">Raymond builds stand-up reach trucks, and I build the electromechanical and control systems that let one read its own state and act on it. Six systems live on a single truck. Each senses something, decides what matters against speed and load, then responds faster than a person could. A stability controller, a stereo-camera braking assist, a manifold that weighs its own load, differential steering, access logic, and a frame redesigned for infinite fatigue life.</p>
+        <p class="ch-key">+14% performance. -10% battery draw.</p>
+        <ol class="ray-systems">
+          <li class="ray-sys"><button type="button" class="ray-open" data-panel="ray-stability"><span class="rs-title">Performance Stability System</span><span class="rs-key">+14% performance, -10% battery draw</span></button></li>
+          <li class="ray-sys"><button type="button" class="ray-open" data-panel="ray-sensor"><span class="rs-title">Smart Environment Sensor Plus</span><span class="rs-key">Pedestrian detection, regenerative braking assist</span></button></li>
+          <li class="ray-sys"><button type="button" class="ray-open" data-panel="ray-weight"><span class="rs-title">Hydraulic Weight Sensing</span><span class="rs-key">Pressure transducers in the manifold</span></button></li>
+          <li class="ray-sys"><button type="button" class="ray-open" data-panel="ray-steer"><span class="rs-title">Steer Differentiation</span><span class="rs-key">Tighter turns, less tire wear</span></button></li>
+          <li class="ray-sys"><button type="button" class="ray-open" data-panel="ray-interface"><span class="rs-title">Interface Logic and Access Control</span><span class="rs-key">Controls gated by who is driving</span></button></li>
+          <li class="ray-sys"><button type="button" class="ray-open" data-panel="ray-frame"><span class="rs-title">Structural Frame Redesign</span><span class="rs-key">Strain-gauge validated, infinite fatigue life</span></button></li>
+        </ol>
+      </div></div>
+    </section>
+
+    <!-- Chapter 7: Previous experience -->
+    <section id="experience" class="ch-flat">
+      <div class="col">
+        <span class="ch-label">07 / before</span>
+        <h2 class="flat-head">previous experience</h2>
+        <div class="exp-row">
+          <div class="exp-text">
+            <h3 class="exp-title">BorgWarner <span>Ithaca, New York, 2022</span></h3>
+            <p>A product engineering role on variable camshaft timing units. I worked prototypes from analysis through end-of-line testing, and wrote the MATLAB tool that turned teardown measurements into the reports customers read.</p>
+            <p class="exp-key">Teardown reports for Cummins, Harley-Davidson, and Ford.</p>
+            <button type="button" class="ch-open" data-panel="borgwarner">Read the full breakdown</button>
+          </div>
+          <div class="exp-visual">
+            <svg class="vct" viewBox="0 0 240 240" role="img" aria-label="Simple cutaway of a vane-type cam phaser: the rotor turns as oil fills the advance chambers, then returns as the retard chambers fill">
+              <circle cx="120" cy="120" r="92" class="vct-housing"/>
+              <g class="vct-oil vct-oil-adv">
+                <path d="M120 120 L120 34 A86 86 0 0 1 181 59 Z"/>
+                <path d="M120 120 L181 181 A86 86 0 0 1 120 206 Z"/>
+              </g>
+              <g class="vct-oil vct-oil-ret">
+                <path d="M120 120 L59 59 A86 86 0 0 1 120 34 Z"/>
+                <path d="M120 120 L120 206 A86 86 0 0 1 59 181 Z"/>
+              </g>
+              <g class="vct-rotor">
+                <circle cx="120" cy="120" r="34" class="vct-hub"/>
+                <rect x="116" y="30" width="8" height="60" class="vct-vane"/>
+                <rect x="116" y="150" width="8" height="60" class="vct-vane"/>
+                <rect x="30" y="116" width="60" height="8" class="vct-vane"/>
+                <rect x="150" y="116" width="60" height="8" class="vct-vane"/>
+                <circle cx="120" cy="120" r="9" class="vct-bolt"/>
+              </g>
+              <rect x="150" y="150" width="14" height="7" rx="1" class="vct-lock"/>
+              <path d="M120 8 L120 26 M113 19 L120 26 L127 19" class="vct-inlet"/>
+              <text x="120" y="228" class="vct-label vct-adv">ADVANCE</text>
+              <text x="120" y="228" class="vct-label vct-ret">RETARD</text>
+            </svg>
+          </div>
+        </div>
+        <div class="exp-row">
+          <div class="exp-text">
+            <h3 class="exp-title">Boston Beer Company <span>Allentown, Pennsylvania, 2021</span></h3>
+            <p>Packaging reliability on the non-alcoholic drinks line. I found where the line lost time, then designed and prototyped a new sorting system for the stages that were stalling it.</p>
+            <p class="exp-key">+7% Overall Equipment Effectiveness.</p>
+            <button type="button" class="ch-open" data-panel="bostonbeer">Read the full breakdown</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Chapter 8: Other work -->
+    <section id="others" class="ch-flat" data-trio="5,6,7">
+      <div class="col">
+        <span class="ch-label">08 / more</span>
+        <h2 class="flat-head">other work</h2>
+        <div class="others-grid">
+          <div class="oth-col">
+            <h3 class="oth-title">3D Printing and Fabrication</h3>
+            <p>A hand-wound electric motor with a printed stator and rotor. It spins, and it overheats, because the load-bearing parts are PLA that softens under heat. The fix is PETG or PA-CF, and that's the finding.</p>
+            <p class="oth-key">The MagSafe stand costs about 4 dollars of PLA against a 69 dollar store version.</p>
+            <button type="button" class="ch-open sm" data-panel="printing">Read</button>
+          </div>
+          <div class="oth-col">
+            <h3 class="oth-title">Dynamics experiments</h3>
+            <p>A double pendulum, model against rig, and a vacuum cannon, prediction against measured. Both are about where and when the model stops matching the real thing.</p>
+            <p class="oth-key">Pendulum agrees for about 1.5 seconds. Cannon: 10 runs at 2 and 8 kPa.</p>
+            <button type="button" class="ch-open sm" data-panel="pendulum">Double pendulum</button>
+            <button type="button" class="ch-open sm" data-panel="cannon">Vacuum cannon</button>
+          </div>
+          <div class="oth-col">
+            <h3 class="oth-title">Flight and structures</h3>
+            <p>A quaternion flight-dynamics model run against real flight-test data across nine aircraft, and a Saturn V F-1 nozzle FEA that is still in progress.</p>
+            <p class="oth-key">Nine aircraft through the same step inputs. Saturn V: writeup pending.</p>
+            <button type="button" class="ch-open sm" data-panel="flight">Flight dynamics</button>
+            <button type="button" class="ch-open sm" data-panel="saturn">Saturn V FEA</button>
+          </div>
+        </div>
+        <div class="rit-row">
+          <div><h4>RIT Space Exploration CubeSat</h4><p>Structures and integration on the first RIT student project built to fly. <button type="button" class="ch-open sm" data-panel="cubesat">Read</button></p><p class="slot">Image slot: CubeSat photos pending.</p></div>
+          <div><h4>CatBot Robotics</h4><p>Joint-movement control on the club's quadruped. <button type="button" class="ch-open sm" data-panel="catbot">Read</button></p><p class="slot">Image slot: CatBot photos pending.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Chapter 9: Websites -->
+    <section id="websites" class="ch-flat">
+      <div class="col">
+        <span class="ch-label">09 / web</span>
+        <h2 class="flat-head sm-head">websites</h2>
+        <p class="web-lead">I also build sites by hand, one file each, in hours.</p>
+        <div class="web-tiles">
+          <a class="web-tile" href="https://kambar231.github.io/WebPort/terra-museum/" target="_blank" rel="noopener"><img loading="lazy" src="assets/web/terra.jpg" alt="TERRA museum concept site" /><span class="wt-name">TERRA</span><span class="wt-desc">Museum concept, WebGL flow-field</span></a>
+          <a class="web-tile" href="https://kambar231.github.io/WebPort/biavola/" target="_blank" rel="noopener"><img loading="lazy" src="assets/web/biavola.jpg" alt="BIAVOLA wood-fired pizza concept site" /><span class="wt-name">BIAVOLA</span><span class="wt-desc">Wood-fired pizza concept</span></a>
+          <a class="web-tile" href="https://kambar231.github.io/WebPort/onda-day/" target="_blank" rel="noopener"><img loading="lazy" src="assets/web/onda.jpg" alt="ONDA fitness band scroll story site" /><span class="wt-name">ONDA</span><span class="wt-desc">Fitness band, scroll story</span></a>
+          <a class="web-tile web-tile-text" href="https://kambar231.github.io/WebPort/numera/" target="_blank" rel="noopener"><span class="wt-numera">NUMERA</span><span class="wt-name">NUMERA</span><span class="wt-desc">AI-accounting concept, tokens and scroll</span></a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Chapter 10: About and manifesto -->
+    <section id="about" class="ch-about">
+      <div class="col about-lead">
+        <p class="soul">Sense. Decide. Respond.</p>
+      </div>
+      <div class="manifesto-band">
+        <p class="manifesto">An organised world, from parts that move. Then measure it.</p>
+        <div class="manifesto-stack" aria-hidden="true"></div>
+      </div>
+      <div class="col edu">
+        <div class="edu-col">
+          <h3>Education</h3>
+          <p>Rochester Institute of Technology. BS and MEng in Mechanical Engineering, controls concentration. GPA 3.90 and 4.00.</p>
+          <p>AMPrint Center researcher, 2023 to 2024. Honors research on polymer lithography, 2020. Teaching assistant for MATLAB and Simulink, 2020 to 2024.</p>
+        </div>
+        <div class="edu-col">
+          <h3>Awards and leadership</h3>
+          <p>Outstanding Undergraduate Scholar, 2022, top 1 percent pairing academic work with service. Greater Good Award, 2019.</p>
+          <p>Green Life Project co-founder: 600 volunteers, 2000 trees planted in Mexico, 2018 to 2019.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Chapter 11: Contact -->
+    <section id="contact" class="ch-contact">
+      <div class="col contact-inner">
+        <span class="ch-label">11 / contact</span>
+        <h2 class="flat-head">let's talk</h2>
+        <ul class="contact-list">
+          <li><a href="mailto:kambar231@gmail.com">kambar231@gmail.com</a></li>
+          <li><a href="tel:+15853099467">+1 585-309-9467</a></li>
+          <li><a href="https://github.com/kambar231" target="_blank" rel="noopener">GitHub, kambar231</a></li>
+        </ul>
+        <a class="contact-pill" href="mailto:kambar231@gmail.com">Contact</a>
+        <p class="contact-foot">
+          <a href="../">Back to the classic page</a>. Hand-written, no framework, Three.js and GSAP.
+        </p>
+      </div>
+    </section>
   </main>
 
   <!-- Reading panels: full four-step breakdowns, opened from each chapter -->
@@ -212,7 +366,156 @@
         <div class="panel-step"><h3>Proved</h3><p>It generates usable G-code from an arbitrary STL. It's the foundation for a research effort on cutting support material with tilted or curved slicing planes, which is the reason I wrote my own in the first place.</p></div>
       </div></div>
     </article>
+
+    <article class="panel" id="panel-ray-stability" role="dialog" aria-modal="true" aria-label="Performance Stability System, full breakdown" hidden>
+      <div class="panel-scroll"><div class="panel-col"><button class="panel-close" type="button" aria-label="Close">Close</button>
+        <span class="panel-kicker">06 / deploy</span><h2>Performance Stability System</h2><p class="panel-ctx">Lead engineer, stability and controls. 2024.</p>
+        <div class="panel-step"><h3>Designed</h3><p>I mapped the two failure zones first: the operator who can't feel a tip coming, and safety logic so conservative it removes speed the operator actually needs. The controller sits between them, reading load state off the CAN bus and deciding moment by moment how much performance to allow.</p></div>
+        <div class="panel-step"><h3>Analyzed</h3><p>I ran PID tuning across the electric and hydraulic subsystems, lift and drive and steering, to cut lag and keep the response stable as the load changed. A static stability tool I wrote forecasts the ANSI/ITSDF B56.1 tip tests, so we could evaluate a design before building it.</p></div>
+        <div class="panel-step"><h3>Built</h3><p>The logic runs on the production vehicle controller and talks to the drivetrain over CAN.</p></div>
+        <div class="panel-step"><h3>Proved</h3><p>Measured against the prior baseline, the system delivered 14 percent better performance and 10 percent less battery draw. No field plot to post. The number is the deliverable.</p></div>
+      </div></div>
+    </article>
+
+    <article class="panel" id="panel-ray-sensor" role="dialog" aria-modal="true" aria-label="Smart Environment Sensor Plus, full breakdown" hidden>
+      <div class="panel-scroll"><div class="panel-col"><button class="panel-close" type="button" aria-label="Close">Close</button>
+        <span class="panel-kicker">06 / deploy</span><h2>Smart Environment Sensor Plus</h2><p class="panel-ctx">Lead engineer, machine vision and braking. 2022.</p>
+        <div class="panel-step"><h3>Designed</h3><p>I designed the sensing chain around a stereo camera pair, dynamic zoning that changes the alert region with vehicle speed and path, and control logic that turns a detection into a brake demand. The hard part was telling a person from a stack of pallets, because a false positive costs throughput and a false negative costs a life.</p><figure><img loading="lazy" src="assets/img/sens-plus-flyer.jpg" alt="Smart Environment Sensor Plus flyer" /><figcaption>The sensor product.</figcaption></figure></div>
+        <div class="panel-step"><h3>Analyzed</h3><p>Pedestrian perception is solved in passenger cars and much rougher in a warehouse, so the analysis was about where the vision model fails and how to zone around it. I tuned the detection zones against the vehicle's stopping behavior so the brake assist triggers with room to stop.</p></div>
+        <div class="panel-step"><h3>Built</h3><p>The sensor and its logic went into a shipping product. Detection drives regenerative braking automatically, so an operator who misses a pedestrian still gets the stop.</p></div>
+        <div class="panel-step"><h3>Proved</h3><p>Detection-rate and stopping-distance figures stay in-house. I can walk through them in an interview.</p></div>
+      </div></div>
+    </article>
+
+    <article class="panel" id="panel-ray-weight" role="dialog" aria-modal="true" aria-label="Hydraulic Weight Sensing, full breakdown" hidden>
+      <div class="panel-scroll"><div class="panel-col"><button class="panel-close" type="button" aria-label="Close">Close</button>
+        <span class="panel-kicker">06 / deploy</span><h2>Hydraulic Weight Sensing</h2><p class="panel-ctx">Lead engineer, hydraulics and signal processing. 2023.</p>
+        <div class="panel-step"><h3>Designed</h3><p>Instead of a separate scale or a known stop, I put the sensing where the force already is: transducers inline in the hydraulic manifold. Weighing then happens continuously off hardware the vehicle already carries.</p></div>
+        <div class="panel-step"><h3>Analyzed</h3><p>I wrote the signal processing that converts manifold pressure into load weight, filtering out the noise from lift motion and hydraulic transients so the reading settles instead of jumping.</p></div>
+        <div class="panel-step"><h3>Built</h3><p>No photo. The transducers sit inside the manifold on production hydraulics.</p></div>
+        <div class="panel-step"><h3>Proved</h3><p>The weight feeds the operator display, and once a load crosses the rated envelope the system reduces speed on its own. Overloading is a top cause of preventable damage, and this catches it before the lift.</p></div>
+      </div></div>
+    </article>
+
+    <article class="panel" id="panel-ray-steer" role="dialog" aria-modal="true" aria-label="Steer Differentiation System, full breakdown" hidden>
+      <div class="panel-scroll"><div class="panel-col"><button class="panel-close" type="button" aria-label="Close">Close</button>
+        <span class="panel-kicker">06 / deploy</span><h2>Steer Differentiation System</h2><p class="panel-ctx">Lead engineer, sensors and geometry. 2024.</p>
+        <div class="panel-step"><h3>Designed</h3><p>I developed the AC steering control logic for drive-tire steer differentiation, using higher sensor resolution to refine the steering geometry in real time. The design target was a tighter handling envelope that still preserved the operator's feel for the machine.</p></div>
+        <div class="panel-step"><h3>Analyzed</h3><p>Industrial steering usually trades resolution for robustness, so the sensors are coarse and the controller smooths over them. That falls apart once you want to fuse steering data into stability or perception systems that need clean inputs, so I worked on lifting the resolution floor.</p></div>
+        <div class="panel-step"><h3>Built</h3><p>The control logic runs on shipping trucks over CAN. No standalone photo of a control law.</p></div>
+        <div class="panel-step"><h3>Proved</h3><p>Differentiating the steer angle across the drive tires reduced the turning radius and reduced tire wear.</p></div>
+      </div></div>
+    </article>
+
+    <article class="panel" id="panel-ray-interface" role="dialog" aria-modal="true" aria-label="Interface Logic and Access Control, full breakdown" hidden>
+      <div class="panel-scroll"><div class="panel-col"><button class="panel-close" type="button" aria-label="Close">Close</button>
+        <span class="panel-kicker">06 / deploy</span><h2>Interface Logic and Access Control</h2><p class="panel-ctx">Lead engineer, HMI and safety. 2023.</p>
+        <div class="panel-step"><h3>Designed</h3><p>I re-architected the menu as a role-aware state machine. A fleet manager, a technician, and an operator each see a different reachable set, so the right action is obvious and the wrong one is hard to reach.</p></div>
+        <div class="panel-step"><h3>Analyzed</h3><p>Industrial interfaces pile up options over years until the menu becomes its own hazard surface. I worked through which controls an operator should never touch and which ones technicians were having to dig for.</p></div>
+        <div class="panel-step"><h3>Built</h3><p>The redesigned interface shipped. Screens are proprietary product UI, so no screenshot here.</p></div>
+        <div class="panel-step"><h3>Proved</h3><p>Operators stopped seeing controls they shouldn't touch, and technicians stopped hunting for the ones they need. The access rules also feed the functional safety case for the vehicle.</p></div>
+      </div></div>
+    </article>
+
+    <article class="panel" id="panel-ray-frame" role="dialog" aria-modal="true" aria-label="Structural Frame Redesign, full breakdown" hidden>
+      <div class="panel-scroll"><div class="panel-col"><button class="panel-close" type="button" aria-label="Close">Close</button>
+        <span class="panel-kicker">06 / deploy</span><h2>Structural Frame Redesign</h2><p class="panel-ctx">Lead engineer, FEA and fatigue. 2022.</p>
+        <div class="panel-step"><h3>Designed</h3><p>Fatigue cracks were showing up late in service, after the warranty window but inside what a customer expects the truck to last. I redesigned the frame so the failure mode was engineered out rather than pushed further down the road, while giving it the look the product team wanted.</p></div>
+        <div class="panel-step"><h3>Analyzed</h3><p>FEA drove the geometry, targeting infinite fatigue life at the weld details where the cracks had been starting. I also ran statistical analysis on how design and control changes affect component longevity and replacement frequency.</p></div>
+        <div class="panel-step"><h3>Built</h3><p>No photo. The redesigned frame is on production trucks.</p></div>
+        <div class="panel-step"><h3>Proved</h3><p>Strain gauges on the physical frame in the field validated the model, so the fix was confirmed against real loads instead of only in simulation.</p></div>
+      </div></div>
+    </article>
+
+    <article class="panel" id="panel-borgwarner" role="dialog" aria-modal="true" aria-label="BorgWarner variable camshaft timing, full breakdown" hidden>
+      <div class="panel-scroll"><div class="panel-col"><button class="panel-close" type="button" aria-label="Close">Close</button>
+        <span class="panel-kicker">07 / before</span><h2>BorgWarner, Variable Camshaft Timing</h2><p class="panel-ctx">Product engineering, variable cam timing. June to December 2022.</p>
+        <div class="panel-step"><h3>Designed</h3><p>I optimized prototypes against stress, wear, cost, and DFMEA, so the design that moved forward had already been pushed on where it was weakest.</p></div>
+        <div class="panel-step"><h3>Analyzed</h3><p>I wrote a MATLAB tool that automated the data compilation for teardown reports, pulling together torque, pull-off, and staking forces instead of assembling them by hand. Measurements and end-of-line tests fed the material and design decisions.</p></div>
+        <div class="panel-step"><h3>Built</h3><p>I prototyped electric VCT units and ran end-of-line tests on them to finalize the materials and the design. No photo. The prototypes and test benches are BorgWarner property.</p></div>
+        <div class="panel-step"><h3>Proved</h3><p>The teardown tool produced standardized reports that went out to Cummins, Harley-Davidson, and Ford, so the same measurements reached each customer in the same format.</p></div>
+      </div></div>
+    </article>
+
+    <article class="panel" id="panel-bostonbeer" role="dialog" aria-modal="true" aria-label="Boston Beer packaging line sorting system, full breakdown" hidden>
+      <div class="panel-scroll"><div class="panel-col"><button class="panel-close" type="button" aria-label="Close">Close</button>
+        <span class="panel-kicker">07 / before</span><h2>Boston Beer, Packaging Line Sorting System</h2><p class="panel-ctx">Packaging reliability engineer, non-alcoholic drinks line. July 2021 to January 2022.</p>
+        <div class="panel-step"><h3>Designed</h3><p>I designed a new sorting system aimed at the specific stages where the packaging line was stalling.</p></div>
+        <div class="panel-step"><h3>Analyzed</h3><p>Before designing anything, I analyzed the production line to find the design inefficiencies that were dragging Overall Equipment Effectiveness down.</p></div>
+        <div class="panel-step"><h3>Built</h3><p>I prototyped the sorting system on the line. No photo. The prototype ran on Boston Beer's Allentown non-alcoholic drinks line.</p></div>
+        <div class="panel-step"><h3>Proved</h3><p>The change lifted Overall Equipment Effectiveness by 7 percent, measured against the line's prior baseline.</p></div>
+      </div></div>
+    </article>
+
+    <article class="panel" id="panel-printing" role="dialog" aria-modal="true" aria-label="3D Printing and Fabrication, full breakdown" hidden>
+      <div class="panel-scroll"><div class="panel-col"><button class="panel-close" type="button" aria-label="Close">Close</button>
+        <span class="panel-kicker">08 / more</span><h2>3D Printing and Fabrication</h2><p class="panel-ctx">Personal, ongoing. Started at RIT. FDM, PLA and PETG, CAD.</p>
+        <div class="panel-step"><h3>Designed</h3><p>I designed an electric motor from scratch, inspired by Christoph Laimer, with a printed stator and rotor and copper wound by hand around the teeth.</p><figure><img loading="lazy" src="assets/img/motor-exploded.jpg" alt="Motor parts" /><figcaption>The printed motor, exploded.</figcaption></figure></div>
+        <div class="panel-step"><h3>Analyzed</h3><p>The prototype runs but overheats. Several load-bearing parts are PLA, which softens under temperature, so the honest fix is PETG or PA-CF for the structural pieces. That's the finding, not a footnote.</p></div>
+        <div class="panel-step"><h3>Built</h3><p>I wound the stator by hand and assembled the motor on its bearing. The same practice produced a MagSafe stand for my wife and an Iron Man MK7 helmet finished through sanding, filler, and paint.</p><figure><img loading="lazy" src="assets/img/motor-wound-pair.jpg" alt="Hand-wound stator" /><figcaption>Stator wound by hand.</figcaption></figure><figure><img loading="lazy" src="assets/img/magsafe-stand-hero.jpg" alt="Printed MagSafe stand" /><figcaption>The MagSafe stand.</figcaption></figure></div>
+        <div class="panel-step"><h3>Proved</h3><p>The motor spins, which proved the geometry and the hand winding work even though the material choice doesn't. The MagSafe stand costs about 4 dollars of PLA against a 69 dollar store version, and it's on my wife's bedside table.</p></div>
+      </div></div>
+    </article>
+
+    <article class="panel" id="panel-pendulum" role="dialog" aria-modal="true" aria-label="Double Pendulum Experiment, full breakdown" hidden>
+      <div class="panel-scroll"><div class="panel-col"><button class="panel-close" type="button" aria-label="Close">Close</button>
+        <span class="panel-kicker">08 / more</span><h2>Double Pendulum Experiment</h2><p class="panel-ctx">RIT coursework, dynamics and validation. MATLAB, Kinovea.</p>
+        <div class="panel-step"><h3>Designed</h3><p>I derived a Lagrangian model of the two-arm pendulum and integrated it as a set of ODEs in MATLAB. Chaos means the interesting question isn't whether it matches, it's how long before it stops matching.</p></div>
+        <div class="panel-step"><h3>Analyzed</h3><p>I captured the rig at 120 frames per second, tracked colored dots on each arm in Kinovea, and computed the arm angles to feed back into MATLAB. A Monte Carlo envelope from 1000 runs sets the band on the prediction.</p><figure><img loading="lazy" src="assets/img/pendulum-1.jpg" alt="Pendulum long-exposure trails" /><figcaption>The rig traced over a long exposure.</figcaption></figure></div>
+        <div class="panel-step"><h3>Built</h3><p>Two solid arms on bearings, with the top arm released from 45 degrees against a hard stopper for a repeatable start.</p><figure><img loading="lazy" src="assets/img/pendulum-2.jpg" alt="Pendulum rig diagram" /><figcaption>The labelled rig.</figcaption></figure></div>
+        <div class="panel-step"><h3>Proved</h3><p>Model and rig agree for about a second and a half. What happens after that is the useful part: the disagreement quantifies how much I don't know about the bearing friction and the imperfect release.</p></div>
+      </div></div>
+    </article>
+
+    <article class="panel" id="panel-cannon" role="dialog" aria-modal="true" aria-label="Vacuum Cannon Experiment, full breakdown" hidden>
+      <div class="panel-scroll"><div class="panel-col"><button class="panel-close" type="button" aria-label="Close">Close</button>
+        <span class="panel-kicker">08 / more</span><h2>Vacuum Cannon Experiment</h2><p class="panel-ctx">RIT coursework, fluid dynamics and validation. MATLAB.</p>
+        <div class="panel-step"><h3>Designed</h3><p>The setup is a 1.52 m PVC pipe sealed at both ends with tape, a vacuum pump, and a ballistic block that records displacement when the ball lands.</p></div>
+        <div class="panel-step"><h3>Analyzed</h3><p>I recovered the exit velocity with an Eulerian method that integrates the net pressure force over small time steps, using a Vena Contracta inlet coefficient. The model ignores friction and air slipping past the ball, which is deliberate: those gaps are where the error will show up.</p></div>
+        <div class="panel-step"><h3>Built</h3><p>The physical cannon is the taped PVC tube and pump in the setup above. No separate build photo.</p></div>
+        <div class="panel-step"><h3>Proved</h3><p>I compared predicted against measured across 10 runs at 2 and 8 kPa. Reading where it over or undershoots points straight at the missing physics, and friction is the largest and cheapest of those to add next.</p></div>
+      </div></div>
+    </article>
+
+    <article class="panel" id="panel-flight" role="dialog" aria-modal="true" aria-label="Flight Dynamics Simulation, full breakdown" hidden>
+      <div class="panel-scroll"><div class="panel-col"><button class="panel-close" type="button" aria-label="Close">Close</button>
+        <span class="panel-kicker">08 / more</span><h2>Flight Dynamics Simulation</h2><p class="panel-ctx">RIT coursework. Simulink, MATLAB, ode45.</p>
+        <div class="panel-step"><h3>Designed</h3><p>I built a quaternion attitude model rather than Euler angles, because Euler angles hit gimbal lock and integration singularities. Quaternions avoid that, at the cost of being harder to read off the page.</p><figure><img loading="lazy" src="assets/img/flight-dynamics.jpg" alt="Flight dynamics response diagram" /><figcaption>The attitude model.</figcaption></figure></div>
+        <div class="panel-step"><h3>Analyzed</h3><p>A run applies a stick, rudder, or aileron step at a fixed time step and logs true velocity, pitch, roll and yaw rates, angle of attack, sideslip, and Euler angles. I ran nine different aircraft through the same conditions.</p></div>
+        <div class="panel-step"><h3>Built</h3><p>This one is a model, not hardware. The build is the Simulink and MATLAB code that runs the nine configurations.</p></div>
+        <div class="panel-step"><h3>Proved</h3><p>The logged response curves can be compared directly against real flight-test data to check the control behavior.</p></div>
+      </div></div>
+    </article>
+
+    <article class="panel" id="panel-saturn" role="dialog" aria-modal="true" aria-label="Saturn V Finite Element Analysis, full breakdown" hidden>
+      <div class="panel-scroll"><div class="panel-col"><button class="panel-close" type="button" aria-label="Close">Close</button>
+        <span class="panel-kicker">08 / more</span><h2>Saturn V Finite Element Analysis</h2><p class="panel-ctx">Personal, 2024. Ansys, FEA.</p>
+        <div class="panel-step"><h3>Designed</h3><p>I modeled the F-1 nozzle geometry to set up a structural study against its operating loads.</p></div>
+        <div class="panel-step"><h3>Analyzed</h3><p>The plan is static stress and modal analysis with worst-case load envelopes, to check that the structure holds under the stresses it sees in flight.</p></div>
+        <div class="panel-step"><h3>Built</h3><p>This is an analysis project, so there's no hardware to build.</p></div>
+        <div class="panel-step"><h3>Proved</h3><p>In progress. The writeup with stress contours and mode shapes is still pending, and I'd rather post it when it's real than mock one up.</p></div>
+      </div></div>
+    </article>
+
+    <article class="panel" id="panel-cubesat" role="dialog" aria-modal="true" aria-label="RIT CubeSat, full breakdown" hidden>
+      <div class="panel-scroll"><div class="panel-col"><button class="panel-close" type="button" aria-label="Close">Close</button>
+        <span class="panel-kicker">08 / more</span><h2>RIT Space Exploration CubeSat</h2><p class="panel-ctx">2022 to 2023. Structures and integration.</p>
+        <div class="panel-step"><h3>What it was</h3><p>The first RIT student-initiated project built to fly to space. I contributed to the mechanical side, structures and integration.</p></div>
+        <div class="panel-step"><h3>Evidence</h3><p class="slot">No public photos or plots I can post here. Image slot pending from Kambar.</p></div>
+      </div></div>
+    </article>
+
+    <article class="panel" id="panel-catbot" role="dialog" aria-modal="true" aria-label="CatBot Robotics, full breakdown" hidden>
+      <div class="panel-scroll"><div class="panel-col"><button class="panel-close" type="button" aria-label="Close">Close</button>
+        <span class="panel-kicker">08 / more</span><h2>CatBot Robotics</h2><p class="panel-ctx">RIT Robotics Club, 2022 to 2023. Control systems.</p>
+        <div class="panel-step"><h3>What it was</h3><p>Design improvement and joint-movement control system work on the club's quadruped robot. A team project.</p></div>
+        <div class="panel-step"><h3>Evidence</h3><p class="slot">Shared team media, so nothing to post here. Image slot pending from Kambar.</p></div>
+      </div></div>
+    </article>
   </div>
+
+  <!-- fixed scroll progress rail -->
+  <div class="progress" aria-hidden="true"><span class="progress-bar"></span><span class="progress-num">01</span></div>
 
   <script type="module" src="js/main.js"></script>
 </body>

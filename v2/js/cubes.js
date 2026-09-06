@@ -48,26 +48,25 @@ const TUMBLE_Y = 0.0022;
 const PARALLAX_LERP = 0.06;
 const PARALLAX_MAX = 0.05;    // rad (kept small so the sorted cluster stays put)
 
-// cube -> curated faces (high-contrast/photographic first), soft label, target section.
-// Paper-white document crops (polymer title page, flight text/diagrams, cannon tables,
-// casting CFD sheet, slicer layer plot) are dropped in favour of stronger crops.
+// cube -> faces, soft label, target section. Each cube shows ONLY its own project's
+// images so the parked cube in a chapter is that project. Face order is [px,nx,py,ny,pz,nz].
 const CUBES = [
   { label: 'simulate', section: '#polymer',
-    photos: ['polymer-phase-sep', 'casting-4', 'casting-1', 'casting-3', 'polymer-phase-sep', 'polymer-2'] },
+    photos: ['polymer-phase-sep', 'polymer-2', 'polymer-phase-sep', 'polymer-1', 'polymer-phase-sep', 'polymer-3'] },
   { label: 'make', section: '#casting',
-    photos: ['casting-3', 'casting-5', 'casting-1', 'casting-4', 'casting-3', 'casting-5'] },
+    photos: ['casting-1', 'casting-2', 'casting-3', 'casting-4', 'casting-5', 'casting-3'] },
   { label: 'build', section: '#cnc',
-    photos: ['cnc-machine', 'cnc-bed', 'cnc-cut-clean', 'cnc-cut-warm', 'cnc-machine', 'cnc-bed'] },
+    photos: ['cnc-machine', 'cnc-bed', 'cnc-cut-clean', 'cnc-cut-rough', 'cnc-cut-warm', 'cnc-machine'] },
   { label: 'software', section: '#slicer',
-    photos: ['slicer-software', 'slicer-stl-viewer', 'slicer-stl-detail', 'slicer-software', 'slicer-stl-viewer', 'slicer-stl-detail'] },
+    photos: ['slicer-software', 'slicer-stl-viewer', 'slicer-stl-detail', 'slicer-layer-plot', 'slicer-software', 'slicer-stl-viewer'] },
   { label: 'deploy', section: '#raymond',
-    photos: ['sens-plus-flyer', 'raymond-forklift.png', 'sens-plus-flyer', 'raymond-forklift.png', 'sens-plus-flyer', 'raymond-forklift.png'] },
+    photos: ['raymond-forklift.png', 'sens-plus-flyer', 'raymond-forklift.png', 'sens-plus-flyer', 'raymond-forklift.png', 'sens-plus-flyer'] },
   { label: 'print', section: '#others',
     photos: ['motor-stator', 'motor-wound-pair', 'motor-desk', 'motor-exploded', 'motor-shaft', 'motor-stator'] },
   { label: 'dynamics', section: '#others',
-    photos: ['pendulum-1', 'pendulum-1', 'cannon-1', 'pendulum-1', 'cannon-2', 'pendulum-3'] },
+    photos: ['pendulum-1', 'pendulum-2', 'pendulum-3', 'cannon-1', 'cannon-2', 'cannon-3'] },
   { label: 'flight', section: '#others',
-    photos: ['flight-dynamics', 'flight-1', 'flight-dynamics', 'flight-1', 'flight-dynamics', 'flight-3'] },
+    photos: ['flight-dynamics', 'flight-1', 'flight-dynamics', 'flight-2', 'flight-dynamics', 'flight-3'] },
 ];
 
 function mulberry32(seed) {
@@ -385,27 +384,41 @@ export function createCubeHero({ onCubeClick } = {}) {
   // other cube recedes to the background (z back, opacity 0.35) so the parked cube is the
   // only sharp object. Driven by chapterPark(i, side, t) scrubbed by the chapter's
   // ScrollTrigger; t in [0,1].
-  const PARK_Z = 1.5, PARK_SCALE = 1.9, RECEDE_Z = 6;
-  let parkCube = -1, parkSide = 'right', parkT = 0, dimAllT = 0;
+  const PARK_Z = 1.5, PARK_SCALE = 1.9, PARK_START_Z = -5, RECEDE_Z = 6;
+  // parkTargets[i] = { axvw, ayvh, scale, tumble, t } for each currently parked cube.
+  const parkTargets = {};
+  let dimAllT = 0, cloudDim = 0;
   const _anchor = new THREE.Vector3();
 
-  function anchorLocal(side) {
-    // screen (sideVW, 48vh) -> world at z = PARK_Z, expressed relative to the group centre
-    const ndcX = (side === 'left' ? 0.24 : 0.76) * 2 - 1;
-    const ndcY = 1 - 2 * 0.48;
+  function anchorLocalXY(axvw, ayvh) {
+    // screen (axvw%, ayvh%) -> world at z = PARK_Z, relative to the group centre
+    const ndcX = (axvw / 100) * 2 - 1;
+    const ndcY = 1 - 2 * (ayvh / 100);
     const halfHz = (camera.position.z - PARK_Z) * tanHalf();
     _anchor.set(ndcX * halfHz * camera.aspect, ndcY * halfHz, PARK_Z);
     return _anchor.sub(group.position);
   }
   function setCubeOpacity(m, o) { for (const mat of m.material) mat.opacity = o; }
 
-  function chapterPark(i, side, t) {
+  function chapterPark(i, side, t, opts) {
     t = Math.min(1, Math.max(0, t));
-    if (t <= 0.001) { if (parkCube === i) { parkCube = -1; parkT = 0; } return; }
-    parkCube = i; parkSide = side; parkT = t;
+    if (t <= 0.001) { delete parkTargets[i]; return; }
+    parkTargets[i] = { axvw: side === 'left' ? 24 : 76, ayvh: 48,
+      scale: (opts && opts.scale) || PARK_SCALE, tumble: (opts && opts.tumble != null) ? opts.tumble : 1, t };
   }
+  // park several cubes at once (Other Projects); list = [{ i, axvw, ayvh, scale }]
+  function parkTrio(list, t) {
+    t = Math.min(1, Math.max(0, t));
+    for (const p of list) {
+      if (t <= 0.001) delete parkTargets[p.i];
+      else parkTargets[p.i] = { axvw: p.axvw, ayvh: p.ayvh, scale: p.scale || 1.2, tumble: p.tumble != null ? p.tumble : 1, t };
+    }
+  }
+  const anyParked = () => Object.keys(parkTargets).length > 0;
   // recede the whole cloud (used by the origin chapter, which parks no project cube)
   function chapterDim(t) { dimAllT = Math.min(1, Math.max(0, t)); }
+  // persistent background dim: non-parked cubes stay <=0.35 while chapter text is on screen
+  function setCloudDim(t) { cloudDim = Math.min(1, Math.max(0, t)); }
 
   window.addEventListener('resize', resize);
   resize();
@@ -415,29 +428,33 @@ export function createCubeHero({ onCubeClick } = {}) {
     const t = now / 1000;
     const fs = Math.min(3, dt * 60);
     // parallax fades out as the grid unravels so scatter stays put
-    const pAmt = (1 - unravel) * (parkCube < 0 ? 1 : 0);
+    const pAmt = (1 - unravel) * (anyParked() ? 0 : 1);
     rotTarget.x = -pointerY * PARALLAX_MAX * pAmt;
     rotTarget.y = pointerX * PARALLAX_MAX * pAmt;
     group.rotation.x += (rotTarget.x - group.rotation.x) * PARALLAX_LERP;
     group.rotation.y += (rotTarget.y - group.rotation.y) * PARALLAX_LERP;
 
-    const anchor = parkCube >= 0 ? anchorLocal(parkSide) : null;
     const ease = (x) => (x < 0.5 ? 2 * x * x : 1 - (-2 * x + 2) * (-2 * x + 2) * 0.5);
-    const e = ease(parkT);
     const dimE = ease(dimAllT);
+    const parked = anyParked();
 
     for (let i = 0; i < meshes.length; i++) {
       const m = meshes[i];
       let tumbleScale = 1, targetScale = 1, op = 1;
       const bob = Math.sin(t * 0.6 + i) * BOB_AMP;
-      if (parkCube === i) {
-        _tmp.lerpVectors(base[i], anchor, e);
-        m.position.set(_tmp.x, _tmp.y + bob * (1 - e), _tmp.z);
-        targetScale = 1 + (PARK_SCALE - 1) * e;
-        tumbleScale = 1 - 0.7 * e;   // slows to 0.3x when parked
+      const pt = parkTargets[i];
+      if (pt) {
+        const e = ease(pt.t);
+        // emerge from the background ON the park side (fixed x/y, moving in z) so the
+        // bright cube never crosses to the text side during its travel
+        const anchor = anchorLocalXY(pt.axvw, pt.ayvh);
+        const z = PARK_START_Z + (PARK_Z - PARK_START_Z) * e;
+        m.position.set(anchor.x, anchor.y + bob * (1 - e), z);
+        targetScale = 0.8 + (pt.scale - 0.8) * e;
+        tumbleScale = pt.tumble * (1 - 0.7 * e);   // slows to 0.3x (0 for Raymond)
         op = 1;
       } else {
-        const recede = Math.max(parkCube >= 0 ? e : 0, dimE);
+        const recede = Math.max(parked ? 1 : 0, dimE, cloudDim);
         m.position.set(base[i].x, base[i].y + bob, base[i].z - recede * RECEDE_Z);
         op = 1 - 0.65 * recede;      // down to 0.35 in the background
       }
@@ -452,8 +469,9 @@ export function createCubeHero({ onCubeClick } = {}) {
 
   return {
     frame, setUnravel, setState, focus, raycast, setPointer, ready,
-    cubeBoxes, labelBoxes, chapterPark, chapterDim, meshBox,
-    getState: () => ({ unravel, parkCube, parkT, parkSide }),
+    cubeBoxes, labelBoxes, chapterPark, parkTrio, chapterDim, setCloudDim, meshBox,
+    cubeOpacity: (i) => meshes[i].material[0].opacity,
+    getState: () => ({ unravel, parked: Object.keys(parkTargets).map(Number) }),
     halveCount() {},
     sectionFor: (i) => (CUBES[i] ? CUBES[i].section : null),
     get count() { return meshes.length; },
