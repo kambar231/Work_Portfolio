@@ -181,14 +181,14 @@ if (heroSec && !reduced && !mobile) {
   const clamp01 = (x) => Math.min(1, Math.max(0, x));
   // Photo-to-dust choreography, scrubbed and reversible, keyed on the hero progress p:
   //   p 0.00 -> 0.20  photo fades out while the coloured dots hold in place under it
-  //   p 0.20 -> 0.55  the dot colour drains from the photo colour to the field grey (slight drift)
-  //   p 0.55 -> 0.85  the grey dots scatter from the face into the attractor field
-  // Everything is 0 by ~0.85, well before the experience forklift assembles.
+  //   p 0.30 -> 0.60  the dot colour drains from the photo colour to the field grey (slight drift)
+  //   p 0.60 -> 0.90  the grey dots scatter from the face into the attractor field
+  // Everything is 0 by ~0.90, well before the experience forklift assembles.
   const applyHero = (p) => {
     const imgO = 1 - clamp01(p / 0.20);
-    const pc = 1 - clamp01((p - 0.20) / 0.35);
-    const m3 = 1 - clamp01((p - 0.55) / 0.30);
-    const dr = clamp01((p - 0.20) / 0.35) * (1 - clamp01((p - 0.55) / 0.30));
+    const pc = 1 - clamp01((p - 0.30) / 0.30);
+    const m3 = 1 - clamp01((p - 0.60) / 0.30);
+    const dr = clamp01((p - 0.30) / 0.30) * (1 - clamp01((p - 0.60) / 0.30));
     if (heroImg) heroImg.style.opacity = imgO;
     particles.setPortraitColor(pc);
     particles.setPortraitDrift(dr * 0.35);
@@ -522,6 +522,22 @@ window.__v2.textColBox = (sel) => {
   return { x: r.x, y: r.y, w: r.width, h: r.height };
 };
 
+// which open unfold face is under a client point, or null. Cube 4 = the six Raymond systems
+// (open in experience), cube 3 = the slicer (open in slicer). unfoldFaceRects(i) returns six
+// client-space rects when cube i is open, else []. Face order matches raymond.faces.
+function openFaceAtClient(cx, cy) {
+  if (!cubes.unfoldFaceRects) return null;
+  for (const ci of [4, 3]) {
+    const rects = cubes.unfoldFaceRects(ci);
+    if (!rects || rects.length !== 6) continue;
+    for (let j = 0; j < 6; j++) {
+      const r = rects[j];
+      if (r && cx >= r.x && cx <= r.x + r.w && cy >= r.y && cy <= r.y + r.h) return { cube: ci, faceIndex: j };
+    }
+  }
+  return null;
+}
+
 // ---- cursor parallax + projects-grid hover ----
 window.addEventListener('pointermove', (e) => {
   const nx = (e.clientX / window.innerWidth) * 2 - 1;
@@ -532,9 +548,9 @@ window.addEventListener('pointermove', (e) => {
     cubes.setHover(i);
     document.body.style.cursor = i >= 0 ? 'pointer' : '';
   }
-  // hovering an unfolded Raymond face shows the pointer cursor
-  if (!mobile && raymondUnfoldT > 0.9 && cubes.raymondFaceAt) {
-    document.body.style.cursor = cubes.raymondFaceAt(nx, -ny) >= 0 ? 'pointer' : '';
+  // hovering an open feature-cube face (Raymond systems or slicer) shows the pointer cursor
+  if (!mobile && openFaceAtClient(e.clientX, e.clientY)) {
+    document.body.style.cursor = 'pointer';
   }
 }, { passive: true });
 
@@ -554,14 +570,17 @@ window.addEventListener('pointerup', (e) => {
   if (mobile || !d || e.target.closest(IGNORE_SEL)) return;
   const moved = Math.hypot(e.clientX - d.x, e.clientY - d.y);
   if (moved > 6 || performance.now() - d.t > 400) return;   // a drag/scroll, not a click
-  // a click on an unfolded Raymond face opens that system's reading panel
-  if (raymondUnfoldT > 0.9 && cubes.raymondFaceAt) {
-    const ndc = toNdc(e);
-    const j = cubes.raymondFaceAt(ndc.x, ndc.y);
-    if (j >= 0) {
-      const face = raymondFaces[j];
-      if (face && face.panel && window.__v2panel) window.__v2panel.open(face.panel);
-      return;
+  // a click on an open feature-cube face opens its reading panel: cube 4 = the six Raymond
+  // systems (one panel each, from raymond.faces), cube 3 = the slicer (one panel for any face).
+  {
+    const hit = openFaceAtClient(e.clientX, e.clientY);
+    if (hit && window.__v2panel) {
+      if (hit.cube === 4) {
+        const face = raymondFaces[hit.faceIndex];
+        if (face && face.panel) { window.__v2panel.open(face.panel); return; }
+      } else if (hit.cube === 3) {
+        window.__v2panel.open('slicer'); return;
+      }
     }
   }
   const up = cubes.raycast(toNdc(e));
