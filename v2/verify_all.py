@@ -108,6 +108,13 @@ def main():
     worst_pop_static_y = 0
     min_op = 1.0
     min_op_y = 0
+    # while the Raymond rig is unfolded (raymondUnfold > 0.02) the closed cube is hidden and its
+    # six face planes replace it, so exempt that cube from MIN-OPACITY and gate b (the RAYMOND
+    # gate already checks the faces), the same way the projects scrim exempts the open cube.
+    try:
+        ray_cube = int(json.loads((REPO_ROOT / "v2" / "data" / "projects.json").read_text(encoding="utf-8"))["raymond"].get("cube", -1))
+    except Exception:
+        ray_cube = -1
 
     with sync_playwright() as pw:
         try:
@@ -164,6 +171,8 @@ def main():
                     failures.append(("contact-end-slot", f"max slot dist {slot} px", 0))
 
             cubes = pg.evaluate("() => window.__v2.allCubes()")
+            ru = pg.evaluate("() => (typeof window.__v2.raymondUnfold === 'function') ? window.__v2.raymondUnfold() : 0")
+            ray_exempt = ray_cube if ru > 0.02 else -1  # cube hidden while its rig is unfolded
             # the cube layer is faded out entirely inside the dark stripe; when the canvas is
             # invisible there are no cubes to check for overlap / text / shape
             cubes_visible = pg.evaluate("() => window.__v2.cubesCanvasOpacity()") > 0.1
@@ -192,6 +201,8 @@ def main():
             # rect (+40 px) is a routing failure. threshold raised from 0.35 to 0.98.
             on_text_cubes = []  # cube indices (allCubes order) sitting on a text rect +40
             for i, c in enumerate(cubes if cubes_visible else []):
+                if i == ray_exempt:
+                    continue
                 if c["op"] < MIN_CUBE_OP:
                     continue
                 bx = c["box"]
@@ -231,8 +242,9 @@ def main():
                 fps = f"{f:.0f}"
 
             # MIN-OPACITY gate: outside the projects-open state every cube op must be >= 0.98
+            # (the Raymond rig cube is exempt while unfolded, see ray_exempt above).
             if open_idx < 0 and cubes_visible:
-                step_min_op = min((c["op"] for c in cubes), default=1.0)
+                step_min_op = min((c["op"] for i, c in enumerate(cubes) if i != ray_exempt), default=1.0)
                 if step_min_op < min_op:
                     min_op = step_min_op
                     min_op_y = y
