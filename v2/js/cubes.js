@@ -1236,6 +1236,8 @@ export function createCubeHero({ onCubeClick } = {}) {
   // __TESTHOOKS__ (stripped before commit)
   window.__scrub = setSectionProgress; window.__ufr = unfoldFaceRects;
   window.__cc = cubeCenters; window.__co = (i) => meshes[i].material[0].opacity;
+  window.__hit = (x, y) => hitTest(x, y);
+  window.__red = (i) => { for (const mat of meshes[i].material) { mat.map = null; mat.color.set(0xff0000); mat.needsUpdate = true; } };
   // initial spawn: the ONLY direct position write. Every later change is integration.
   for (let i = 0; i < meshes.length; i++) { meshes[i].position.copy(base[i]); tgt[i].copy(base[i]); }
   window.__dbgT = () => { const w = window.innerWidth, h = window.innerHeight; return tgt.map((v, i) => { const q = v.clone(); group.localToWorld(q); q.project(camera); const q1 = v.clone(); q1.x += 1; group.localToWorld(q1); q1.project(camera); const sx = (q.x * 0.5 + 0.5) * w; const ppu = Math.abs((q1.x * 0.5 + 0.5) * w - sx); return { i, sx: Math.round(sx), sy: Math.round((-q.y * 0.5 + 0.5) * h), ppu: Math.round(ppu), sc: +scaleTarget[i].toFixed(2), av: _avoid[i] }; }); };
@@ -1480,12 +1482,11 @@ export function createCubeHero({ onCubeClick } = {}) {
           const e = easeInOut(Math.min(1, pp / 0.4));
           _tmp.copy(grid6World[k]).sub(group.position);   // grid slot (group-local)
           const belowY = localAtVwVh(50, 130).y;          // below the fold, same column x
-          tgt[i].set(_tmp.x,
-                     belowY + (_tmp.y - belowY) * e + bob * 0.12,
-                     _tmp.z);
+          tgt[i].set(_tmp.x, belowY + (_tmp.y - belowY) * e, _tmp.z);   // pure f(p), no self-motion
           scaleTarget[i] = 1 + (grid6Scale - 1) * e;
-          m.rotation.x += (0.04 - m.rotation.x) * 0.12;
-          m.rotation.y += (0.05 - m.rotation.y) * 0.12;
+          // face-on so the silhouette centroid equals the projected centre (hit test matches render)
+          m.rotation.x += (0 - m.rotation.x) * 0.14;
+          m.rotation.y += (0 - m.rotation.y) * 0.14;
           _opArr[i] = 1;
         } else {
           // feature cube: fly in from the right (0..0.3), park in the band (..0.85), fold and
