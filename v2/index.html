@@ -128,10 +128,6 @@
         <h2 class="flat-head">projects</h2>
         <p class="projects-hint">Eight builds. Click a cube to open its faces.</p>
       </div>
-      <div id="project-cards" class="project-cards" aria-hidden="true"></div>
-      <button id="project-close" class="project-close" type="button" hidden aria-label="Close project">&times;</button>
-      <!-- mobile: click opens a vertical stack of the six face cards here -->
-      <div id="project-stack" class="project-stack" hidden aria-hidden="true"></div>
     </section>
 
     <!-- Chapter 9: Websites -->
@@ -187,6 +183,13 @@
       </div>
     </section>
   </main>
+
+  <!-- Projects unfold overlay: body-level so it stacks above the raised cube canvas -->
+  <div id="project-scrim" aria-hidden="true"></div>
+  <div id="project-cards" class="project-cards" aria-hidden="true"></div>
+  <button id="project-close" class="project-close" type="button" hidden aria-label="Close project">&times;</button>
+  <!-- mobile: click opens a vertical stack of the six face cards here -->
+  <div id="project-stack" class="project-stack" hidden aria-hidden="true"></div>
 
   <!-- Reading panels: full four-step breakdowns, opened from each chapter -->
   <div id="panels" aria-hidden="true">

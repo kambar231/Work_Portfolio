@@ -135,9 +135,9 @@ export function createParticles(opts = {}) {
          // size: 1.6 dust -> 1.3 fill / 1.9 edge
          float shapeSz = mix(1.3, 1.9, isEdge);
          float sz = mix(size, shapeSz, inShape * mA);
-         // background dust drops to 25% opacity once the morph is past 0.4, so the silhouette stands alone
+         // background dust drops to 15% opacity once the morph is past 0.4, so the silhouette stands alone
          float dim = (1.0 - inShape) * smoothstep(0.4, 0.6, mA);
-         vOpa = mix(1.0, 0.25, dim);`)
+         vOpa = mix(1.0, 0.15, dim);`)
         .replace('gl_PointSize = size;', 'gl_PointSize = sz;');
     // fragment: multiply in the per-vertex colour and opacity
     shader.fragmentShader =
@@ -181,6 +181,7 @@ export function createParticles(opts = {}) {
       uniforms.uSliceLo.value = lo; uniforms.uSliceHi.value = hi;
     }
   }
+  let forcedK = -1;   // shape-debug: force this morph to 1 once its data is placed
   function loadShape(k, url) {
     fetch(url).then((r) => r.arrayBuffer()).then((buf) => {
       const src = new Float32Array(buf);
@@ -189,8 +190,11 @@ export function createParticles(opts = {}) {
       for (let i = 0; i < M; i++) { const x = src[i * 4]; if (x > maxx) maxx = x; }
       shapeBounds[k] = { maxx };
       placeShape(k); shapeLoaded[k] = true;
+      if (forcedK === k) uniforms['uMorph' + k].value = 1;   // apply a pending debug force
     }).catch(() => {});
   }
+  // shape-debug (?shape=): force one morph fully on (applied now or when its data lands)
+  function forceShape(k) { forcedK = k; if (shapeLoaded[k]) { uniforms['uMorph' + k].value = 1; if (k === 1) uniforms.uReveal1.value = 1; } }
   loadShape(0, 'assets/shapes/forklift.bin');
   loadShape(1, 'assets/shapes/slicer.bin');
   loadShape(2, 'assets/shapes/cube.bin');
@@ -245,5 +249,6 @@ export function createParticles(opts = {}) {
   function halveCount() { if (!halved) { halved = true; count = Math.floor(count / 2); } }
   function capDpr() { renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5)); resize(); }
 
-  return { frame, halveCount, capDpr, setMorph, morphBox, setSliceReveal, sliceTop, getCount: () => count };
+  return { frame, halveCount, capDpr, setMorph, morphBox, setSliceReveal, sliceTop, forceShape,
+    morphVal: (k) => uniforms['uMorph' + k].value, getCount: () => count };
 }

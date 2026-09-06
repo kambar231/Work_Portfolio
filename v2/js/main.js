@@ -37,6 +37,19 @@ const cubes = createCubeHero({
   onCubeClick: (i) => scrollToSection(cubes.sectionFor(i)),
 });
 
+// shape-debug (?shape=forklift|slicer|cube): force one particle morph fully on and hide
+// every cube, so the silhouette can be screenshotted and scored (IoU) with no scroll/scrub
+// ambiguity. Scroll-driven motion is frozen shortly after boot.
+const debugShape = new URLSearchParams(location.search).get('shape');
+if (debugShape != null) {
+  const k = { forklift: 0, slicer: 1, cube: 2 }[debugShape];
+  if (k != null) {
+    particles.forceShape(k);
+    cubes.setForceHidden(true);
+    setTimeout(() => ScrollTrigger.getAll().forEach((s) => s.disable(false)), 150);
+  }
+}
+
 // verifier hooks: drive the unravel and read screen bounding boxes from Playwright
 window.__v2 = {
   freeze: () => ScrollTrigger.getAll().forEach((s) => s.disable(false)),
@@ -226,7 +239,7 @@ if (projSec) {
     analyzed: 'Pressure transducers, machine vision, regenerative braking, and access control logic.',
     built: 'Shipped across the reach-truck line, validated on real hardware.',
     proved: '+14 percent performance and -10 percent battery draw.', key: '+14% performance',
-    tools: 'Controls, hydraulics, FEA', panel: 'ray-stability' };
+    tools: 'Controls, hydraulics, FEA', panel: 'ray-stability', images: ['sens-plus-flyer'] };
   const bySlot = {};
   fetch('data/projects.json').then((r) => r.json()).then((j) => {
     const byCube = {};
@@ -235,13 +248,20 @@ if (projSec) {
     bySlot[4] = RAYMOND;   // deploy slot = Raymond overview (not in projects.json)
   }).catch(() => {});
 
+  // one image per face card (100% card width), cycled from the project's photo list so
+  // each face fills. No image -> text only (never a broken src).
+  const imgFor = (d, n) => {
+    const arr = d.images || [];
+    if (!arr.length) return '';
+    return `<img loading="lazy" decoding="async" src="assets/img/${arr[n % arr.length]}.jpg" alt="" />`;
+  };
   const FACES = [
-    { key: 'front', build: (d) => `<span class="pc-kick">${cubes.labelFor(openIdx)}</span><h3>${d.title}</h3><span class="pc-year">${d.year}</span><p>${d.one}</p>` },
-    { key: 'right', build: (d) => `<span class="pc-kick">Designed</span><p>${d.designed}</p>` },
-    { key: 'left', build: (d) => `<span class="pc-kick">Analyzed</span><p>${d.analyzed}</p>` },
-    { key: 'top', build: (d) => `<span class="pc-kick">Built</span><p>${d.built}</p>` },
-    { key: 'bottom', build: (d) => `<span class="pc-kick">Proved</span><p>${d.proved}</p><p class="pc-key">${d.key}</p>` },
-    { key: 'back', build: (d) => `<span class="pc-kick">Tools</span><p>${d.tools}</p>` },
+    { key: 'front', build: (d) => `${imgFor(d, 0)}<span class="pc-kick">${cubes.labelFor(openIdx)}</span><h3>${d.title}</h3><span class="pc-year">${d.year}</span><p>${d.one}</p>` },
+    { key: 'right', build: (d) => `${imgFor(d, 1)}<span class="pc-kick">Designed</span><p>${d.designed}</p>` },
+    { key: 'left', build: (d) => `${imgFor(d, 2)}<span class="pc-kick">Analyzed</span><p>${d.analyzed}</p>` },
+    { key: 'top', build: (d) => `${imgFor(d, 3)}<span class="pc-kick">Built</span><p>${d.built}</p>` },
+    { key: 'bottom', build: (d) => `${imgFor(d, 4)}<span class="pc-kick">Proved</span><p>${d.proved}</p><p class="pc-key">${d.key}</p>` },
+    { key: 'back', build: (d) => `${imgFor(d, 5)}<span class="pc-kick">Tools</span><p>${d.tools}</p>` },
   ];
   let openIdx = -1;
   const cardByFace = {};
@@ -278,9 +298,14 @@ if (projSec) {
   let cardRAF = 0;
   function tickCards() { positionCards(); if (cubes.projectOpenIndex() >= 0 || cubes.faceAnchors()) cardRAF = requestAnimationFrame(tickCards); }
 
+  const scrim = document.getElementById('project-scrim');
   cubes.setProjectHandlers(
-    (i) => { buildCards(i); closeBtn.hidden = false; head.classList.add('dim'); cancelAnimationFrame(cardRAF); tickCards(); },
-    () => { closeBtn.hidden = true; head.classList.remove('dim'); setTimeout(() => { cancelAnimationFrame(cardRAF); cardsEl.innerHTML = ''; cardsEl.setAttribute('aria-hidden', 'true'); }, 950); },
+    (i) => { buildCards(i); closeBtn.hidden = false; head.classList.add('dim');
+      if (scrim) scrim.classList.add('on'); document.body.classList.add('cube-open');
+      cancelAnimationFrame(cardRAF); tickCards(); },
+    () => { closeBtn.hidden = true; head.classList.remove('dim');
+      if (scrim) scrim.classList.remove('on'); document.body.classList.remove('cube-open');
+      setTimeout(() => { cancelAnimationFrame(cardRAF); cardsEl.innerHTML = ''; cardsEl.setAttribute('aria-hidden', 'true'); }, 950); },
   );
   closeBtn.addEventListener('click', () => cubes.closeProject());
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && cubes.projectOpenIndex() >= 0) cubes.closeProject(); });
@@ -321,6 +346,7 @@ window.__v2.parkCube = (i, side, t) => { cubes.setUnravel(1); cubes.chapterPark(
 window.__v2.meshBox = (i) => cubes.meshBox(i);
 window.__v2.setMorph = (k, v) => particles.setMorph(k, v);
 window.__v2.morphBox = (k) => particles.morphBox(k);
+window.__v2.morphVal = (k) => particles.morphVal(k);
 window.__v2.allCubes = () => Array.from({ length: cubes.count }, (_, i) => ({ box: cubes.meshBox(i), op: cubes.cubeOpacity(i) }));
 window.__v2.state = () => cubes.getState();
 // verifier: drive + read the projects unfold (deterministic open, real X/Escape close)
@@ -423,7 +449,8 @@ function loop(now) {
   updateMobileDim();
 
   // count rAF for 5 s after load; if under 50 fps, halve the particle count
-  if (!fpsChecked) {
+  // (skipped in shape-debug so the silhouette keeps its full point count for scoring)
+  if (!fpsChecked && !debugShape) {
     fpsFrames++;
     if (now - fpsStart >= 5000) {
       const fps = (fpsFrames * 1000) / (now - fpsStart);

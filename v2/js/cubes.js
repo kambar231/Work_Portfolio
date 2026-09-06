@@ -344,7 +344,11 @@ export function createCubeHero({ onCubeClick } = {}) {
     const inProjects = projT > 0.5 && openIndex < 0;
     for (let i = 0; i < meshes.length; i++) {
       let x, y, op;
-      if (inProjects) {
+      if (forceHidden || openIndex >= 0) {
+        // a cube is open (or shape debug): no grid labels compete with the net
+        meshes[i].getWorldPosition(_p); _p.project(camera);
+        x = (_p.x * 0.5 + 0.5) * w; y = (-_p.y * 0.5 + 0.5) * h + 124; op = 0;
+      } else if (inProjects) {
         meshes[i].getWorldPosition(_p);
         _p.project(camera);
         x = (_p.x * 0.5 + 0.5) * w;
@@ -417,7 +421,7 @@ export function createCubeHero({ onCubeClick } = {}) {
   const PARK_Z = 1.5, PARK_SCALE = 1.9, PARK_START_Z = -5, RECEDE_Z = 6;
   // parkTargets[i] = { axvw, ayvh, scale, tumble, t } for each currently parked cube.
   const parkTargets = {};
-  let dimAllT = 0, cloudDim = 0, mobileHide = false;
+  let dimAllT = 0, cloudDim = 0, mobileHide = false, forceHidden = false;
   const _anchor = new THREE.Vector3();
 
   function anchorLocalXY(axvw, ayvh) {
@@ -473,6 +477,8 @@ export function createCubeHero({ onCubeClick } = {}) {
   function setCloudDim(t) { cloudDim = Math.min(1, Math.max(0, t)); }
   // mobile: hide every non-featured cube (used between the hero grid and the contact grid)
   function setMobileHide(b) { mobileHide = !!b; }
+  // debug/shape verification: hide every cube so only the particle morph is on screen
+  function setForceHidden(b) { forceHidden = !!b; }
 
   // ---- Projects grid + cube unfold (phase 2) ----
   // When the projects section is on screen the eight cubes settle into a centred 4x2 grid.
@@ -498,7 +504,7 @@ export function createCubeHero({ onCubeClick } = {}) {
   // build a six-face cross-net rig for cube i, hinged so t=0 is a closed cube and t=1 is flat
   let rig = null, rigPivots = null;
   const FACE_MAP = { right: 0, left: 1, top: 2, bottom: 3, front: 4, back: 5 };
-  function unfoldScale() { return (0.8 * window.innerHeight) / (3 * CUBE_PX); }
+  function unfoldScale() { return (0.92 * window.innerHeight) / (3 * CUBE_PX); }
   function buildRig(i) {
     disposeRig();
     const mats = meshes[i].material;
@@ -641,7 +647,7 @@ export function createCubeHero({ onCubeClick } = {}) {
           m.rotation.x += (0.16 - m.rotation.x) * 0.12;
           m.rotation.y += (0.26 - m.rotation.y) * 0.12;
         }
-        op = openIndex >= 0 ? (i === openIndex ? 0 : 0.15) : 1;
+        op = openIndex >= 0 ? (i === openIndex ? 0 : 0.06) : 1;
         if (moving && tumbleScale > 0) { m.rotation.x += TUMBLE_X * fs * tumbleScale; m.rotation.y += TUMBLE_Y * fs * tumbleScale; }
         m.scale.setScalar(targetScale);
         cubeReveal[i] += (revealTargets[i] - cubeReveal[i]) * Math.min(1, 0.12 * fs);
@@ -667,8 +673,8 @@ export function createCubeHero({ onCubeClick } = {}) {
         targetScale = 0.8 + (pt.scale - 0.8) * e;
         tumbleScale = pt.tumble * (1 - 0.7 * e);   // slows to 0.3x (0 for Raymond)
         op = 1;
-      } else if (mobileHide) {
-        // mobile chapters: every non-featured cube is fully hidden and pushed out of ray range
+      } else if (mobileHide || forceHidden) {
+        // mobile chapters / shape-debug: every non-featured cube is fully hidden and out of ray range
         m.position.set(base[i].x, base[i].y, base[i].z - 40);
         op = 0;
       } else {
@@ -695,7 +701,7 @@ export function createCubeHero({ onCubeClick } = {}) {
 
   return {
     frame, setUnravel, setState, focus, raycast, setPointer, ready,
-    cubeBoxes, labelBoxes, chapterPark, setTrack, setExclude, chapterDim, setCloudDim, setMobileHide, meshBox,
+    cubeBoxes, labelBoxes, chapterPark, setTrack, setExclude, chapterDim, setCloudDim, setMobileHide, setForceHidden, meshBox,
     setProjects, setHover, openProject, closeProject, projectOpenIndex, faceAnchors, setProjectHandlers,
     projectsActive: () => projActive,
     labelFor: (i) => (CUBES[i] ? CUBES[i].label : ''),
