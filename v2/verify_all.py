@@ -463,7 +463,7 @@ def main():
                  f"observed {obs}" + (f"  FAILS={visibility['fails']}" if visibility["fails"] else ""))
     if want("realclick"):
         _row("REAL-CLICK", not realclick["mismatches"],
-             "all 8 open the clicked cube" if not realclick["mismatches"] else str(realclick["mismatches"]))
+             "all 6 grid cubes open the clicked cube" if not realclick["mismatches"] else str(realclick["mismatches"]))
     if want("overlay"):
         _row("NO-OVERLAY", not realclick["overlay"],
              (f"closed cube hidden after open (rigPose hook={'yes' if realclick['has_rig_hook'] else 'no, crops for review'})"
