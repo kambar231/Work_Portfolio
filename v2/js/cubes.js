@@ -611,6 +611,55 @@ export function createCubeHero({ onCubeClick } = {}) {
     const col = i % 4, row = Math.floor(i / 4);
     projWorld.push(new THREE.Vector3((col - 1.5) * PROJ_SPX, (0.5 - row) * PROJ_SPY + PROJ_CY, 0));
   }
+  // C5: size and place the 4x2 grid from the live lanes so it sits under its heading and never
+  // lands on the copy or the morph shape. edge = min(9vw,15vh), 40 px below the lowest lane in
+  // the top 45% of the viewport, shrunk to a 7vw floor if it would hit a lane/shape below or
+  // the viewport bottom. projWorld (world, z=0) and gridScale are recomputed while the grid is on.
+  let gridScale = PROJ_SCALE, gridEdgePx = 0;
+  function _rectHit(a, b) {
+    return !(a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y);
+  }
+  function worldAtScreen(px, py, z) {
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const ndcX = (px / vw) * 2 - 1, ndcY = 1 - 2 * (py / vh);
+    const halfHz = (camera.position.z - z) * tanHalf();
+    return { x: ndcX * halfHz * camera.aspect, y: ndcY * halfHz };
+  }
+  function computeGridSlots() {
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const lanes = domTextRects();
+    let headBottom = 0.15 * vh;                       // default top band if no header lane
+    for (const r of lanes) if (r.y < 0.45 * vh && r.y + r.h > 0) headBottom = Math.max(headBottom, r.y + r.h);
+    // clear the header by the spec 40 px PLUS the checker's own +40 text pad and the tilted
+    // cube's overhang above its cell, so the padded box never touches the padded header rect.
+    const gridTop = headBottom + 88;
+    const minEdge = 0.07 * vw, GAPF = 0.14;
+    const fits = (e) => {
+      const gap = e * GAPF, gw = 4 * e + 3 * gap, gh = 2 * e + gap;
+      if (gridTop + gh + e * 0.15 > vh - 12) return false;   // must sit fully inside the viewport
+      // pad the block the way the checker pads text (+40) plus the tilt overhang, so a "fits"
+      // result really is on-text-free
+      const P = 44 + e * 0.12;
+      const block = { x: vw / 2 - gw / 2 - P, y: gridTop - P, w: gw + 2 * P, h: gh + 2 * P };
+      for (const r of lanes) { if (r.y + r.h <= headBottom + 1) continue; if (_rectHit(block, r)) return false; }
+      for (const r of shapeRects) if (_rectHit(block, r)) return false;
+      return true;
+    };
+    let edge = Math.min(0.09 * vw, 0.15 * vh);
+    while (edge > minEdge && !fits(edge)) edge -= 4;
+    edge = Math.max(edge, minEdge);
+    gridEdgePx = edge;
+    const gap = edge * GAPF, cx = vw / 2;
+    for (let i = 0; i < CUBES.length; i++) {
+      const col = i % 4, row = Math.floor(i / 4);
+      const px = cx + (col - 1.5) * (edge + gap);
+      const py = gridTop + edge / 2 + row * (edge + gap);
+      const w = worldAtScreen(px, py, 0);
+      projWorld[i].set(w.x, w.y, 0);
+    }
+    const ppu0 = (vh * 0.5) / (camera.position.z * tanHalf());   // px per world unit at z=0
+    gridScale = edge / ppu0;                                     // world scale so a cube fills one cell
+  }
   function setProjects(on) {
     projActive = !!on;
     const g = window.gsap;
@@ -1097,6 +1146,8 @@ export function createCubeHero({ onCubeClick } = {}) {
     // the projects and contact grids settle the whole cloud; ease parallax out
     if (projT > 0.01 || contactT > 0.01) { group.rotation.x *= 0.88; group.rotation.y *= 0.88; }
 
+    // C5: while the projects/contact grid is on, size and place it from the live lanes.
+    if (projT > 0.01 || contactT > 0.01) computeGridSlots();
     // ---- pass A: every section sets a spring TARGET (group-local), scale, and rotation.
     // No position writes here; positions are integrated in pass B.
     for (let i = 0; i < meshes.length; i++) {
@@ -1124,7 +1175,7 @@ export function createCubeHero({ onCubeClick } = {}) {
         tgt[i].set(base[i].x + (_tmp.x - base[i].x) * e,
                    base[i].y + (_tmp.y - base[i].y) * e + bob * 0.15,
                    base[i].z + (_tmp.z - base[i].z) * e + lift);
-        scaleTarget[i] = 1 + (PROJ_SCALE - 1) * e;
+        scaleTarget[i] = 1 + (gridScale - 1) * e;
         tumbleScale = (i === hoverIndex || projT > 0.5) ? 0 : 0.6;
         if (projT > 0.4 && openIndex < 0) {
           m.rotation.x += (0.1 - m.rotation.x) * 0.12;
@@ -1140,7 +1191,7 @@ export function createCubeHero({ onCubeClick } = {}) {
                    base[i].z + (_tmp.z - base[i].z) * e);
         m.rotation.x += (0.06 - m.rotation.x) * 0.2;
         m.rotation.y += (0.08 - m.rotation.y) * 0.2;
-        scaleTarget[i] = 1 + (PROJ_SCALE - 1) * e;
+        scaleTarget[i] = 1 + (gridScale - 1) * e;
       } else if (tr) {
         // follow the DOM anchor (scrolls with the content); face-on
         const anchor = anchorLocalXY(tr.cx, tr.cy);
