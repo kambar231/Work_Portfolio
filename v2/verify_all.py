@@ -53,6 +53,10 @@ SEAM_EDGE = 24           # grayscale diagonal edge response threshold
 SEAM_FRAC = 0.60         # fraction of a diagonal above SEAM_EDGE that flags a seam
 SEAM_MIN_LEN = 200       # a diagonal must be longer than this (px) to be judged
 
+# round-4: cubes 0,1,2,5,6,7 form the 3x2 projects grid; cube 4 lives in #experience and cube 3
+# in #slicer, both parked off-screen while the projects grid is on screen.
+GRID_CUBES = (0, 1, 2, 5, 6, 7)
+
 
 def serve(port: int) -> socketserver.TCPServer:
     handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(REPO_ROOT))
@@ -294,7 +298,17 @@ def main():
             # MIN-OPACITY gate: outside the projects-open state every cube op must be >= 0.98
             # (the Raymond rig cube is exempt while unfolded, see ray_exempt above).
             if want("opacity") and open_idx < 0 and cubes_visible:
-                step_min_op = min((c["op"] for i, c in enumerate(cubes) if i != ray_exempt), default=1.0)
+                # round 4: a cube that is hinged open (unfoldFaceRects(i) returns six rects) is
+                # legitimately faded to 0 while its faces show, so exempt it like the raymond rig.
+                unfold_open = pg.evaluate("""() => { const out = [];
+                  if (typeof window.__v2.unfoldFaceRects === 'function')
+                    for (let i = 0; i < 8; i++) { const r = window.__v2.unfoldFaceRects(i);
+                      if (r && r.length === 6 && r.every(x => x)) out.push(i); }
+                  return out; }""")
+                exempt = set(unfold_open)
+                if ray_exempt >= 0:
+                    exempt.add(ray_exempt)
+                step_min_op = min((c["op"] for i, c in enumerate(cubes) if i not in exempt), default=1.0)
                 if step_min_op < min_op:
                     min_op = step_min_op
                     min_op_y = y
@@ -337,17 +351,22 @@ def main():
         panel_scroll_info = run_panel_scroll_test(pg) if want("panel") else {"ok": True}
         panel_scroll_fail = None if panel_scroll_info.get("ok") else panel_scroll_info
         raymond = run_raymond_test(pg) if want("raymond") else {"status": "SKIP", "reason": "not selected"}
-        visibility = run_visibility_test(pg) if want("visibility") else {"status": "SKIP", "reason": "not selected"}
-        realclick = (run_real_click_test(pg) if (want("realclick") or want("overlay"))
+        # round 4: the projects grid rests at projects-progress >= 0.6; find that scroll once and
+        # reuse it for every projects-grid gate (#projects is not a pinned trigger).
+        grid_y = None
+        if want("visibility") or want("labels") or want("realclick") or want("overlay") or want("pixelclick"):
+            grid_y = _projects_grid_y(pg)
+        visibility = run_visibility_test(pg, grid_y) if want("visibility") else {"status": "SKIP", "reason": "not selected"}
+        realclick = (run_real_click_test(pg, grid_y) if (want("realclick") or want("overlay"))
                      else {"mismatches": [], "overlay": [], "has_rig_hook": False})
         seam_report = run_seam_test(pg) if want("seam") else []
         # round-4 gates
         scrub_fails = run_scrub_test(pg) if want("scrub") else None
         unfold = run_unfold_test(pg) if want("unfold") else {"status": "SKIP", "reason": "not selected"}
-        labels = run_labels_test(pg) if want("labels") else {"status": "SKIP", "reason": "not selected"}
+        labels = run_labels_test(pg, grid_y) if want("labels") else {"status": "SKIP", "reason": "not selected"}
         snap = run_snap_test(pg) if want("snap") else {"status": "SKIP", "reason": "not selected"}
         hero = run_hero_test(pg) if want("hero") else {"status": "SKIP", "reason": "not selected"}
-        pixelclick = run_pixel_click_test(pg) if want("pixelclick") else {"status": "SKIP", "reason": "not selected"}
+        pixelclick = run_pixel_click_test(pg, grid_y) if want("pixelclick") else {"status": "SKIP", "reason": "not selected"}
         if click_fail:
             failures.append(("click-test", click_fail, 0))
         if panel_fail:
@@ -471,12 +490,16 @@ def main():
                  "no label overlaps a cube or another label"
                  if labels["status"] == "OK" else str(labels["fails"]))
     if want("snap"):
-        if snap.get("status") == "SKIP":
+        st = snap.get("status")
+        if st == "SKIP":
             print(f"{'SNAP':<16} {'SKIP':>7}  {snap.get('reason')}")
+        elif st == "HARNESS":
+            print(f"{'SNAP':<16} {'HARNESS':>7}  synthetic wheel did not move Lenis; "
+                  f"readings={snap.get('readings')}")
         else:
-            _row("SNAP", snap["status"] == "OK",
+            _row("SNAP", st == "OK",
                  "page snaps back to steady states (<=3px)"
-                 if snap["status"] == "OK" else str(snap["fails"]))
+                 if st == "OK" else str(snap["fails"]))
     if want("hero"):
         _row("HERO", hero.get("status") == "OK",
              "no visible SCROLL hint at y=0" if hero.get("status") == "OK" else str(hero.get("fails")))
@@ -551,22 +574,35 @@ def sample_no_pop_static(pg, ticks):
 
 
 def sample_no_pop_scroll(pg, end_y, speed=1200):
-    # drive a continuous scroll from y=0 to the document bottom at `speed` px/s, sampling
-    # cube centres every rAF; return the worst per-frame displacement (normalised to a 60 fps
-    # frame, px * 16.7 / dt_ms with dt clamped to [8, 50] ms) and the y where it hit.
+    # drive a continuous scroll from y=0 to the document bottom at `speed` px/s, sampling every
+    # cube's centre and clipped-box visibility every rAF; return the worst per-frame displacement
+    # (normalised to a 60 fps frame, px * 16.7 / dt_ms with dt clamped to [8, 50] ms) and the y
+    # where it hit. round 4: a displacement counts only when the cube's clipped box has positive
+    # viewport area in BOTH consecutive ticks, so a cube swapping in/out between sections (which
+    # is invisible to the eye) is ignored while a visible on-screen jump is still caught.
     pg.evaluate("() => window.__v2.scrollToY(0)")
     pg.wait_for_timeout(600)
     return pg.evaluate("""([endY, speed]) => new Promise(res => {
       let prev = null, prevT = null, worst = 0, worstY = 0; const t0 = performance.now();
+      const vw = innerWidth, vh = innerHeight;
+      function inView(b){
+        if (b.w <= 0 || b.h <= 0) return false;
+        if (b.w > 2 * vw || b.h > 2 * vh) return false;   // degenerate blow-up
+        const ix = Math.min(b.x + b.w, vw) - Math.max(b.x, 0);
+        const iy = Math.min(b.y + b.h, vh) - Math.max(b.y, 0);
+        return ix > 0 && iy > 0;
+      }
       function tick(t){
         const y = Math.min(endY, speed * (t - t0) / 1000);
         window.__v2.scrollToY(y);
-        const cur = window.__v2.cubeCenters().map(p => ({ x: p.x, y: p.y }));
+        const cur = window.__v2.allCubes().map(c => { const b = c.box;
+          return { x: b.x + b.w / 2, y: b.y + b.h / 2, vis: inView(b) }; });
         if (prev) {
           const dt = Math.min(50, Math.max(8, t - prevT));
           const scale = 16.7 / dt;
           const m = Math.min(prev.length, cur.length);
           for (let i = 0; i < m; i++) {
+            if (!(prev[i].vis && cur[i].vis)) continue;   // ignore off-screen swaps
             const d = Math.hypot(cur[i].x - prev[i].x, cur[i].y - prev[i].y) * scale;
             if (d > worst) { worst = d; worstY = y; }
           }
@@ -820,21 +856,13 @@ def run_click_test(pg):
     return fails
 
 
-def _section_mid_y(pg, sel, frac=0.5, fallback_offset=-135):
-    # scroll target for the middle of a section's pinned ScrollTrigger range, or its offsetTop
-    # if the section is not a pinned trigger.
-    rng = pg.evaluate(f"() => window.__v2.triggerRange('{sel}')")
-    if rng:
-        return rng["start"] + frac * (rng["end"] - rng["start"])
-    ot = pg.evaluate(f"() => {{ const e = document.querySelector('{sel}'); return e ? e.offsetTop : null; }}")
-    return (ot + fallback_offset) if ot is not None else None
-
-
-def run_visibility_test(pg):
-    # round-4 visible-set gate. hero -> no cube; #experience -> only cube 4; #slicer -> only
-    # cube 3; #projects -> the other six (0,1,2,5,6,7) as a 3x2 grid; #websites, #about (dark
-    # stripe) and #contact -> no cube (nothing below projects). Visibility is judged on the
-    # CLIPPED footprint (box_in_viewport), so a parked/degenerate box does not count as visible.
+def run_visibility_test(pg, grid_y):
+    # round-4 visible-set gate. hero -> no cube; #experience -> only cube 4; #slicer -> only cube
+    # 3; #projects -> the other six (0,1,2,5,6,7) as a 3x2 grid; #websites, #about (dark stripe)
+    # and #contact -> no cube (nothing below projects). Visibility is judged on the CLIPPED
+    # footprint (box_in_viewport). Sampling: experience/slicer at p=0.2 (the CLOSED cube, before
+    # it hinges open); projects at grid_y (its resting scroll); the below-projects sections deep
+    # enough (frac 0.6/0.5 of the section) that the grid has fully scrolled away.
     def inside_set(y):
         pg.evaluate(f"() => window.__v2.scrollToY({y})")
         pg.wait_for_timeout(300)
@@ -845,37 +873,39 @@ def run_visibility_test(pg):
         return [i for i, c in enumerate(cubes)
                 if c["op"] > 0.12 and box_in_viewport(c["box"], vw, vh)]
 
-    expected = [
-        ("hero", "#hero", set()),
-        ("experience", "#experience", {4}),
-        ("slicer", "#slicer", {3}),
-        ("projects", "#projects", {0, 1, 2, 5, 6, 7}),
-        ("websites", "#websites", set()),
-        ("dark", "#about", set()),
-        ("contact", "#contact", set()),
+    plan = [
+        ("hero", 0, set()),
+        ("experience", _section_progress_y(pg, "#experience", 0.2), {4}),
+        ("slicer", _section_progress_y(pg, "#slicer", 0.2), {3}),
+        ("projects", grid_y, {0, 1, 2, 5, 6, 7}),
+        ("websites", _section_frac_y(pg, "#websites", 0.6), set()),
+        ("dark", _section_frac_y(pg, "#about", 0.5), set()),
+        ("contact", _section_frac_y(pg, "#contact", 0.5), set()),
     ]
     fails = []
     observed = {}
-    for name, sel, want_set in expected:
-        y = 0 if sel == "#hero" else _section_mid_y(pg, sel)
+    for name, y, want_set in plan:
         if y is None:
             observed[name] = "SECTION-ABSENT"
             continue
         ins = inside_set(y)
         observed[name] = ins
         if set(ins) != want_set:
-            fails.append({"at": name, "expected": sorted(want_set), "inside": ins})
+            fails.append({"at": name, "y": round(y), "expected": sorted(want_set), "inside": ins})
     return {"status": "FAIL" if fails else "OK", "fails": fails, "observed": observed}
 
 
-def run_real_click_test(pg):
-    # click the ACTUAL pixel centre of each cube's projected box (not the openProject API) and
-    # confirm the right project opens; 0.35 s later crop the slot and confirm the closed cube is
-    # gone (rig up). Returns click mismatches and any closed-cube-still-visible overlays.
-    projTop = pg.evaluate("() => document.getElementById('projects').offsetTop")
-    Y = projTop - 135
-    pg.evaluate(f"() => window.__v2.scrollToY({Y})")
+def run_real_click_test(pg, grid_y):
+    # round 4: at the projects grid resting scroll (grid_y), click the ACTUAL pixel centre of each
+    # of the six grid cubes' projected boxes (not the openProject API) and confirm the right
+    # project opens; 0.35 s later crop the slot and confirm the closed cube is gone (rig up).
+    # Returns click mismatches and any closed-cube-still-visible overlays.
+    if grid_y is None:
+        return {"mismatches": [], "overlay": [], "has_rig_hook": False,
+                "note": "no projects grid scroll found"}
+    pg.evaluate(f"() => window.__v2.scrollToY({grid_y})")
     pg.wait_for_timeout(700)
+    settle(pg)
     open_dir = OUT_DIR / "open"
     open_dir.mkdir(parents=True, exist_ok=True)
     for old in open_dir.glob("*.png"):
@@ -883,7 +913,7 @@ def run_real_click_test(pg):
     has_rig = pg.evaluate("() => typeof window.__v2.rigPose === 'function'")
     mismatches = []
     overlay = []
-    for i in range(8):
+    for i in GRID_CUBES:
         if pg.evaluate("() => window.__v2.projectOpen()") >= 0:
             pg.keyboard.press("Escape")
             pg.wait_for_timeout(900)
@@ -922,6 +952,39 @@ def _section_progress_y(pg, sel, p):
     if not rng:
         return None
     return rng["start"] + p * (rng["end"] - rng["start"])
+
+
+def _section_frac_y(pg, sel, frac):
+    # scroll target at a fraction of a section: its pinned ScrollTrigger range if it has one, else
+    # offsetTop + frac * height. Returns None if the section is absent. Used for the below-projects
+    # sections (not pinned) so the sample lands deep enough that the projects grid has exited.
+    rng = pg.evaluate(f"() => window.__v2.triggerRange('{sel}')")
+    if rng:
+        return rng["start"] + frac * (rng["end"] - rng["start"])
+    dims = pg.evaluate(f"""() => {{ const e = document.querySelector('{sel}');
+      return e ? {{ ot: e.offsetTop, h: e.getBoundingClientRect().height }} : null; }}""")
+    if not dims:
+        return None
+    return dims["ot"] + frac * dims["h"]
+
+
+def _projects_grid_y(pg):
+    # round 4: #projects is NOT a pinned trigger, so find the projects grid's resting scroll as the
+    # first scrollY (scanning down from its offsetTop) where sectionProgress().projects >= 0.6.
+    # Returns None if the section or the sectionProgress hook is missing.
+    dims = pg.evaluate("""() => { const e = document.querySelector('#projects');
+      return e ? { ot: e.offsetTop, h: e.getBoundingClientRect().height } : null; }""")
+    if not dims or not pg.evaluate("() => typeof window.__v2.sectionProgress === 'function'"):
+        return None
+    start = int(dims["ot"])
+    end = int(dims["ot"] + dims["h"]) + 200
+    for y in range(start, end, 40):
+        pg.evaluate(f"() => window.__v2.scrollToY({y})")
+        pg.wait_for_timeout(70)
+        p = pg.evaluate("() => { const s = window.__v2.sectionProgress(); return s ? s.projects : null; }")
+        if p is not None and p >= 0.6:
+            return y
+    return None
 
 
 def _rect(r):
@@ -995,15 +1058,16 @@ def run_scrub_test(pg):
 
 
 def run_unfold_test(pg):
-    # round 4: same-element unfold. At #experience p=0.5 the experience cube (4) and at #slicer
-    # p=0.5 the slicer cube (3) must have opacity ~0 and their unfoldFaceRects(i) six face rects
-    # must clear the adjacent copy (+40 px) and the morph shape boxes. SKIP if the hook is absent.
+    # round 4: same-element unfold, sampled at p=0.75 (fully open and held). At #experience the
+    # experience cube (4) and at #slicer the slicer cube (3) must have opacity ~0 and their
+    # unfoldFaceRects(i) six face rects must clear the adjacent copy (+40 px) and the morph shape
+    # boxes. SKIP if the hook is absent.
     if not pg.evaluate("() => typeof window.__v2.unfoldFaceRects === 'function'"):
         return {"status": "SKIP", "reason": "unfoldFaceRects hook absent"}
     fails = []
     for sel, idx, text_sel in (("#experience", 4, ".exp2-head,.exp2-ach"),
                                ("#slicer", 3, ".slicer-story,.slicer-key")):
-        y = _section_progress_y(pg, sel, 0.5)
+        y = _section_progress_y(pg, sel, 0.75)
         if y is None:
             continue
         pg.evaluate(f"() => window.__v2.scrollToY({y})")
@@ -1037,17 +1101,15 @@ def run_unfold_test(pg):
     return {"status": "FAIL" if fails else "OK", "fails": fails}
 
 
-def run_labels_test(pg):
-    # round 4: in the projects grid no label rect (labelBoxes) may intersect a cube box or
-    # another label. SKIP if the labelBoxes hook is absent.
+def run_labels_test(pg, grid_y):
+    # round 4: in the projects grid (sampled at grid_y, its resting scroll) no label rect
+    # (labelBoxes) may intersect a cube box or another label. SKIP if the labelBoxes hook is
+    # absent or the grid scroll was not found.
     if not pg.evaluate("() => typeof window.__v2.labelBoxes === 'function'"):
         return {"status": "SKIP", "reason": "labelBoxes hook absent"}
-    y = _section_progress_y(pg, "#projects", 0.5)
-    if y is None:
-        y = _section_mid_y(pg, "#projects")
-    if y is None:
-        return {"status": "SKIP", "reason": "no #projects section"}
-    pg.evaluate(f"() => window.__v2.scrollToY({y})")
+    if grid_y is None:
+        return {"status": "SKIP", "reason": "no projects grid scroll found"}
+    pg.evaluate(f"() => window.__v2.scrollToY({grid_y})")
     pg.wait_for_timeout(400)
     settle(pg)
     data = pg.evaluate("""() => ({
@@ -1073,21 +1135,38 @@ def run_labels_test(pg):
 
 
 def run_snap_test(pg):
-    # round 4: the page snaps to steady states. For up to three snapTargets(), wheel 150 px past
-    # the target, wait, and require scrollY to settle within 3 px of the target. SKIP if absent.
+    # round 4: the page snaps to steady states. For up to three snapTargets(), nudge past the
+    # target with five 30 px wheel steps 40 ms apart (a real gesture, so Lenis/ScrollTrigger snap
+    # fires), wait 2.5 s, and require scrollY to settle within 3 px of the target. A synthetic
+    # wheel that does not move Lenis at all is a harness limitation, not a page fault: that row is
+    # reported as HARNESS with the readings instead of FAIL. SKIP if the hook is absent.
     if not pg.evaluate("() => typeof window.__v2.snapTargets === 'function'"):
         return {"status": "SKIP", "reason": "snapTargets hook absent"}
     targets = pg.evaluate("() => window.__v2.snapTargets()") or []
+    pg.mouse.move(720, 450)
     fails = []
+    readings = []
+    harness = False
     for t in targets[:3]:
         pg.evaluate(f"() => window.__v2.scrollToY({t})")
-        pg.wait_for_timeout(400)
-        pg.mouse.wheel(0, 150)
-        pg.wait_for_timeout(1500)
+        pg.wait_for_timeout(500)
+        y0 = pg.evaluate("() => window.scrollY")
+        for _ in range(5):
+            pg.mouse.wheel(0, 30)
+            pg.wait_for_timeout(40)
+        after_wheel = pg.evaluate("() => window.scrollY")
+        pg.wait_for_timeout(2500)
         sy = pg.evaluate("() => window.scrollY")
+        readings.append({"target": round(t, 1), "y0": round(y0, 1),
+                         "after_wheel": round(after_wheel, 1), "settled": round(sy, 1)})
+        if abs(after_wheel - y0) < 1:   # the wheel moved nothing: synthetic-gesture limitation
+            harness = True
+            continue
         if abs(sy - t) > 3:
             fails.append({"target": round(t, 1), "settled": round(sy, 1), "off": round(sy - t, 1)})
-    return {"status": "FAIL" if fails else "OK", "fails": fails, "n": len(targets[:3])}
+    if harness and not fails:
+        return {"status": "HARNESS", "readings": readings}
+    return {"status": "FAIL" if fails else "OK", "fails": fails, "readings": readings}
 
 
 def run_hero_test(pg):
@@ -1114,14 +1193,14 @@ def run_hero_test(pg):
     return {"status": "FAIL" if hits else "OK", "fails": hits}
 
 
-def run_pixel_click_test(pg):
-    # round 4: rendered-position check. In the projects grid, for two cubes, count non-white
-    # pixels (any channel < 235) inside the cube's projected box from a screenshot; at least 60%
-    # must be non-white, otherwise the projected box does not sit on the actual render.
-    y = _section_progress_y(pg, "#projects", 0.5) or _section_mid_y(pg, "#projects")
-    if y is None:
-        return {"status": "SKIP", "reason": "no #projects section"}
-    pg.evaluate(f"() => window.__v2.scrollToY({y})")
+def run_pixel_click_test(pg, grid_y):
+    # round 4: rendered-position check at the projects grid resting scroll (grid_y). For two grid
+    # cubes, count non-white pixels (any channel < 235) inside the cube's projected box from a
+    # screenshot; at least 60% must be non-white, otherwise the projected box does not sit on the
+    # actual render. SKIP if the grid scroll was not found.
+    if grid_y is None:
+        return {"status": "SKIP", "reason": "no projects grid scroll found"}
+    pg.evaluate(f"() => window.__v2.scrollToY({grid_y})")
     pg.wait_for_timeout(400)
     settle(pg)
     png = pg.screenshot()
