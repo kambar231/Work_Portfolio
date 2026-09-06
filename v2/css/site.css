@@ -35,6 +35,7 @@ body { background: transparent; overflow-x: hidden; }
 }
 #cubes-canvas {
   position: fixed; inset: 0; z-index: 0; pointer-events: none; display: block;
+  transition: opacity .5s ease;   /* used by reduced-motion to hide cubes past the hero */
 }
 
 /* Content sits above the cube canvas. */
@@ -238,7 +239,7 @@ body { background: transparent; overflow-x: hidden; }
   .ch-list li, .ch-facts li, .ch-story, .ch-key { opacity: 1 !important; transform: none !important; }
   .ray-sys .ray-open { opacity: 1 !important; transform: none !important; }
   /* cubes: the sorted grid at the hero only, hidden past it */
-  body.past-hero #cubes-canvas { opacity: 0; }
+  body.past-hero #cubes-canvas { opacity: 0 !important; }
 }
 
 /* ---- Narrow screens (phone + tablet) ---- */
@@ -248,7 +249,6 @@ body { background: transparent; overflow-x: hidden; }
   /* hero: the sorted grid sits in the top 34vh (JS); the headline starts at 42vh */
   #hero { padding-bottom: 0; }
   .hero-inner { position: absolute; top: 42vh; bottom: auto; left: 0; right: 0; }
-  #cubes-canvas { opacity: 1; }
   /* chapters: the parked cube sits in this reserved band above the category word */
   .m-cube-anchor { height: 112px; width: 100%; pointer-events: none; }
   .ch-pin { min-height: auto; padding: 4vh 0; }

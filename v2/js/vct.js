@@ -76,10 +76,17 @@ export function createVct(svg, animate) {
 
   function render(angle, pinOut, advancing) {
     rotor.setAttribute('transform', `rotate(${angle} ${C} ${C})`);
+    // oil weight tracks the rotor: the growing (advance) side darkens .12 -> .45, the
+    // shrinking (retard) side lightens .45 -> .12, so the oil visibly moves.
+    const f = angle / 24;
+    const opAdv = (0.12 + f * 0.33).toFixed(3);
+    const opRet = (0.45 - f * 0.33).toFixed(3);
     for (let k = 0; k < 4; k++) {
       const base = 90 * k, vane = base + 45 + angle;   // vane inside chamber [base, base+90]
       oilAdv[k].setAttribute('d', sectorPath(base + 2, vane - 8, R_HUB + 3, R_WALL - 3));   // advance side grows
       oilRet[k].setAttribute('d', sectorPath(vane + 8, base + 88, R_HUB + 3, R_WALL - 3));  // retard side shrinks
+      oilAdv[k].setAttribute('fill-opacity', opAdv);
+      oilRet[k].setAttribute('fill-opacity', opRet);
     }
     // lock pin slides 6px out at the holds
     pin.setAttribute('x', C + 84 + (pinOut ? 6 : 0));

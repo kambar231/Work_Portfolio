@@ -82,6 +82,7 @@ export function createCubeHero({ onCubeClick } = {}) {
   const canvas = document.createElement('canvas');
   canvas.id = 'cubes-canvas';
   document.body.appendChild(canvas);
+  // canvas stays hidden (CSS) until body.cubes-ready is set once textures have loaded
 
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
   renderer.setClearColor(0x000000, 0);
@@ -107,6 +108,10 @@ export function createCubeHero({ onCubeClick } = {}) {
   const geometry = new THREE.BoxGeometry(1, 1, 1);
   const loader = new THREE.TextureLoader();
   const loads = [];
+  // each cube stays invisible until its own textures load, then fades in, so no cube is
+  // ever shown as flat grey; cubeReveal[i] lerps toward revealTargets[i]
+  const cubeReveal = new Array(CUBES.length).fill(0);
+  const revealTargets = new Array(CUBES.length).fill(0);
 
   const meshes = [];
   const gridLocal = [];   // sorted slot, relative to the group centre
@@ -123,19 +128,22 @@ export function createCubeHero({ onCubeClick } = {}) {
     base.push(gridLocal[i].clone());
 
     const faces = [];
+    const faceLoads = [];
     for (let f = 0; f < 6; f++) {
       const name = CUBES[i].photos[f % CUBES[i].photos.length];
       const file = (name.endsWith('.png') ? name.slice(0, -4) : name) + '.webp';   // WebP for smaller payload
-      const mat = new THREE.MeshStandardMaterial({ color: 0xbfbfbf, roughness: 0.7, metalness: 0, transparent: true, opacity: 1 });
-      loads.push(new Promise((res) => {
+      const mat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.7, metalness: 0, transparent: true, opacity: 1 });
+      const pr = new Promise((res) => {
         loader.load('assets/cubes/' + file, (tex) => {
           tex.colorSpace = THREE.SRGBColorSpace;
           tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
           mat.map = tex; mat.color.set(0xffffff); mat.needsUpdate = true; res();
         }, undefined, () => res());
-      }));
+      });
+      loads.push(pr); faceLoads.push(pr);
       faces.push(mat);
     }
+    Promise.all(faceLoads).then(() => { cubeReveal[i] = Math.max(cubeReveal[i], 0.0001); revealTargets[i] = 1; });
     const mesh = new THREE.Mesh(geometry, faces);
     mesh.rotation.set(0.3 + i * 0.1, 0.4 + i * 0.2, 0);
     group.add(mesh);
@@ -488,7 +496,9 @@ export function createCubeHero({ onCubeClick } = {}) {
       }
       if (moving) { m.rotation.x += TUMBLE_X * fs * tumbleScale; m.rotation.y += TUMBLE_Y * fs * tumbleScale; }
       m.scale.setScalar(targetScale);
-      setCubeOpacity(m, op);
+      // fade the cube in once its own textures have arrived
+      cubeReveal[i] += (revealTargets[i] - cubeReveal[i]) * Math.min(1, 0.12 * fs);
+      setCubeOpacity(m, op * cubeReveal[i]);
     }
 
     renderer.render(scene, camera);
