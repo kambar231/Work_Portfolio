@@ -492,17 +492,21 @@ export function createCubeHero({ onCubeClick } = {}) {
     // projected cube CENTRE (~half a 180px cube plus margin): clear of this cube, above the
     // next row.
     const inProjects = (projT > 0.5 || contactT > 0.5) && openIndex < 0;
+    const rc = raymondCubeIndex();
     for (let i = 0; i < meshes.length; i++) {
       let x, y, op;
-      if (forceHidden || openIndex >= 0) {
-        // a cube is open (or shape debug): no grid labels compete with the net
+      // a label is hidden for any cube that is out of the visible set, exited, currently open
+      // as a rig, or the Raymond cube while its rig is up (no floating DEPLOY label).
+      const hidden = (visibleSet && !visibleSet.has(i)) || (i === rc && raymondT > 0.02) || i === openIndex;
+      if (forceHidden || openIndex >= 0 || hidden) {
         meshes[i].getWorldPosition(_p); _p.project(camera);
         x = (_p.x * 0.5 + 0.5) * w; y = (-_p.y * 0.5 + 0.5) * h + 124; op = 0;
       } else if (inProjects) {
         meshes[i].getWorldPosition(_p);
         _p.project(camera);
         x = (_p.x * 0.5 + 0.5) * w;
-        y = (-_p.y * 0.5 + 0.5) * h + 124;
+        // directly under THIS cube, in the row gap sized to hold it (Part D label fix)
+        y = (-_p.y * 0.5 + 0.5) * h + gridEdgePx * 0.5 + 22;
         op = mobileHide ? 0 : (_p.z < 1 ? 1 : 0);
       } else {
         meshes[i].getWorldPosition(_p);
@@ -675,8 +679,11 @@ export function createCubeHero({ onCubeClick } = {}) {
     // cube's overhang above its cell, so the padded box never touches the padded header rect.
     const gridTop = headBottom + 88;
     const minEdge = 0.07 * vw, GAPF = 0.14;
+    // the vertical gap must also hold a row's label, so the top row's label sits in the gap and
+    // not on the bottom cubes
+    const gapYof = (e) => Math.max(e * GAPF, 50);
     const fits = (e) => {
-      const gap = e * GAPF, gw = 4 * e + 3 * gap, gh = 2 * e + gap;
+      const gapX = e * GAPF, gapY = gapYof(e), gw = 4 * e + 3 * gapX, gh = 2 * e + gapY;
       if (gridTop + gh + e * 0.15 > vh - 12) return false;   // must sit fully inside the viewport
       // pad the block the way the checker pads text (+40) plus the tilt overhang, so a "fits"
       // result really is on-text-free
@@ -690,11 +697,11 @@ export function createCubeHero({ onCubeClick } = {}) {
     while (edge > minEdge && !fits(edge)) edge -= 4;
     edge = Math.max(edge, minEdge);
     gridEdgePx = edge;
-    const gap = edge * GAPF, cx = vw / 2;
+    const gapX = edge * GAPF, gapY = gapYof(edge), cx = vw / 2;
     for (let i = 0; i < CUBES.length; i++) {
       const col = i % 4, row = Math.floor(i / 4);
-      const px = cx + (col - 1.5) * (edge + gap);
-      const py = gridTop + edge / 2 + row * (edge + gap);
+      const px = cx + (col - 1.5) * (edge + gapX);
+      const py = gridTop + edge / 2 + row * (edge + gapY);
       const w = worldAtScreen(px, py, 0);
       projWorld[i].set(w.x, w.y, 0);
     }
@@ -887,19 +894,22 @@ export function createCubeHero({ onCubeClick } = {}) {
   }
   // Part D: measure the free band live (between the employer lines and achievements, right of
   // the text, left of the forklift) and size the 3x2 grid to fill it. Cached per frame in these.
-  let bandCx = 0, bandCy = 0, bandFace = 0, bandGap = 0;
+  let bandCx = 0, bandCy = 0, bandFace = 0, bandGap = 0, bandW = 0, bandH = 0;
   function raymondBand() {
     const vw = window.innerWidth, vh = window.innerHeight;
     const hb = document.querySelector('.exp2-head');
     const ab = document.querySelector('.exp2-ach');
     const hr = hb ? hb.getBoundingClientRect() : null;
     const ar = ab ? ab.getBoundingClientRect() : null;
-    const top = (hr && hr.height > 4 ? hr.bottom : 0.32 * vh) + 40;
-    const bottom = (ar && ar.height > 4 ? ar.top : 0.70 * vh) - 40;
+    // clamp to the viewport: in the pinned experience section .exp2-ach can be far below the
+    // fold, which would make the band (and the fitted park scale) far too tall.
+    const top = Math.max(0.06 * vh, ((hr && hr.height > 4 ? hr.bottom : 0.32 * vh) + 40));
+    const achTop = (ar && ar.height > 4 && ar.top < vh) ? ar.top : 0.72 * vh;
+    const bottom = Math.min(0.90 * vh, achTop - 40);
     const left = 0.05 * vw;
     const forkX = (shapeRects[0] && shapeRects[0].w > 4) ? shapeRects[0].x - 24 : 0.47 * vw;
     const right = Math.min(0.47 * vw, forkX);
-    const bandW = Math.max(120, right - left), bandH = Math.max(120, bottom - top);
+    bandW = Math.max(120, right - left); bandH = Math.max(120, bottom - top);
     bandGap = 0.012 * vh;
     bandFace = Math.max(60, Math.min((bandW - 2 * bandGap) / 3, (bandH - bandGap) / 2));
     bandCx = (left + right) / 2; bandCy = (top + bottom) / 2;
@@ -1264,15 +1274,40 @@ export function createCubeHero({ onCubeClick } = {}) {
         scaleTarget[i] = tr.scale;
       } else if (pt) {
         const e = ease(pt.t);
+        let ax = pt.axvw, ay = pt.ayvh, psc = pt.scale, laneAvoid = true;
+        if (i === raymondCubeIndex()) {
+          // Part D: the Raymond cube parks in the CENTRE of the free band (already clear of the
+          // text and the forklift), at the largest scale that fits with 40 px pads (cap 2.4,
+          // floor 1.4). No lane avoidance, so it is never shoved off the right edge at 2.4.
+          raymondBand();
+          const vw = window.innerWidth, vh = window.innerHeight;
+          // Use the ACTUAL rendered box (meshBox) to get px-per-scale, so the fit and the
+          // on-screen clamp match what the camera draws (projection math via anchorLocalXY
+          // ignores the group z offset and mis-sizes it). Converges as the scale eases in.
+          const pbx = meshBox(i), curS = Math.max(0.1, m.scale.x);
+          const pxPerScale = Math.max(1, Math.max(pbx.w, pbx.h) / curS);
+          psc = Math.max(1.0, Math.min(2.4, (Math.min(bandW, bandH) - 80) / pxPerScale));
+          laneAvoid = false;
+        }
         // emerge from the background ON the park side (fixed x/y, target z travels)
-        const anchor = anchorLocalXY(pt.axvw, pt.ayvh);
+        const anchor = anchorLocalXY(ax, ay);
         tgt[i].set(anchor.x, anchor.y + bob * (1 - e), PARK_START_Z + (PARK_Z - PARK_START_Z) * e);
-        scaleTarget[i] = 0.8 + (pt.scale - 0.8) * e;
+        scaleTarget[i] = 0.8 + (psc - 0.8) * e;
         tumbleScale = pt.tumble * (1 - 0.7 * e);
-        // a parked cube clears text lanes and morph shapes (projectTargets) but does NOT join
-        // pairwise de-conflict: a screen-filling feature cube cannot be nudged off small cubes
-        // without jitter, so it only routes around the copy. (_avoidPair stays false.)
-        _forceable[i] = true; _avoid[i] = true; _avoidPair[i] = true;
+        if (i === raymondCubeIndex()) {
+          // Keep the whole box on-screen using the ACTUAL rendered box: shift the target in
+          // world units by whatever pixels it overflows an edge (converges over a few frames).
+          const vw = window.innerWidth, vh = window.innerHeight, cb = meshBox(i);
+          const ppw = Math.max(1, cb.w / Math.max(0.1, m.scale.x));   // px per world unit here
+          let dx = 0, dy = 0;
+          if (cb.x < 10) dx = 10 - cb.x; else if (cb.x + cb.w > vw - 10) dx = (vw - 10) - (cb.x + cb.w);
+          if (cb.y < 10) dy = 10 - cb.y; else if (cb.y + cb.h > vh - 10) dy = (vh - 10) - (cb.y + cb.h);
+          tgt[i].x += dx / ppw; tgt[i].y += -dy / ppw;   // screen +y is down -> world -y
+        }
+        // a parked cube may clear text lanes/shapes (projectTargets) but never joins pairwise
+        // de-conflict: a screen-filling feature cube cannot be nudged off small cubes without
+        // jitter. The Raymond cube skips lane avoidance too (its band centre is already clear).
+        _forceable[i] = true; _avoid[i] = laneAvoid; _avoidPair[i] = false;
         if (moving) { m.rotation.x += TUMBLE_X * fs * tumbleScale; m.rotation.y += TUMBLE_Y * fs * tumbleScale; }
       } else if (mobileHide || forceHidden || (ov && ov.exit)) {
         // hidden / exited: drift out past the nearest edge and hold there (opacity stays 1)
