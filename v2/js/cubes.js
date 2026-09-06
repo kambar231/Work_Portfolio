@@ -86,7 +86,7 @@ export function createCubeHero({ onCubeClick } = {}) {
 
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
   renderer.setClearColor(0x000000, 0);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.innerWidth > 1920 ? 1.5 : 2));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -452,6 +452,10 @@ export function createCubeHero({ onCubeClick } = {}) {
   // right, since the reserved text columns sit on the left) so the copy stays readable.
   let excludeRects = [];
   function setExclude(rects) { excludeRects = rects || []; }
+  // visible text rects (screen px), refreshed each frame by main.js; a cube whose box lands
+  // on one is faded so the copy stays readable ("cubes part around text").
+  let textRects = [];
+  function setTextRects(rects) { textRects = rects || []; }
   const _ex = new THREE.Vector3();
   function partAroundText(wx, wy, wz) {
     if (!excludeRects.length) return wx;
@@ -597,6 +601,91 @@ export function createCubeHero({ onCubeClick } = {}) {
   window.addEventListener('resize', resize);
   resize();
 
+  // ---- cube-cube overlap resolution ----
+  // After all cubes are positioned, push any overlapping pair apart so no two projected
+  // bounding boxes intersect. Uses the axis of least penetration (MTV), depth-weighted so
+  // the nearer cube (larger world z) yields less. Runs every frame for the drift, parked,
+  // grid and contact states (never the open unfold cube). Positions are nudged so the
+  // rendered frame is always overlap-free.
+  const _c0 = new THREE.Vector3(), _c1 = new THREE.Vector3();
+  const _sc = new Array(CUBES.length).fill(null);
+  const OVERLAP_MARGIN = 8;
+  function gatherBoxes() {
+    const w = window.innerWidth, h = window.innerHeight;
+    let n = 0;
+    for (let i = 0; i < meshes.length; i++) {
+      const m = meshes[i];
+      if (i === openIndex || m.material[0].opacity < 0.12) { _sc[i] = null; continue; }
+      m.updateWorldMatrix(true, false);
+      let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
+      for (let sx = -1; sx <= 1; sx += 2)
+        for (let sy = -1; sy <= 1; sy += 2)
+          for (let sz = -1; sz <= 1; sz += 2) {
+            _p.set(sx * 0.5 * m.scale.x, sy * 0.5 * m.scale.y, sz * 0.5 * m.scale.z);
+            _p.applyMatrix4(m.matrixWorld).project(camera);
+            const X = (_p.x * 0.5 + 0.5) * w, Y = (-_p.y * 0.5 + 0.5) * h;
+            if (X < minx) minx = X; if (X > maxx) maxx = X;
+            if (Y < miny) miny = Y; if (Y > maxy) maxy = Y;
+          }
+      // px per one group-local x-unit AT THIS cube's depth (accurate screen<->world scale)
+      m.getWorldPosition(_c0); _c1.copy(_c0); _c1.x += 1;
+      _c0.project(camera); _c1.project(camera);
+      const ppu = Math.max(1, Math.abs((_c1.x - _c0.x) * 0.5 * w));
+      _sc[i] = { cx: (minx + maxx) / 2, cy: (miny + maxy) / 2, dx: 0, dy: 0,
+        hx: (maxx - minx) / 2, hy: (maxy - miny) / 2, wz: m.position.z, ppu };
+      n++;
+    }
+    return n;
+  }
+  function resolveOverlaps() {
+    // Re-project and correct up to 3 times so cubes at different depths converge to an
+    // overlap-free layout, then fade any cube still sitting on visible text.
+    let n = 0;
+    for (let pass = 0; pass < 3; pass++) {
+      n = gatherBoxes();
+      if (n < 2) break;
+      let anyOverlap = false;
+      for (let iter = 0; iter < 8; iter++) {
+        let moved = false;
+        for (let a = 0; a < meshes.length; a++) {
+          const A = _sc[a]; if (!A) continue;
+          for (let b = a + 1; b < meshes.length; b++) {
+            const B = _sc[b]; if (!B) continue;
+            const dx = B.cx - A.cx, dy = B.cy - A.cy;
+            const ox = (A.hx + B.hx + OVERLAP_MARGIN) - Math.abs(dx);
+            const oy = (A.hy + B.hy + OVERLAP_MARGIN) - Math.abs(dy);
+            if (ox <= 0 || oy <= 0) continue;              // already separated on an axis
+            const wa = A.wz >= B.wz ? 0.32 : 0.68, wb = 1 - wa;
+            if (ox < oy) { const s = (dx < 0 ? -1 : 1) * ox; A.cx -= s * wa; B.cx += s * wb; A.dx -= s * wa; B.dx += s * wb; }
+            else { const s = (dy < 0 ? -1 : 1) * oy; A.cy -= s * wa; B.cy += s * wb; A.dy -= s * wa; B.dy += s * wb; }
+            moved = true; anyOverlap = true;
+          }
+        }
+        if (!moved) break;
+      }
+      for (let i = 0; i < meshes.length; i++) {
+        const S = _sc[i]; if (!S) continue;
+        meshes[i].position.x += S.dx / S.ppu;
+        meshes[i].position.y += -S.dy / S.ppu;
+      }
+      if (!anyOverlap) break;
+    }
+    // fade any cube whose (resolved) box overlaps a visible text rect, so text stays clear
+    if (textRects.length) {
+      if (n === 0) gatherBoxes();               // ensure boxes exist even for a single cube
+      const PAD = 40;
+      for (let i = 0; i < meshes.length; i++) {
+        const S = _sc[i]; if (!S) continue;
+        const ax = S.cx - S.hx, ay = S.cy - S.hy, aw = S.hx * 2, ah = S.hy * 2;
+        let onText = false;
+        for (const r of textRects) {
+          if (!(ax + aw < r.x - PAD || r.x + r.w + PAD < ax || ay + ah < r.y - PAD || r.y + r.h + PAD < ay)) { onText = true; break; }
+        }
+        if (onText) { const m = meshes[i]; for (const mat of m.material) mat.opacity = Math.min(mat.opacity, 0.28); }
+      }
+    }
+  }
+
   const _tmp = new THREE.Vector3();
   function frame(now, dt, moving) {
     const t = now / 1000;
@@ -695,13 +784,14 @@ export function createCubeHero({ onCubeClick } = {}) {
       setCubeOpacity(m, op * cubeReveal[i]);
     }
 
+    resolveOverlaps();
     renderer.render(scene, camera);
     updateLabels();
   }
 
   return {
     frame, setUnravel, setState, focus, raycast, setPointer, ready,
-    cubeBoxes, labelBoxes, chapterPark, setTrack, setExclude, chapterDim, setCloudDim, setMobileHide, setForceHidden, meshBox,
+    cubeBoxes, labelBoxes, chapterPark, setTrack, setExclude, setTextRects, chapterDim, setCloudDim, setMobileHide, setForceHidden, meshBox,
     setProjects, setHover, openProject, closeProject, projectOpenIndex, faceAnchors, setProjectHandlers,
     projectsActive: () => projActive,
     labelFor: (i) => (CUBES[i] ? CUBES[i].label : ''),

@@ -99,8 +99,9 @@ export function createVct(svg, animate) {
   window.__vctRender = (a, pin, adv) => { paused = true; render(a, pin, adv); };   // test hook
 
   const T = 6, T1 = 2.2, HOLD = 0.7, T2 = 2.2;   // advance, hold, retard, hold(remainder)
+  // Driven by the single master rAF (main.js) so the page keeps one animation loop.
   function frame(now) {
-    if (paused) { requestAnimationFrame(frame); return; }
+    if (paused) return;
     const t = (now / 1000) % T;
     let angle, pinOut, advancing;
     if (t < T1) { angle = 24 * easeInOut(t / T1); pinOut = false; advancing = true; }
@@ -108,7 +109,6 @@ export function createVct(svg, animate) {
     else if (t < T1 + HOLD + T2) { angle = 24 * (1 - easeInOut((t - T1 - HOLD) / T2)); pinOut = false; advancing = false; }
     else { angle = 0; pinOut = true; advancing = false; }
     render(angle, pinOut, advancing);
-    requestAnimationFrame(frame);
   }
-  requestAnimationFrame(frame);
+  return frame;
 }

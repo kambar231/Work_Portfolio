@@ -107,15 +107,25 @@ function initPart3() {
       trigger: stripe, start: 'top bottom', end: 'bottom top', scrub: 0.6,
       onUpdate: (self) => {
         const p = self.progress;
-        // dark veil + white points crossfade over the first/last ~18%
-        const dark = clamp01(p < 0.5 ? p / 0.18 : (1 - p) / 0.18);
+        // The stripe fully fills the viewport only around progress 0.5 (100vh section).
+        // Darken (veil + white points) on a plateau there so the neighbouring white
+        // sections are gone before the band goes dark; ramp at the edges for a soft cut.
+        let dark;
+        if (p < 0.3) dark = 0;
+        else if (p < 0.45) dark = (p - 0.3) / 0.15;
+        else if (p < 0.55) dark = 1;
+        else if (p < 0.7) dark = (0.7 - p) / 0.15;
+        else dark = 0;
+        dark = clamp01(dark);
         particles.setDark(dark);
         if (veil) veil.style.opacity = dark.toFixed(3);
-        // cube outline assembles just after the veil, holds, dissolves before the exit
+        // cube outline forms only while the band is dark (its points are white only then)
         let m;
-        if (p < 0.35) m = (p - 0.08) / 0.27;
-        else if (p > 0.72) m = (0.92 - p) / 0.2;
-        else m = 1;
+        if (p < 0.32) m = 0;
+        else if (p < 0.5) m = (p - 0.32) / 0.18;
+        else if (p < 0.58) m = 1;
+        else if (p < 0.75) m = (0.75 - p) / 0.17;
+        else m = 0;
         particles.setMorph(2, clamp01(m));
         document.body.classList.toggle('in-stripe', dark > 0.4);
       },
@@ -135,9 +145,11 @@ function initPart3() {
   }
 }
 
-// ---- variable cam timing diagram (experience section) ----
+// ---- variable cam timing diagram (experience section); its update is driven by the one
+// master loop below, not its own rAF ----
 const vctEl = document.querySelector('.vct');
-if (vctEl) createVct(vctEl, !reduced);
+let vctFrame = null;
+if (vctEl) { const r = createVct(vctEl, !reduced); if (!reduced) vctFrame = r; }
 
 // reduced motion: cubes are the static sorted grid at the hero only, hidden past it
 if (reduced) {
@@ -350,8 +362,9 @@ if (projSec) {
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && cubes.projectOpenIndex() >= 0) cubes.closeProject(); });
 
   if (!reduced && !mobile) {
+    // active only while the grid is on screen; turning off closes any open cube (setProjects)
     ScrollTrigger.create({
-      trigger: projSec, start: 'top 55%', end: 'bottom 45%',
+      trigger: projSec, start: 'top 60%', end: 'bottom 70%',
       onEnter: () => cubes.setProjects(true), onEnterBack: () => cubes.setProjects(true),
       onLeave: () => cubes.setProjects(false), onLeaveBack: () => cubes.setProjects(false),
     });
@@ -425,20 +438,32 @@ window.addEventListener('pointermove', (e) => {
   }
 }, { passive: true });
 
-// ---- click a cube -> open it in the projects grid, else scroll to its chapter ----
-window.addEventListener('click', (e) => {
-  if (mobile || e.target.closest('a, button')) return;
-  const ndc = {
-    x: (e.clientX / window.innerWidth) * 2 - 1,
-    y: -(e.clientY / window.innerHeight) * 2 + 1,
-  };
-  const i = cubes.raycast(ndc);
+// ---- open a cube ONLY on a real click (pointerdown + pointerup within 6px and 400ms on
+// the SAME cube). Scroll, drags and momentum never open a cube; a tap outside an open cube
+// closes it. Never opens from a scroll or timeline callback. ----
+const toNdc = (e) => ({ x: (e.clientX / window.innerWidth) * 2 - 1, y: -(e.clientY / window.innerHeight) * 2 + 1 });
+const IGNORE_SEL = 'a, button, #project-cards, #project-close, #project-stack';
+let downPt = null;
+window.addEventListener('pointerdown', (e) => {
+  if (mobile) { downPt = null; return; }
+  if (e.target.closest(IGNORE_SEL)) { downPt = null; return; }
+  downPt = { x: e.clientX, y: e.clientY, t: performance.now(), cube: cubes.raycast(toNdc(e)) };
+}, { passive: true });
+window.addEventListener('pointerup', (e) => {
+  const d = downPt; downPt = null;
+  if (mobile || !d || e.target.closest(IGNORE_SEL)) return;
+  const moved = Math.hypot(e.clientX - d.x, e.clientY - d.y);
+  if (moved > 6 || performance.now() - d.t > 400) return;   // a drag/scroll, not a click
+  const up = cubes.raycast(toNdc(e));
   if (cubes.projectsActive && cubes.projectsActive()) {
-    if (cubes.projectOpenIndex() >= 0) { if (i < 0) cubes.closeProject(); }
-    else if (i >= 0) cubes.openProject(i);
+    if (cubes.projectOpenIndex() >= 0) {
+      if (up < 0) cubes.closeProject();                       // tap outside closes
+    } else if (up >= 0 && up === d.cube) {
+      cubes.openProject(up);                                  // tap the same cube opens it
+    }
     return;
   }
-  if (i >= 0) scrollToSection(cubes.sectionFor(i));
+  if (up >= 0 && up === d.cube) scrollToSection(cubes.sectionFor(up));
 });
 
 // ---- scroll progress for particle density ----
@@ -474,16 +499,42 @@ function updateMobileDim() {
   }
 }
 
+// ---- visible text rects (so bright cubes fade off the copy); elements cached once ----
+const TEXT_SEL = '.display,.hero-sub,.exp-word,.exp2-head,.exp2-systems,.exp2-ach,.exp2-prev,'
+  + '.slicer-story,.slicer-key,.ev-strip,.flat-head,.projects-head,.web-lead,.web-tiles,.ds-left,.edu,.contact-inner';
+const textEls = Array.from(document.querySelectorAll(TEXT_SEL));
+function refreshTextRects() {
+  const vh = window.innerHeight, vw = window.innerWidth;
+  const rects = [];
+  for (const el of textEls) {
+    const r = el.getBoundingClientRect();
+    if (r.width > 4 && r.height > 4 && r.bottom > 0 && r.top < vh && r.left < vw && r.right > 0) {
+      rects.push({ x: r.x, y: r.y, w: r.width, h: r.height });
+    }
+  }
+  cubes.setTextRects(rects);
+}
+
 // ---- master loop + FPS guard ----
+// One rAF drives particles, cubes and the VCT diagram. It idles when the tab is hidden
+// (visibilitychange) so nothing renders in the background.
 let last = performance.now();
 let fpsStart = last, fpsFrames = 0, fpsChecked = false;
+let pageHidden = document.hidden;
+document.addEventListener('visibilitychange', () => {
+  pageHidden = document.hidden;
+  if (!pageHidden) { last = performance.now(); fpsStart = last; fpsFrames = 0; }  // avoid a dt/fps spike on resume
+});
 
 function loop(now) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
+  if (pageHidden) { requestAnimationFrame(loop); return; }   // idle while backgrounded
   if (lenis) lenis.raf(now);
+  refreshTextRects();
   particles.frame(now, dt, scrollProgress(), moving);
   cubes.frame(now, dt, moving);
+  if (vctFrame) vctFrame(now);
   updateProgress();
   updateMobileDim();
 
