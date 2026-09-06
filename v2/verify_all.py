@@ -506,7 +506,7 @@ def run_seam_test(pg):
         report.append({"cube": i, "faces": faces, "flagged": flagged})
 
     # Raymond cube: crop its six unfolded faces too (6 more crops) if the unfold rects exist
-    if _scroll_experience_half(pg):
+    if _scroll_experience(pg):
         rfaces = _raymond_face_rects(pg)
         if all(f is not None for f in rfaces):
             png = pg.screenshot()
@@ -527,12 +527,13 @@ def run_seam_test(pg):
     return report
 
 
-def _scroll_experience_half(pg):
-    # position the page at experience progress 0.5 (where the raymond cube is unfolded).
+def _scroll_experience(pg, progress=0.6):
+    # position the page at the given experience progress. main.js maps progress 0.25..0.55 to
+    # unfold 0..1 (power2.inOut), so 0.5 only reaches 0.944; sample at 0.6, fully unfolded/held.
     rng = pg.evaluate("() => window.__v2.triggerRange('#experience')")
     if not rng:
         return False
-    y = rng["start"] + 0.5 * (rng["end"] - rng["start"])
+    y = rng["start"] + progress * (rng["end"] - rng["start"])
     pg.evaluate(f"() => window.__v2.scrollToY({y})")
     pg.wait_for_timeout(2500)
     return True
@@ -554,7 +555,7 @@ def _raymond_face_rects(pg):
 def run_raymond_test(pg):
     # verify the raymond cube unfolds at experience 0.5: unfold >= 0.95, six face rects clear of
     # text and the forklift morph, all on-screen, and each face click opens its reading panel.
-    if not _scroll_experience_half(pg):
+    if not _scroll_experience(pg):
         return {"status": "SKIP", "reason": "no #experience trigger range"}
     unfold = pg.evaluate("() => (typeof window.__v2.raymondUnfold === 'function') ? window.__v2.raymondUnfold() : null")
     faces = _raymond_face_rects(pg)
