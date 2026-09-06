@@ -37,6 +37,10 @@
     </nav>
   </header>
 
+  <!-- dark veil behind the particle canvas: fades in for the dark stripe so the white
+       points read on #1a1a1a; sits below the particle canvas (z-index -2) -->
+  <div id="dark-veil" aria-hidden="true"></div>
+
   <!-- DOM labels for the cubes are positioned by cubes.js -->
   <div id="cube-labels" aria-hidden="true"></div>
 
@@ -144,15 +148,17 @@
       </div>
     </section>
 
-    <!-- Chapter 10: About and manifesto -->
-    <section id="about" class="ch-about">
-      <div class="col about-lead">
-        <p class="soul">Sense. Decide. Respond.</p>
+    <!-- Dark stripe: the particle field turns white and forms a slowly rotating cube
+         outline on the right; the manifesto sits rotated vertical on the left -->
+    <section id="about" class="darkstripe">
+      <div class="ds-left">
+        <p class="ds-manifesto">AN ORGANISED WORLD, FROM PARTS THAT MOVE. THEN MEASURE IT.</p>
+        <p class="ds-sub">Sense. Decide. Respond.</p>
       </div>
-      <div class="manifesto-band">
-        <p class="manifesto">An organised world, from parts that move. Then measure it.</p>
-        <div class="manifesto-stack" aria-hidden="true"></div>
-      </div>
+    </section>
+
+    <!-- Education and awards, on white -->
+    <section id="education" class="ch-flat edu-sec">
       <div class="col edu">
         <div class="edu-col">
           <h3>Education</h3>
@@ -170,7 +176,7 @@
     <!-- Chapter 11: Contact -->
     <section id="contact" class="ch-contact">
       <div class="col contact-inner">
-        <h2 class="flat-head">contact</h2>
+        <h2 class="flat-head">let's talk</h2>
         <ul class="contact-list">
           <li><a href="mailto:kambar231@gmail.com">kambar231@gmail.com</a></li>
           <li><a href="tel:+15853099467">+1 585-309-9467</a></li>
@@ -178,7 +184,7 @@
         </ul>
         <a class="contact-pill" href="mailto:kambar231@gmail.com">Contact</a>
         <p class="contact-foot">
-          <a href="../">Back to the classic page</a>. Hand-written, no framework, Three.js and GSAP.
+          <a href="../">Back to the classic page</a>. Hand-written. Three.js and GSAP.
         </p>
       </div>
     </section>

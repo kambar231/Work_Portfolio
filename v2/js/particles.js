@@ -93,12 +93,15 @@ export function createParticles(opts = {}) {
   const uniforms = { uTime: { value: 0 }, uWarp: { value: WARP }, uFreq: { value: WFREQ }, uNoise: { value: NOISE },
     uMorph0: { value: 0 }, uMorph1: { value: 0 }, uMorph2: { value: 0 },
     // slice stack builds bottom-first: shape-1 points below uReveal1 (fraction of stack height) are placed
-    uReveal1: { value: 1 }, uSliceLo: { value: -1 }, uSliceHi: { value: 1 } };
+    uReveal1: { value: 1 }, uSliceLo: { value: -1 }, uSliceHi: { value: 1 },
+    // dark stripe: uDark tints every point white; the cube outline (shape 2) spins about
+    // its centre in the shader (the target set rotates, not the points)
+    uDark: { value: 0 }, uCubeSpin: { value: 0 }, uCubeCx: { value: 0 }, uCubeCz: { value: 0 } };
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
     // vertex: warp -> morph -> swirl, plus per-class colour/size and background dimming
     shader.vertexShader =
-      'uniform float uTime,uWarp,uFreq,uNoise,uMorph0,uMorph1,uMorph2,uReveal1,uSliceLo,uSliceHi;\n' +
+      'uniform float uTime,uWarp,uFreq,uNoise,uMorph0,uMorph1,uMorph2,uReveal1,uSliceLo,uSliceHi,uDark,uCubeSpin,uCubeCx,uCubeCz;\n' +
       'attribute vec3 aShape0; attribute vec3 aShape1; attribute vec3 aShape2; attribute float aHash,aFlag0,aFlag1,aFlag2;\n' +
       'varying vec3 vCol; varying float vOpa;\n' +
       shader.vertexShader.replace('#include <begin_vertex>',
@@ -116,7 +119,13 @@ export function createParticles(opts = {}) {
          vec3 pos = base;
          pos = mix(pos, aShape0, uMorph0);
          pos = mix(pos, aShape1, uM1);
-         pos = mix(pos, aShape2, uMorph2);
+         // cube outline: rotate the target set about its centre (Y axis) so the wireframe spins
+         vec3 s2 = aShape2;
+         vec2 rel2 = vec2(s2.x - uCubeCx, s2.z - uCubeCz);
+         float ca = cos(uCubeSpin), sa = sin(uCubeSpin);
+         s2.x = uCubeCx + rel2.x * ca - rel2.y * sa;
+         s2.z = uCubeCz + rel2.x * sa + rel2.y * ca;
+         pos = mix(pos, s2, uMorph2);
          // swirl from dust: peaks mid-transition, ZERO at both ends (so a formed shape is crisp)
          float swirl = m * (1.0 - m) * 2.6;
          vec3 n = vec3(fract(sin(aHash*91.7)*4372.1), fract(sin(aHash*38.3)*1934.7), fract(sin(aHash*17.1)*271.3)) - 0.5;
@@ -137,7 +146,9 @@ export function createParticles(opts = {}) {
          float sz = mix(size, shapeSz, inShape * mA);
          // background dust drops to 15% opacity once the morph is past 0.4, so the silhouette stands alone
          float dim = (1.0 - inShape) * smoothstep(0.4, 0.6, mA);
-         vOpa = mix(1.0, 0.15, dim);`)
+         vOpa = mix(1.0, 0.15, dim);
+         // dark stripe: every point turns white so it reads on the #1a1a1a band
+         vCol = mix(vCol, vec3(1.0), uDark);`)
         .replace('gl_PointSize = size;', 'gl_PointSize = sz;');
     // fragment: multiply in the per-vertex colour and opacity
     shader.fragmentShader =
@@ -159,7 +170,7 @@ export function createParticles(opts = {}) {
       return { s, cx: 0.84 * halfW - maxx * s, cy: 0, cz: 0 };   // right edge at 92vw
     },
     1: () => { const halfW = visH * aspect() * 0.5; return { s: 0.62 * visH, cx: 0.5 * halfW, cy: 0, cz: 0 }; }, // slice stack, right 45%
-    2: () => ({ s: 0.46 * visH, cx: 0, cy: 0, cz: 0 }),        // cube outline, centre
+    2: () => { const halfW = visH * aspect() * 0.5; return { s: 0.55 * visH, cx: 0.48 * halfW, cy: 0, cz: 0 }; }, // cube outline, right half, 55vh
   };
   const slicePlace = { lo: -1, hi: 1, cx: 0, cz: 0, s: 1 };
   function placeShape(k) {
@@ -180,6 +191,7 @@ export function createParticles(opts = {}) {
       slicePlace.lo = lo; slicePlace.hi = hi; slicePlace.cx = p.cx; slicePlace.cz = p.cz; slicePlace.s = p.s;
       uniforms.uSliceLo.value = lo; uniforms.uSliceHi.value = hi;
     }
+    if (k === 2) { uniforms.uCubeCx.value = p.cx; uniforms.uCubeCz.value = p.cz; }
   }
   let forcedK = -1;   // shape-debug: force this morph to 1 once its data is placed
   function loadShape(k, url) {
@@ -237,8 +249,11 @@ export function createParticles(opts = {}) {
     return { x: minx, y: miny, w: maxx - minx, h: maxy - miny };
   }
 
+  function setDark(v) { uniforms.uDark.value = Math.min(1, Math.max(0, v)); }
   function frame(now, dt, scrollProgress, moving) {
     if (moving) uniforms.uTime.value = now / 1000;
+    // cube outline spins while the dark stripe is active (target set rotates, not the points)
+    if (uniforms.uMorph2.value > 0.001) uniforms.uCubeSpin.value = (now / 1000) * 0.15;
     const frac = staticDensity != null
       ? staticDensity
       : HERO_DENSITY + (1 - HERO_DENSITY) * Math.min(1, Math.max(0, scrollProgress));
@@ -249,6 +264,6 @@ export function createParticles(opts = {}) {
   function halveCount() { if (!halved) { halved = true; count = Math.floor(count / 2); } }
   function capDpr() { renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5)); resize(); }
 
-  return { frame, halveCount, capDpr, setMorph, morphBox, setSliceReveal, sliceTop, forceShape,
+  return { frame, halveCount, capDpr, setMorph, morphBox, setSliceReveal, sliceTop, forceShape, setDark,
     morphVal: (k) => uniforms['uMorph' + k].value, getCount: () => count };
 }

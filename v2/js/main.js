@@ -10,7 +10,6 @@ import Lenis from 'lenis';
 import { createParticles } from './particles.js';
 import { createCubeHero } from './cubes.js';
 import { initChapters } from './chapters.js';
-import { initManifestoStack } from './manifesto.js';
 import { createVct } from './vct.js';
 
 window.gsap = gsap;                       // let cubes.js use GSAP for setState/focus
@@ -93,8 +92,48 @@ if (!reduced && !mobile) {
   cubes.setUnravel(0);   // reduced + mobile: the sorted grid stays put
 }
 
-// ---- chapters (phase 2 + 3) ----
-initChapters({ gsap, ScrollTrigger, cubes, lenis, reduced, initManifestoStack });
+// ---- reading panels ----
+initChapters({ lenis });
+
+// (Dark stripe + contact reassembly triggers are created in initPart3(), called near the
+// end of boot AFTER the pinned experience/slicer triggers so their measured scroll
+// positions include the pin spacing above them.)
+function initPart3() {
+  const stripe = document.querySelector('#about.darkstripe');
+  const veil = document.getElementById('dark-veil');
+  const clamp01 = (x) => Math.max(0, Math.min(1, x));
+  if (stripe && !reduced) {
+    ScrollTrigger.create({
+      trigger: stripe, start: 'top bottom', end: 'bottom top', scrub: 0.6,
+      onUpdate: (self) => {
+        const p = self.progress;
+        // dark veil + white points crossfade over the first/last ~18%
+        const dark = clamp01(p < 0.5 ? p / 0.18 : (1 - p) / 0.18);
+        particles.setDark(dark);
+        if (veil) veil.style.opacity = dark.toFixed(3);
+        // cube outline assembles just after the veil, holds, dissolves before the exit
+        let m;
+        if (p < 0.35) m = (p - 0.08) / 0.27;
+        else if (p > 0.72) m = (0.92 - p) / 0.2;
+        else m = 1;
+        particles.setMorph(2, clamp01(m));
+        document.body.classList.toggle('in-stripe', dark > 0.4);
+      },
+      onLeave: () => { particles.setDark(0); particles.setMorph(2, 0); if (veil) veil.style.opacity = '0'; document.body.classList.remove('in-stripe'); },
+      onLeaveBack: () => { particles.setDark(0); particles.setMorph(2, 0); if (veil) veil.style.opacity = '0'; document.body.classList.remove('in-stripe'); },
+    });
+  }
+  // Contact: the eight cubes glide from the drift back into the sorted grid (labels return
+  // with the unravel) as contact scrolls in.
+  const contactReassemble = document.getElementById('contact');
+  if (contactReassemble && !reduced && !mobile) {
+    gsap.to({ p: 1 }, {
+      p: 0, ease: 'none',
+      scrollTrigger: { trigger: contactReassemble, start: 'top 90%', end: 'bottom bottom', scrub: 0.6 },
+      onUpdate: function () { cubes.setUnravel(this.targets()[0].p); },
+    });
+  }
+}
 
 // ---- variable cam timing diagram (experience section) ----
 const vctEl = document.querySelector('.vct');
@@ -448,13 +487,15 @@ function loop(now) {
   updateProgress();
   updateMobileDim();
 
-  // count rAF for 5 s after load; if under 50 fps, halve the particle count
-  // (skipped in shape-debug so the silhouette keeps its full point count for scoring)
+  // count rAF for 2.5 s after load; if under 50 fps, halve the particle count. A short
+  // window lets weak/software-rendered hardware shed load quickly (better on a laptop
+  // iGPU and on Lighthouse's headless software WebGL); on a real GPU fps stays >=50 and
+  // nothing changes. (Skipped in shape-debug so the silhouette keeps its full count.)
   if (!fpsChecked && !debugShape) {
     fpsFrames++;
-    if (now - fpsStart >= 5000) {
+    if (now - fpsStart >= 2500) {
       const fps = (fpsFrames * 1000) / (now - fpsStart);
-      console.log('[v2] measured fps over 5s:', fps.toFixed(1), '| particles:', particles.getCount());
+      console.log('[v2] measured fps over 2.5s:', fps.toFixed(1), '| particles:', particles.getCount());
       if (fps < 50) {
         particles.halveCount();
         particles.capDpr();
@@ -503,6 +544,9 @@ if (document.fonts && document.fonts.ready) {
 } else {
   startReveal();
 }
+
+// Part 3 triggers are created last so they measure with all pin spacing in place.
+initPart3();
 
 // Lenis drives native window scroll, so ScrollTrigger needs no scrollerProxy; a
 // refresh after layout settles keeps the 120vh trigger measured correctly.
