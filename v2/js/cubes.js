@@ -113,13 +113,12 @@ export function createCubeHero({ onCubeClick } = {}) {
   const scatter = [];     // seeded scatter slot (world, group centre is origin at rest)
   const base = [];        // current interpolated local position
 
-  const MOBILE = window.innerWidth < 820;   // portrait: a 2x4 grid fits better than 4x2
+  const MOBILE = window.innerWidth < 820;   // 4x2 in the top band, tighter spacing to fit
+  const SP = MOBILE ? 1.7 : SPACING;        // grid spacing used for layout
+  const RSP = MOBILE ? 1.7 : ROW_SPACING;
   for (let i = 0; i < CUBES.length; i++) {
-    const col = MOBILE ? i % 2 : i % 4;
-    const row = MOBILE ? Math.floor(i / 2) : Math.floor(i / 4);
-    const cx = MOBILE ? (col - 0.5) * SPACING : (col - 1.5) * SPACING;
-    const cy = MOBILE ? (1.5 - row) * ROW_SPACING : (0.5 - row) * ROW_SPACING;
-    gridLocal.push(new THREE.Vector3(cx, cy, 0));
+    const col = i % 4, row = Math.floor(i / 4);
+    gridLocal.push(new THREE.Vector3((col - 1.5) * SP, (0.5 - row) * RSP, 0));
     scatter.push(new THREE.Vector3());
     base.push(gridLocal[i].clone());
 
@@ -151,20 +150,17 @@ export function createCubeHero({ onCubeClick } = {}) {
   function placeCamera() {
     const w = window.innerWidth, h = window.innerHeight;
     camera.aspect = w / h;
-    let D = h / (CUBE_PX * 2 * tanHalf());   // 1-unit cube ~CUBE_PX tall
     let regionX = REGION_NDC_X, regionY = REGION_NDC_Y;
-    // narrow screens: centre the grid and pull back so all four columns fit (desktop
-    // path is left exactly as verified at 1280/1440/1920)
-    if (camera.aspect < 1.2) {
-      regionX = 0; regionY = 0;
-      // 2x4 on mobile, 4x2 otherwise; pull back until both fit with margin
-      const gridHalfW = (MOBILE ? 0.5 * SPACING : 1.5 * SPACING) + 0.6;
-      const gridHalfH = (MOBILE ? 1.5 * ROW_SPACING : 0.5 * ROW_SPACING) + 0.6;
-      for (let g = 0; g < 60; g++) {
-        const hh = D * tanHalf();
-        if (hh * camera.aspect * 0.9 >= gridHalfW && hh * 0.82 >= gridHalfH) break;
-        D *= 1.06;
-      }
+    let D;
+    if (MOBILE) {
+      // 4x2 grid of ~56px cubes parked in the top 34vh (below the nav); centred in x,
+      // pulled back if the four columns would not fit the width
+      D = h / (56 * 2 * tanHalf());
+      const gridHalfW = 1.5 * SP + 0.6;
+      for (let g = 0; g < 60; g++) { if (D * tanHalf() * camera.aspect * 0.94 >= gridHalfW) break; D *= 1.05; }
+      regionX = 0; regionY = 0.62;   // grid centre high in the viewport
+    } else {
+      D = h / (CUBE_PX * 2 * tanHalf());   // 1-unit cube ~CUBE_PX tall
     }
     camera.position.set(0, 0, D);
     camera.lookAt(0, 0, 0);
@@ -334,7 +330,8 @@ export function createCubeHero({ onCubeClick } = {}) {
       _p.project(camera);
       const x = (_p.x * 0.5 + 0.5) * w;
       const y = (-_p.y * 0.5 + 0.5) * h;
-      const op = labelOpacity * (_p.z < 1 ? 1 : 0);
+      // labels belong to the hero/contact grid only; hidden during mobile chapters
+      const op = mobileHide ? 0 : labelOpacity * (_p.z < 1 ? 1 : 0);
       const el = labelEls[i];
       el.style.opacity = op.toFixed(3);
       el.style.transform = `translate(-50%, 0) translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
@@ -394,7 +391,7 @@ export function createCubeHero({ onCubeClick } = {}) {
   const PARK_Z = 1.5, PARK_SCALE = 1.9, PARK_START_Z = -5, RECEDE_Z = 6;
   // parkTargets[i] = { axvw, ayvh, scale, tumble, t } for each currently parked cube.
   const parkTargets = {};
-  let dimAllT = 0, cloudDim = 0;
+  let dimAllT = 0, cloudDim = 0, mobileHide = false;
   const _anchor = new THREE.Vector3();
 
   function anchorLocalXY(axvw, ayvh) {
@@ -425,6 +422,8 @@ export function createCubeHero({ onCubeClick } = {}) {
   function chapterDim(t) { dimAllT = Math.min(1, Math.max(0, t)); }
   // persistent background dim: non-parked cubes stay <=0.35 while chapter text is on screen
   function setCloudDim(t) { cloudDim = Math.min(1, Math.max(0, t)); }
+  // mobile: hide every non-featured cube (used between the hero grid and the contact grid)
+  function setMobileHide(b) { mobileHide = !!b; }
 
   window.addEventListener('resize', resize);
   resize();
@@ -478,6 +477,10 @@ export function createCubeHero({ onCubeClick } = {}) {
         targetScale = 0.8 + (pt.scale - 0.8) * e;
         tumbleScale = pt.tumble * (1 - 0.7 * e);   // slows to 0.3x (0 for Raymond)
         op = 1;
+      } else if (mobileHide) {
+        // mobile chapters: every non-featured cube is fully hidden and pushed out of ray range
+        m.position.set(base[i].x, base[i].y, base[i].z - 40);
+        op = 0;
       } else {
         const recede = Math.max(parked ? 1 : 0, dimE, cloudDim);
         m.position.set(base[i].x, base[i].y + bob, base[i].z - recede * RECEDE_Z);
@@ -494,7 +497,7 @@ export function createCubeHero({ onCubeClick } = {}) {
 
   return {
     frame, setUnravel, setState, focus, raycast, setPointer, ready,
-    cubeBoxes, labelBoxes, chapterPark, setTrack, chapterDim, setCloudDim, meshBox,
+    cubeBoxes, labelBoxes, chapterPark, setTrack, chapterDim, setCloudDim, setMobileHide, meshBox,
     cubeOpacity: (i) => meshes[i].material[0].opacity,
     getState: () => ({ unravel, parked: Object.keys(parkTargets).map(Number) }),
     capDpr() { renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5)); resize(); },

@@ -245,11 +245,13 @@ body { background: transparent; overflow-x: hidden; }
 @media (max-width: 819px) {
   .nav { padding: 18px 22px; }
   .col { padding: 0 22px; }
-  #hero { padding-bottom: 16vh; }
-  /* faint cloud between the hero grid and the contact grid (JS toggles m-dim) */
-  #cubes-canvas { opacity: 1; transition: opacity .4s ease; }
-  body.m-dim #cubes-canvas { opacity: 0.25; }
-  .ch-pin { min-height: auto; padding: 12vh 0 4vh; }
+  /* hero: the sorted grid sits in the top 34vh (JS); the headline starts at 42vh */
+  #hero { padding-bottom: 0; }
+  .hero-inner { position: absolute; top: 42vh; bottom: auto; left: 0; right: 0; }
+  #cubes-canvas { opacity: 1; }
+  /* chapters: the parked cube sits in this reserved band above the category word */
+  .m-cube-anchor { height: 112px; width: 100%; pointer-events: none; }
+  .ch-pin { min-height: auto; padding: 4vh 0; }
   .ch-inner, .ch[data-side="left"] .ch-inner, .ch[data-side="right"] .ch-inner {
     max-width: 100%; margin: 0; text-align: left;
   }
@@ -258,6 +260,8 @@ body { background: transparent; overflow-x: hidden; }
   .ch-tail { min-height: auto; padding: 2vh 0 8vh; }
   .evidence { grid-template-columns: repeat(2, 1fr); gap: 20px; }
   .panel-col { padding: 72px 22px 100px; }
+  /* contact: grid in the top 34vh, details start at 42vh */
+  .ch-contact { min-height: 100vh; align-items: flex-start; padding-top: 42vh; padding-bottom: 8vh; }
   /* tap targets >= 44px */
   .nav-links a { padding: 12px 6px; }
   .ch-open, .ray-open, .panel-close, .contact-list a, .web-tile { min-height: 44px; }
@@ -306,25 +310,7 @@ body { background: transparent; overflow-x: hidden; }
 .exp-visual { display: flex; justify-content: center; }
 
 /* VCT loop, thin strokes, amber oil, ADVANCE/RETARD swap */
-.vct { width: min(300px, 70%); height: auto; }
-.vct-housing { fill: none; stroke: var(--ink); stroke-width: 1.2; }
-.vct-hub { fill: #fff; stroke: var(--ink); stroke-width: 1.2; }
-.vct-vane { fill: var(--ink); }
-.vct-bolt { fill: none; stroke: var(--ink); stroke-width: 1.2; }
-.vct-lock { fill: none; stroke: var(--ink); stroke-width: 1.2; }
-.vct-inlet { fill: none; stroke: var(--ink); stroke-width: 1.2; }
-.vct-oil path { fill: #d9a441; }
-.vct-rotor { transform-origin: 120px 120px; animation: vct-rot 5s ease-in-out infinite; }
-.vct-oil-adv { opacity: 0; animation: vct-adv 5s ease-in-out infinite; }
-.vct-oil-ret { opacity: 0; animation: vct-ret 5s ease-in-out infinite; }
-.vct-label { text-anchor: middle; font-size: 11px; letter-spacing: .18em; fill: var(--label); }
-.vct-adv { animation: vct-ladv 5s step-end infinite; }
-.vct-ret { animation: vct-lret 5s step-end infinite; opacity: 0; }
-@keyframes vct-rot { 0%{transform:rotate(0)} 40%{transform:rotate(24deg)} 50%{transform:rotate(24deg)} 90%{transform:rotate(0)} 100%{transform:rotate(0)} }
-@keyframes vct-adv { 0%{opacity:0} 40%{opacity:.6} 50%{opacity:.6} 60%{opacity:0} 100%{opacity:0} }
-@keyframes vct-ret { 0%{opacity:0} 55%{opacity:0} 90%{opacity:.6} 100%{opacity:.5} }
-@keyframes vct-ladv { 0%{opacity:1} 50%{opacity:1} 51%{opacity:0} 100%{opacity:0} }
-@keyframes vct-lret { 0%{opacity:0} 50%{opacity:0} 51%{opacity:1} 100%{opacity:1} }
+.vct { width: min(300px, 78%); height: auto; display: block; margin: 0 auto; }
 
 /* ---- Other work ---- */
 .others-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px; margin-top: 6vh; }

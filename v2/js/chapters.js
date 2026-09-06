@@ -44,10 +44,18 @@ export function initChapters({ gsap, ScrollTrigger, cubes, lenis, reduced, initM
     });
 
     if (reduced || mobile) {
-      // static: no pin, everything visible, cubes stay in the cloud (dimmed on mobile via CSS)
+      // static: no pin, everything visible
       section.classList.add('in');
       if (word) word.classList.add('reveal');
       sysItems.forEach((el) => el.classList.add('shown'));
+      // mobile: a DOM anchor above the category word holds this chapter's parked cube
+      if (mobile && !reduced && cubeIndex >= 0 && word) {
+        const a = document.createElement('div');
+        a.className = 'm-cube-anchor';
+        a.dataset.cube = String(cubeIndex);
+        a.setAttribute('aria-hidden', 'true');
+        word.parentNode.insertBefore(a, word);
+      }
       return;
     }
 
@@ -101,9 +109,9 @@ export function initChapters({ gsap, ScrollTrigger, cubes, lenis, reduced, initM
     });
   }
 
-  // ---- Contact: cubes glide back into the sorted grid as contact enters ----
+  // ---- Contact: cubes glide back into the sorted grid as contact enters (desktop) ----
   const contact = document.getElementById('contact');
-  if (contact && !reduced) {
+  if (contact && !reduced && !mobile) {
     gsap.to({ p: 1 }, {
       p: 0, ease: 'none',
       scrollTrigger: { trigger: contact, start: 'top 85%', end: 'bottom bottom', scrub: 0.6 },
@@ -111,14 +119,6 @@ export function initChapters({ gsap, ScrollTrigger, cubes, lenis, reduced, initM
     });
   }
 
-  // ---- Mobile: fade the cube canvas to a faint cloud between the hero grid and the
-  // contact grid (opacity .25), so stacked chapter text stays readable ----
-  if (mobile && !reduced) {
-    ScrollTrigger.create({
-      trigger: '#origin', start: 'top 80%', endTrigger: '#contact', end: 'top 60%',
-      onToggle: (self) => document.body.classList.toggle('m-dim', self.isActive),
-    });
-  }
 
   // ---- manifesto wireframe cube stack ----
   const stackEl = document.querySelector('.manifesto-stack');

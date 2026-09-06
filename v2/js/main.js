@@ -11,6 +11,7 @@ import { createParticles } from './particles.js';
 import { createCubeHero } from './cubes.js';
 import { initChapters } from './chapters.js';
 import { initManifestoStack } from './manifesto.js';
+import { createVct } from './vct.js';
 
 window.gsap = gsap;                       // let cubes.js use GSAP for setState/focus
 gsap.registerPlugin(ScrollTrigger);
@@ -62,7 +63,7 @@ function scrollToSection(sel) {
 }
 
 // ---- unravel: one GSAP timeline scrubbed by ScrollTrigger over the first 120vh ----
-if (!reduced) {
+if (!reduced && !mobile) {
   const proxy = { p: 0 };
   gsap.to(proxy, {
     p: 1,
@@ -76,11 +77,15 @@ if (!reduced) {
     onUpdate: () => cubes.setUnravel(proxy.p),
   });
 } else {
-  cubes.setUnravel(0);
+  cubes.setUnravel(0);   // reduced + mobile: the sorted grid stays put
 }
 
 // ---- chapters (phase 2 + 3) ----
 initChapters({ gsap, ScrollTrigger, cubes, lenis, reduced, initManifestoStack });
+
+// ---- variable cam timing diagram (experience section) ----
+const vctEl = document.querySelector('.vct');
+if (vctEl) createVct(vctEl, !reduced);
 
 // reduced motion: cubes are the static sorted grid at the hero only, hidden past it
 if (reduced) {
@@ -150,9 +155,9 @@ window.addEventListener('pointermove', (e) => {
   cubes.setPointer(nx, ny);
 }, { passive: true });
 
-// ---- click a cube -> scroll to its chapter (raycast; ignore clicks on links) ----
+// ---- click a cube -> scroll to its chapter (desktop only; mobile cubes are not hit-tested) ----
 window.addEventListener('click', (e) => {
-  if (e.target.closest('a, button')) return;
+  if (mobile || e.target.closest('a, button')) return;
   const ndc = {
     x: (e.clientX / window.innerWidth) * 2 - 1,
     y: -(e.clientY / window.innerHeight) * 2 + 1,
@@ -167,14 +172,31 @@ function scrollProgress() {
   return max > 0 ? window.scrollY / max : 0;
 }
 
-// ---- mobile: keep the cubes a faint cloud between the hero grid and the contact grid ----
-const cubesCanvasEl = document.getElementById('cubes-canvas');
+// ---- mobile: hero + contact show the sorted grid; between them every cube is hidden
+// except the active chapter's cube, parked above its category word ----
 const contactEl = document.getElementById('contact');
+const mAnchors = mobile ? Array.from(document.querySelectorAll('.m-cube-anchor')) : [];
 function updateMobileDim() {
-  if (!mobile || reduced || !cubesCanvasEl) return;
-  const y = window.scrollY, vh = window.innerHeight;
-  // bright sorted grid at the hero; a faint ghost cloud/grid everywhere after it
-  cubesCanvasEl.style.opacity = y > vh * 1.0 ? '0.28' : '1';
+  if (!mobile || reduced) return;
+  const vh = window.innerHeight, y = window.scrollY, mid = vh * 0.5;
+  const ct = contactEl ? contactEl.offsetTop : Infinity;
+  const inChapters = y > vh * 0.92 && y < ct - vh * 0.5;
+  cubes.setMobileHide(inChapters);
+  if (inChapters) {
+    // show the cube only while its word sits in a comfortable middle band (clear of the nav)
+    let best = null, bestD = Infinity;
+    for (const a of mAnchors) {
+      const r = a.getBoundingClientRect();
+      const cy = r.top + r.height / 2;
+      if (cy > vh * 0.22 && cy < vh * 0.72) {
+        const d = Math.abs(cy - mid);
+        if (d < bestD) { bestD = d; best = a; }
+      }
+    }
+    cubes.setTrack(best ? [{ i: parseInt(best.dataset.cube, 10), el: best, scale: 1.6 }] : []);
+  } else {
+    cubes.setTrack([]);
+  }
 }
 
 // ---- master loop + FPS guard ----
