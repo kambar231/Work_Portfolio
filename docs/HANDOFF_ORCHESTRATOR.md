@@ -78,3 +78,24 @@ docs/V2_SPEC.md (binding spec, sections 1 to 8), docs/NIRNOR_STUDY.md (measured 
 docs/PLEURAT_ANIMATIONS.md, docs/CODEX_VS_OURS.md (abandoned direction), docs/WRITING_RULES.md.
 Tools: C:\Users\kmangibayev\Code\Tools\webport\webgen.py (film/shot/serve), Playwright installed.
 Memory: ~/.claude/shared-memory/work-portfolio-project.md.
+
+## Efficiency post-mortem (Kambar, 2026-09-06: "something makes it very slow"). Do it differently.
+What happened: one implementer at a time, briefs of 5 to 8 features each, filming + Playwright
+tests + the 5-minute checker inside every round, lead review only after the whole part, so every
+part cost two rounds of 30 to 60 min.
+Run round 3 and everything after like this instead:
+1. FAN OUT BY FILE, one owner per file, all in parallel, no shared writes:
+   - engine agent: v2/js/cubes.js only (motion engine, unfold rig, baked-face textures)
+   - morph agent: v2/js/particles.js only (forklift/slicer centring, hold, crossfade)
+   - page agent: v2/index.html, v2/css/site.css, v2/data/projects.json (experience layout,
+     Raymond cube markup hooks, BorgWarner/Boston band, panel scroll CSS)
+   - checker agent: v2/verify_all.py only (no-pop, min-opacity, panel-scroll, seam crops)
+   Interfaces are already there: cubes.setTargets/setState/focus, particles uMorph uniforms,
+   main.js wires them. main.js is lead-arbitrated: only one agent may touch it per wave.
+2. ONE FEATURE PER BRIEF, 10 to 15 minutes of work, pushed as soon as its own file is green.
+3. Verification runs in parallel by the checker agent against the integrated tree, not by each
+   builder. Builders only run the fast file-level checks (node --check, a single screenshot).
+4. Lead reviews 2 frames per wave WHILE agents work (ask for an early screenshot at 5 min), so
+   fixes land in the same wave. No separate fix rounds.
+5. Timebox: any agent silent for 10 min gets a status ping; 20 min gets stopped and its WIP
+   handed to a fresh one (WIP stays on disk; never discard).
