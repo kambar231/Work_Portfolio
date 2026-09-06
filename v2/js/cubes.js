@@ -621,6 +621,10 @@ export function createCubeHero({ onCubeClick } = {}) {
 
   // build a six-face cross-net rig for cube i, hinged so t=0 is a closed cube and t=1 is flat
   let rig = null, rigPivots = null;
+  // C3: the rig starts in the clicked cube's exact pose and travels to the framed centre.
+  const rigStartPos = new THREE.Vector3(), rigStartQuat = new THREE.Quaternion();
+  const rigEndPos = new THREE.Vector3(); const _qIdent = new THREE.Quaternion();
+  let rigStartScale = 1, rigEndScale = 1;
   const FACE_MAP = { right: 0, left: 1, top: 2, bottom: 3, front: 4, back: 5 };
   function unfoldScale() { return (0.92 * window.innerHeight) / (3 * CUBE_PX); }
   // spec 8.3: content for each face of a project cube, indexed by FACE_MAP value (0..5).
@@ -652,8 +656,16 @@ export function createCubeHero({ onCubeClick } = {}) {
     const plane = new THREE.PlaneGeometry(1, 1, 1, 1);
     rig = new THREE.Group();
     const S = unfoldScale();
-    rig.scale.setScalar(S);
-    rig.position.set(-0.5 * S * 1, 0, 1.0);   // centre the net (x spans -1.5..2.5) on screen
+    // C3: capture the cube's current world pose as the rig START, and the framed net as the
+    // END. updateOpenRig(t) drives the rig from one to the other; the closed mesh is hidden the
+    // same frame (openIndex opacity 0) so nothing pops or appears in front.
+    meshes[i].getWorldPosition(rigStartPos);
+    meshes[i].getWorldQuaternion(rigStartQuat);
+    rigStartScale = meshes[i].scale.x;
+    rigEndPos.set(-0.5 * S, 0, 1.0);   // centre the net (x spans -1.5..2.5) on screen
+    rigEndScale = S;
+    rig.scale.setScalar(rigStartScale);
+    rig.position.copy(rigStartPos);
     // front stays flat at the net centre
     const front = new THREE.Mesh(plane, faceMat(FACE_MAP.front)); rig.add(front);
     // a hinged flap: pivot at the shared edge, plane offset one half-unit beyond it
@@ -676,7 +688,7 @@ export function createCubeHero({ onCubeClick } = {}) {
     rigPivots.back = flap('back', new THREE.Vector3(1, 0, 0), 'y', -1, rigPivots.right.pv);
     rig.userData.front = front;
     scene.add(rig);
-    setUnfold(0);
+    updateOpenRig(0);
   }
   function setUnfold(t) {
     if (!rig) return;
@@ -686,9 +698,20 @@ export function createCubeHero({ onCubeClick } = {}) {
       if (f.axis === 'y') f.pv.rotation.set(0, f.foldSign * foldAngle, 0);
       else f.pv.rotation.set(f.foldSign * foldAngle, 0, 0);
     }
-    // fade faces up as it opens so the closed cube reads as the photo cube first
-    const o = 0.15 + 0.85 * t;
-    rig.traverse((c) => { if (c.material) c.material.opacity = o; });
+  }
+  // C3: three phases so the CUBE ITSELF unfolds in place, then the net glides to the centre.
+  //   0.00-0.25  rotate the closed cube to face-on (rig at the cube pose, folded)
+  //   0.25-0.65  hinge the six faces open into the cross net, still at the cube's pose
+  //   0.65-1.00  glide + scale the open net to the framed centre
+  function updateOpenRig(t) {
+    if (!rig) return;
+    const p1 = Math.min(1, t / 0.25);
+    const p2 = Math.min(1, Math.max(0, (t - 0.25) / 0.40));
+    const p3 = Math.min(1, Math.max(0, (t - 0.65) / 0.35));
+    rig.position.lerpVectors(rigStartPos, rigEndPos, easeInOut(p3));
+    rig.scale.setScalar(rigStartScale + (rigEndScale - rigStartScale) * easeInOut(p3));
+    rig.quaternion.slerpQuaternions(rigStartQuat, _qIdent, easeInOut(p1));
+    setUnfold(easeInOut(p2));
   }
   function disposeRig() {
     if (!rig) return;
@@ -701,15 +724,15 @@ export function createCubeHero({ onCubeClick } = {}) {
     openIndex = i;
     buildRig(i);
     const g = window.gsap;
-    if (g) g.fromTo({ p: 0 }, { p: 0 }, { p: 1, duration: 1.1, ease: 'power3.inOut', onUpdate: function () { openT = this.targets()[0].p; setUnfold(openT); } });
-    else { openT = 1; setUnfold(1); }
+    if (g) g.fromTo({ p: 0 }, { p: 0 }, { p: 1, duration: 1.2, ease: 'power2.inOut', onUpdate: function () { openT = this.targets()[0].p; updateOpenRig(openT); } });
+    else { openT = 1; updateOpenRig(1); }
     if (onProjectOpen) onProjectOpen(i);
   }
   function closeProject() {
     if (openIndex < 0) return;
     const g = window.gsap; const idx = openIndex;
-    if (g) g.to({ p: openT }, { p: 0, duration: 0.9, ease: 'power3.inOut',
-      onUpdate: function () { openT = this.targets()[0].p; setUnfold(openT); },
+    if (g) g.to({ p: openT }, { p: 0, duration: 0.9, ease: 'power2.inOut',
+      onUpdate: function () { openT = this.targets()[0].p; updateOpenRig(openT); },
       onComplete: () => { disposeRig(); } });
     else { disposeRig(); }
     openIndex = -1; openT = 0;
