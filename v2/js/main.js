@@ -183,16 +183,6 @@ function updateProgress() {
   progressBar.style.height = (p * 100) + 'vh';
 }
 
-// Persistent cloud dim: while any chapter text (origin..websites) is on screen the
-// non-parked cubes stay <=0.35 opacity so they never compete with the text. Off in the
-// hero (bright unravel) and from the manifesto on (dark band + contact reassembly).
-if (!reduced && !mobile) {
-  ScrollTrigger.create({ trigger: '#experience', start: 'top 85%',
-    onEnter: () => cubes.setCloudDim(1), onLeaveBack: () => cubes.setCloudDim(0) });
-  ScrollTrigger.create({ trigger: '#contact', start: 'top 30%',
-    onEnter: () => cubes.setCloudDim(0), onLeaveBack: () => cubes.setCloudDim(1) });
-}
-
 // ---- Experience: dots reform into the forklift; content reveals line by line ----
 const expSec = document.querySelector('#experience');
 if (expSec) {
@@ -202,27 +192,38 @@ if (expSec) {
     expSec.classList.add('seen');
     lines.forEach((el) => el.classList.add('in'));
   } else {
-    const expCol = expSec.querySelector('.exp2-col');
+    // cube 4 (Raymond "deploy") parks left of the forklift; the other seven exit to the
+    // edges while experience is on screen and are recalled to drift when it leaves.
+    const RAYMOND_CUBE = 4;
+    const enterExperience = () => {
+      for (let i = 0; i < cubes.count; i++) {
+        if (i === RAYMOND_CUBE) continue;
+        cubes.exit(i);
+      }
+      cubes.chapterPark(RAYMOND_CUBE, 'left', 1, { scale: 2.4, axvw: 30, ayvh: 52 });
+    };
+    const leaveExperience = () => {
+      for (let i = 0; i < cubes.count; i++) cubes.recall(i);
+      cubes.chapterPark(RAYMOND_CUBE, 'left', 0);   // unpark -> back to drift
+    };
     ScrollTrigger.create({
       trigger: expSec, start: 'top top', end: '+=180%', pin: expSec.querySelector('.exp2-pin'),
       pinSpacing: true, scrub: 0.8,
       onUpdate: (self) => {
         const p = self.progress;
-        let m;
-        if (p < 0.45) m = p2(p / 0.45);        // assemble from dust over the first 45%
-        else if (p < 0.80) m = 1;              // hold the truck formed and crisp 45-80%
-        else m = 1 - p2((p - 0.80) / 0.20);    // dissolve back to dust across the last 20%
+        // forklift assembles from dust over the first 30% then HOLDS at 1 to the end of
+        // experience; the slicer trigger owns the crossfade hand-off to the slice stack.
+        const m = p < 0.30 ? p2(p / 0.30) : 1;
         particles.setMorph(0, m);
         expSec.classList.toggle('seen', p > 0.02);
         lines.forEach((el, k) => el.classList.toggle('in', p > 0.08 + k * 0.045));
-        // the drifting cubes part around the experience copy while it is on screen
-        if (expCol && cubes.setExclude) {
-          const r = expCol.getBoundingClientRect();
-          cubes.setExclude([{ x: r.x, y: r.y, w: r.width, h: r.height }]);
-        }
       },
-      onLeave: () => { particles.setMorph(0, 0); if (cubes.setExclude) cubes.setExclude([]); },
-      onLeaveBack: () => { particles.setMorph(0, 0); if (cubes.setExclude) cubes.setExclude([]); },
+      onEnter: enterExperience,
+      onEnterBack: enterExperience,
+      // forward exit: forklift HOLDS at 1 (slicer crossfade zeroes it); just recall cubes
+      onLeave: leaveExperience,
+      // back exit above experience: no forklift here, so dissolve it
+      onLeaveBack: () => { leaveExperience(); particles.setMorph(0, 0); },
     });
   }
 }
@@ -239,15 +240,20 @@ if (slSec) {
     slLines.forEach((el) => el.classList.add('in'));
     if (hair) hair.style.opacity = '0';
   } else {
-    const slCol = slSec.querySelector('.exp2-col');
     ScrollTrigger.create({
       trigger: slSec, start: 'top top', end: '+=160%', pin: slSec.querySelector('.exp2-pin'),
       pinSpacing: true, scrub: 0.8,
       onUpdate: (self) => {
         const p = self.progress;
-        // morph on quickly, hold while the stack builds, dissolve back to dust over the last 25%
+        // Crossfade: over the first 40vh the held forklift (morph 0) fades out while the
+        // slice stack (morph 1) fades in on the same scrub, so there is never a plain gap.
+        const span = Math.max(1, self.end - self.start);
+        const cf = Math.min(0.9, (0.40 * window.innerHeight) / span);
+        const x = Math.min(1, p / cf);            // 0..1 crossfade progress
+        particles.setMorph(0, 1 - x);             // forklift dissolves as the slice rises
+        // slice stack: rise with the crossfade, hold while the stack builds, dissolve last 25%
         let m;
-        if (p < 0.12) m = p2s(p / 0.12);
+        if (p < cf) m = x;
         else if (p < 0.75) m = 1;
         else m = 1 - p2s((p - 0.75) / 0.25);
         particles.setMorph(1, m);
@@ -266,13 +272,11 @@ if (slSec) {
             if (hairLabel) hairLabel.textContent = `layer ${t.ring} / ${t.rings}`;
           }
         }
-        if (slCol && cubes.setExclude) {
-          const r = slCol.getBoundingClientRect();
-          cubes.setExclude([{ x: r.x, y: r.y, w: r.width, h: r.height }]);
-        }
       },
-      onLeave: () => { particles.setMorph(1, 0); if (hair) hair.style.opacity = '0'; if (cubes.setExclude) cubes.setExclude([]); },
-      onLeaveBack: () => { particles.setMorph(1, 0); if (hair) hair.style.opacity = '0'; if (cubes.setExclude) cubes.setExclude([]); },
+      // forward past slicer: stack dissolves, forklift already 0
+      onLeave: () => { particles.setMorph(1, 0); if (hair) hair.style.opacity = '0'; },
+      // back up into the previous band: hand the shape back to the held forklift, no gap
+      onLeaveBack: () => { particles.setMorph(1, 0); particles.setMorph(0, 1); if (hair) hair.style.opacity = '0'; },
     });
   }
 }
@@ -430,7 +434,8 @@ window.__lenis = lenis;
 // verifier: pixel scroll range of a pinned section's ScrollTrigger, so the film can hit
 // exact chapter progress values (e.g. slicer at 20/50/85 percent).
 window.__v2.triggerRange = (id) => {
-  const st = ScrollTrigger.getAll().find((s) => s.trigger && s.trigger.id === id && s.pin);
+  const bare = id.charAt(0) === '#' ? id.slice(1) : id;   // accept '#experience' or 'experience'
+  const st = ScrollTrigger.getAll().find((s) => s.trigger && s.trigger.id === bare && s.pin);
   return st ? { start: st.start, end: st.end } : null;
 };
 window.__v2.textColBox = (sel) => {
@@ -514,8 +519,10 @@ function updateMobileDim() {
 }
 
 // ---- visible text rects (so bright cubes fade off the copy); elements cached once ----
+// keep this selector list in sync with TEXT_SELECTORS in v2/verify_all.py
 const TEXT_SEL = '.display,.hero-sub,.exp-word,.exp2-head,.exp2-systems,.exp2-ach,.exp2-prev,'
-  + '.slicer-story,.slicer-key,.ev-strip,.flat-head,.projects-head,.web-lead,.web-tiles,.ds-left,.edu,.contact-inner';
+  + '.slicer-story,.slicer-key,.ev-strip,.flat-head,.projects-head,.web-lead,.web-tiles,'
+  + '.ds-left,.edu,.contact-inner,.prev-band';
 const textEls = Array.from(document.querySelectorAll(TEXT_SEL));
 function refreshTextRects() {
   const vh = window.innerHeight, vw = window.innerWidth;
@@ -526,7 +533,10 @@ function refreshTextRects() {
       rects.push({ x: r.x, y: r.y, w: r.width, h: r.height });
     }
   }
-  cubes.setTextRects(rects);
+  // lanes: every visible text block is a soft lane the drifting cubes steer around
+  // (spec 8.1). Refreshed each frame, which is a superset of every ScrollTrigger update
+  // and resize. setShapeRects below still feeds the hard morph-shape exclusions.
+  cubes.setLanes(rects);
   // a morph shape (forklift / slice stack / cube outline) is a HARD exclusion, expanded
   // 60 px, that every cube is pushed clear of while it is active
   const shapes = [];
