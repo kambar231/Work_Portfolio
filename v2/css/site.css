@@ -504,6 +504,12 @@ body.cube-open #cubes-canvas { z-index: 4; }
 .pms-card { border-top: 1px solid var(--hair); padding: 16px 0; }
 .pms-close { position: fixed; top: 14px; right: 16px; width: 44px; height: 44px; border-radius: 999px;
   border: 1px solid var(--ink); background: var(--bg); font-size: 22px; cursor: pointer; }
+/* the mobile face stack and tap grid are the touch fallback for the projects cubes.
+   Hide them on desktop when the full cube experience runs. Reduced-motion desktop keeps
+   them, because the mgrid is that mode's only projects UI. */
+@media (min-width: 820px) and (prefers-reduced-motion: no-preference) {
+  .project-stack, .project-mgrid { display: none !important; }
+}
 
 @media (max-width: 819px) {
   .exp2-pin { min-height: auto; padding: 12vh 0 6vh; }

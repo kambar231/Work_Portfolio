@@ -35,7 +35,7 @@
       "proved": "It cuts. The first pass was rough, the second came out with clean vertical walls, and it now cuts parts for other projects.",
       "key": "1200 by 800 mm, holds 0.1 mm.",
       "tools": "Fusion 360, steel, 2.2 kW spindle",
-      "images": ["cnc-render", "cnc-build", "cnc-machine", "cnc-cut-clean"], "panel": "cnc"
+      "images": ["cnc-machine", "cnc-bed", "cnc-cut-rough", "cnc-machine", "cnc-cut-clean"], "panel": "cnc"
     },
     {
       "id": "slicer", "cube": 3, "title": "3D Slicer and G-code Generator", "year": "2025 to 2026",
@@ -59,7 +59,7 @@
       "proved": "The motor spins, proving the geometry and the winding. The MagSafe stand costs about 4 dollars of PLA against a 69 dollar store version.",
       "key": "About 4 dollars of PLA against a 69 dollar store version.",
       "tools": "FDM, PLA, PETG, CAD",
-      "images": ["motor-exploded", "motor-wound-pair", "motor-desk", "magsafe-stand-hero"], "panel": "printing"
+      "images": ["motor-exploded", "motor-wound-pair", "motor-desk", "motor-shaft"], "panel": "printing"
     },
     {
       "id": "pendulum", "cube": 6, "title": "Double Pendulum Experiment", "year": "RIT coursework",
