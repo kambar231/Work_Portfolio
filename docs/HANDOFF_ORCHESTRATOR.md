@@ -34,14 +34,14 @@ text, no open unfold, no horizontal overflow, zero console errors; fps median >=
 (headful); 8-cube click test; 19 reading-panel test; contact grid slots within 6 px. Takes ~5
 minutes. Round 3 extends it (no-pop <= 14 px/frame, min opacity 0.98, panel-scroll test).
 
-## State at handoff
-- origin/main = 43e3aa8 (part 4 additions). Checker ALL PASS at that commit (lead-verified).
-- IN FLIGHT: implementer `v2-r2p2` was sent the ROUND 3 brief (spec section 8) as three commits:
-  A "v2: cube motion engine", B "v2: experience with Raymond cube, morph timing, panel scroll",
-  C "v2: baked unfold faces, seam removed". If this session ended, that implementer is dead.
-  Check `git status`: uncommitted changes in v2/ are its WIP. Do NOT discard; spawn a fresh
-  implementer with the section-8 spec and tell it to `git diff`, read every hunk, and continue
-  (this exact recovery worked once already on 2026-09-06).
+## State at handoff (updated 2026-09-06 14:25 local, final)
+- origin/main = 61fc001 "v2: contact grid settle, shape exclusion" (the last part-4 finish round:
+  contact ends in the sorted grid with slot assertion; shape boxes are hard exclusions). The
+  implementer pushed it seconds before being stopped. Lead did NOT re-run the checker on it;
+  the checker agent's first job is `python v2/verify_all.py` on 61fc001 and to report the table.
+- Working tree is CLEAN (only untracked study frames). ROUND 3 HAS NOT STARTED: no engine code
+  exists yet. The implementer `v2-r2p2` is stopped. Start round 3 fresh with the fan-out plan in
+  the post-mortem section below; spec is docs/V2_SPEC.md section 8.
 - Kambar's round-3 asks, verbatim summary (all approved, "go ahead and cook"):
   1 cubes never pop or reappear, always float (build a motion engine; springs, forces, exits
     past the edge instead of hiding). 2 cubes are almost always dimmed because text is in front:
