@@ -39,6 +39,7 @@ const cubes = createCubeHero({
 // Pinned-section ScrollTriggers, captured so the master loop can read their pixel range
 // and feed a 0..1 progress (0 before the pin, 1 after) to the engine every frame.
 let expST = null, slST = null, projST = null;
+let secProgOut = { experience: 0, slicer: 0, projects: 0 };   // last per-frame progress, read by the checker
 const clamp01b = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
 
 // Raymond unfold state, shared by the experience ScrollTrigger and the pointer handlers.
@@ -168,6 +169,28 @@ function updateProgress() {
   const max = document.documentElement.scrollHeight - window.innerHeight;
   const p = max > 0 ? Math.min(1, window.scrollY / max) : 0;
   progressBar.style.height = (p * 100) + 'vh';
+}
+
+// ---- Hero: the portrait (particle shape 3) turns to dust on scroll ----
+// At the top of the page the field sits exactly on Kambar's portrait; as the hero scrolls
+// away the points scatter back to the attractor and become the background dust that later
+// forms the forklift and the slice stack. Reversible on scroll up. The headline does not move.
+const heroSec = document.querySelector('#hero');
+if (heroSec && !reduced && !mobile) {
+  const heroEase = gsap.parseEase('power2.inOut');
+  const heroST = ScrollTrigger.create({
+    trigger: heroSec, start: 'top top', end: '70% top', scrub: 0.6,
+    onUpdate: (self) => { particles.setMorph(3, 1 - heroEase(self.progress)); },
+    onEnterBack: () => { particles.setMorph(3, 1); },
+    onLeaveBack: () => { particles.setMorph(3, 1); },
+    onLeave: () => { particles.setMorph(3, 0); },   // fully dust before the forklift assembles
+  });
+  // the portrait shape samples its PNG asynchronously; setMorph is a no-op until then, so
+  // re-assert the morph for the current scroll position once the shape is ready (at rest at
+  // the top that is 1, so the portrait is the first thing on the page, before any scroll).
+  const assertHeroMorph = () => particles.setMorph(3, 1 - heroEase(heroST.progress));
+  window.addEventListener('v2:portrait-ready', assertHeroMorph);
+  assertHeroMorph();
 }
 
 // ---- Experience: dots reform into the forklift; content reveals line by line ----
@@ -384,9 +407,10 @@ window.__v2.openProject = (i) => cubes.openProject(i);
 window.__v2.projectOpen = () => cubes.projectOpenIndex();
 window.__v2.faceAnchors = () => cubes.faceAnchors();
 // read-only pass-throughs the checker reads (engine owns the implementations)
-window.__v2.unfoldFaceRects = (i) => cubes.unfoldFaceRects(i);
+window.__v2.unfoldFaceRects = (i) => (cubes.unfoldFaceRects ? cubes.unfoldFaceRects(i) : null);
 window.__v2.hitTest = (x, y) => cubes.hitTest(x, y);
 window.__v2.cubeOpacity = (i) => cubes.cubeOpacity(i);
+window.__v2.sectionProgress = () => ({ ...secProgOut });
 window.__v2.gridSlots = () => cubes.gridSlots();
 window.__v2.shapeRects = () => cubes.shapeRectsNow();
 window.__v2.cubesCanvasOpacity = () => parseFloat(getComputedStyle(document.getElementById('cubes-canvas')).opacity || '1');
@@ -549,10 +573,14 @@ function progOf(st) {
   return span > 0 ? clamp01b((window.scrollY - st.start) / span) : 0;
 }
 function updateSectionProgress() {
-  if (reduced || mobile || !cubes.setSectionProgress) return;
-  cubes.setSectionProgress('experience', progOf(expST));
-  cubes.setSectionProgress('slicer', progOf(slST));
-  cubes.setSectionProgress('projects', progOf(projST));
+  if (reduced || mobile) return;
+  const e = progOf(expST), s = progOf(slST), p = progOf(projST);
+  secProgOut = { experience: e, slicer: s, projects: p };
+  if (cubes.setSectionProgress) {
+    cubes.setSectionProgress('experience', e);
+    cubes.setSectionProgress('slicer', s);
+    cubes.setSectionProgress('projects', p);
+  }
 }
 
 // ---- visible text rects (so bright cubes fade off the copy); elements cached once ----

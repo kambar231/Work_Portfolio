@@ -315,6 +315,9 @@ export function createParticles(opts = {}) {
       shapeNorm[k] = sorted;
       placeShape(k); calibrate(k); placeShape(k); shapeLoaded[k] = true;
       if (forcedK === k) uniforms['uMorph' + k].value = 1;
+      // the portrait loads async; let the hero driver re-assert its morph for the current
+      // scroll position (setMorph is a no-op until the shape is loaded).
+      try { window.dispatchEvent(new CustomEvent('v2:portrait-ready')); } catch (e) {}
     };
     img.src = url;
   }
