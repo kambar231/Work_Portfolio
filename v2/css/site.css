@@ -68,6 +68,13 @@ body { background: transparent; overflow-x: hidden; }
    The headline block lives in the lower-left; the cubes occupy the upper-right, so the
    two never overlap. The headline bottom edge sits near 78vh. */
 #hero { position: relative; min-height: 100vh; }
+/* The hero photo sits over the particle field, centred where the portrait dust is placed
+   (82vw / 50vh, 80vh tall). On scroll it fades out and the coloured dots take its place. */
+.hero-photo {
+  position: fixed; top: 50vh; left: 82vw; transform: translate(-50%, -50%);
+  height: 80vh; width: auto; object-fit: contain;
+  pointer-events: none; z-index: 0; opacity: 1; will-change: opacity;
+}
 .hero-inner {
   position: absolute; left: 0; right: 0; bottom: 1vh;   /* low enough to clear the larger cubes */
 }
@@ -232,6 +239,7 @@ body { background: transparent; overflow-x: hidden; }
   .ray-sys .ray-open { opacity: 1 !important; transform: none !important; }
   /* cubes: the sorted grid at the hero only, hidden past it */
   body.past-hero #cubes-canvas { opacity: 0 !important; }
+  .hero-photo { display: none; }   /* the scroll-driven photo-to-dust is motion; hide it here */
 }
 
 /* ---- Narrow screens (phone + tablet) ---- */
@@ -241,6 +249,7 @@ body { background: transparent; overflow-x: hidden; }
   /* hero: the sorted grid sits in the top 34vh (JS); the headline starts at 42vh */
   #hero { padding-bottom: 0; }
   .hero-inner { position: absolute; top: 42vh; bottom: auto; left: 0; right: 0; }
+  .hero-photo { display: none; }   /* mobile uses the cube grid, not the portrait */
   /* chapters: the parked cube sits in this reserved band above the category word */
   .m-cube-anchor { height: 112px; width: 100%; pointer-events: none; }
   .ch-pin { min-height: auto; padding: 4vh 0; }

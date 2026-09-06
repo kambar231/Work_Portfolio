@@ -74,7 +74,11 @@ export function createParticles(opts = {}) {
   const flagAttr = flag.map((arr) => { const at = new THREE.BufferAttribute(arr, 1); at.setUsage(THREE.DynamicDrawUsage); return at; });
   // per-point darkness (0..1) for the portrait shape: tie/hair/suit near 1, shirt/face near 0.
   const shade3 = new Float32Array(maxCount);
-  const shade3Attr = new THREE.BufferAttribute(shade3, 1); shade3Attr.setUsage(THREE.DynamicDrawUsage);
+  let shade3Attr = new THREE.BufferAttribute(shade3, 1); shade3Attr.setUsage(THREE.DynamicDrawUsage);
+  // per-point colour (rgb 0..1) sampled from the portrait photo, so the dots can carry the
+  // real photo colour at the top of the hero and drain to the field grey as it scatters.
+  const color3 = new Float32Array(maxCount * 3);
+  let color3Attr = new THREE.BufferAttribute(color3, 3); color3Attr.setUsage(THREE.DynamicDrawUsage);
   const shapeNorm = [null, null, null, null];   // normalised source data once fetched (stride 4: x,y,z,cls)
   const shapeLoaded = [false, false, false, false];
   const shapeBounds = [null, null, null, null]; // {minx,maxx,miny,maxy} of the normalised shape, for placement
@@ -90,6 +94,7 @@ export function createParticles(opts = {}) {
   geom.setAttribute('aFlag2', flagAttr[2]);
   geom.setAttribute('aFlag3', flagAttr[3]);
   geom.setAttribute('aShade3', shade3Attr);
+  geom.setAttribute('aColor3', color3Attr);
   geom.setAttribute('aHash', new THREE.BufferAttribute(hash, 1));
   geom.setDrawRange(0, Math.floor(count * HERO_DENSITY));
 
@@ -103,13 +108,16 @@ export function createParticles(opts = {}) {
     uReveal1: { value: 1 }, uSliceLo: { value: -1 }, uSliceHi: { value: 1 },
     // dark stripe: uDark tints every point white; the cube outline (shape 2) spins about
     // its centre in the shader (the target set rotates, not the points)
-    uDark: { value: 0 }, uCubeSpin: { value: 0 }, uCubeCx: { value: 0 }, uCubeCz: { value: 0 } };
+    uDark: { value: 0 }, uCubeSpin: { value: 0 }, uCubeCx: { value: 0 }, uCubeCz: { value: 0 },
+    // portrait: uPortraitColor 1 = dots wear the photo colour, 0 = field grey. uPortraitDrift
+    // pushes the portrait points a little outward from its centre as the colour drains.
+    uPortraitColor: { value: 1 }, uPortraitDrift: { value: 0 }, uPortCx: { value: 0 }, uPortCy: { value: 0 } };
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
     // vertex: warp -> morph -> swirl, plus per-class colour/size and background dimming
     shader.vertexShader =
-      'uniform float uTime,uWarp,uFreq,uNoise,uMorph0,uMorph1,uMorph2,uMorph3,uReveal1,uSliceLo,uSliceHi,uDark,uCubeSpin,uCubeCx,uCubeCz;\n' +
-      'attribute vec3 aShape0; attribute vec3 aShape1; attribute vec3 aShape2; attribute vec3 aShape3; attribute float aHash,aFlag0,aFlag1,aFlag2,aFlag3,aShade3;\n' +
+      'uniform float uTime,uWarp,uFreq,uNoise,uMorph0,uMorph1,uMorph2,uMorph3,uReveal1,uSliceLo,uSliceHi,uDark,uCubeSpin,uCubeCx,uCubeCz,uPortraitColor,uPortraitDrift,uPortCx,uPortCy;\n' +
+      'attribute vec3 aShape0; attribute vec3 aShape1; attribute vec3 aShape2; attribute vec3 aShape3; attribute vec3 aColor3; attribute float aHash,aFlag0,aFlag1,aFlag2,aFlag3,aShade3;\n' +
       'varying vec3 vCol; varying float vOpa;\n' +
       shader.vertexShader.replace('#include <begin_vertex>',
         `#include <begin_vertex>
@@ -141,8 +149,13 @@ export function createParticles(opts = {}) {
          pos = mix(pos, s2, uMorph2);
          // hero portrait: an independent morph. At uMorph3 == 1 the point sits exactly on the
          // portrait (m == 1 -> swirl zero, crisp); as it falls the point scatters back to the
-         // attractor through the per-point noise below, so the face turns to dust.
-         pos = mix(pos, aShape3, uMorph3);
+         // attractor through the per-point noise below, so the face turns to dust. A small
+         // outward drift (uPortraitDrift) nudges each portrait point away from the portrait
+         // centre so the colour-drain phase reads as the face loosening before it scatters.
+         vec3 s3 = aShape3;
+         vec2 d3 = s3.xy - vec2(uPortCx, uPortCy);
+         s3.xy += normalize(d3 + 1e-4) * uPortraitDrift * uNoise * 0.35;
+         pos = mix(pos, s3, uMorph3);
          // swirl from dust: peaks mid-transition, ZERO at both ends (so a formed shape is crisp)
          float swirl = m * (1.0 - m) * 2.6;
          vec3 n = vec3(fract(sin(aHash*91.7)*4372.1), fract(sin(aHash*38.3)*1934.7), fract(sin(aHash*17.1)*271.3)) - 0.5;
@@ -158,18 +171,22 @@ export function createParticles(opts = {}) {
          vec3 DUST = vec3(0.722), FILLC = vec3(0.769), EDGEC = vec3(0.200);
          vec3 shapeCol = mix(FILLC, EDGEC, isEdge);
          vCol = mix(DUST, shapeCol, inShape * mA);
+         // portrait colour: for the active portrait points, blend from the field grey toward the
+         // photo's own pixel colour by uPortraitColor (1 = full photo colour, 0 = grey dust).
+         // The photo colour is darkened (x0.8) so the light face and white shirt still read as
+         // dots on the white page ground instead of washing out. Hue is preserved.
+         float portC = uPortraitColor * step(0.001, uMorph3) * inShape;
+         vCol = mix(vCol, aColor3 * 0.8, portC);
          // size: 1.6 dust -> 1.3 fill / 1.9 edge
          float shapeSz = mix(1.3, 1.9, isEdge);
          float sz = mix(size, shapeSz, inShape * mA);
-         // portrait points are sparse where the face is light; enlarge them so the
-         // whole bust reads solid even though the suit carries most of the points.
-         sz *= 1.0 + 0.85 * uMorph3 * inShape;
          // background dust drops to 15% opacity once the morph is past 0.4, so the silhouette stands alone
          float dim = (1.0 - inShape) * smoothstep(0.4, 0.6, mA);
          vOpa = mix(1.0, 0.15, dim);
-         // portrait tone: while the portrait is up, dark points (tie, hair, suit) hold full
-         // alpha and light points (shirt, face) drop to 0.55, so the bust reads tonally.
-         vOpa *= mix(1.0, 0.55 + 0.45 * aShade3, step(0.001, uMorph3) * inShape);
+         // portrait alpha: on the white page ground the light points (face, shirt) must stay
+         // OPAQUE to register, so tone is carried by the darkened colour above, not by fading
+         // the light dots. Keep a near-full alpha with only a slight lift for the darkest points.
+         vOpa *= mix(1.0, 0.88 + 0.12 * aShade3, step(0.001, uMorph3) * inShape);
          // dark stripe: every point turns white so it reads on the #1a1a1a band
          vCol = mix(vCol, vec3(1.0), uDark);`)
         .replace('gl_PointSize = size;', 'gl_PointSize = sz;');
@@ -207,7 +224,7 @@ export function createParticles(opts = {}) {
     0: () => placeAt(0, 0.62, 0.50, 0.62 * adj[0]),   // forklift, centred at 62vw/50vh, 62vh tall
     1: () => placeAt(1, 0.62, 0.50, 0.62 * adj[1]),   // slice stack, same box (crossfades with forklift)
     2: () => { const halfW = visH * aspect() * 0.5; return { s: 0.55 * visH, cx: 0.48 * halfW, cy: 0, cz: 0 }; }, // cube outline, right half, 55vh
-    3: () => placeAt(3, 0.82, 0.50, 0.80 * adj[3]),   // hero portrait, right of the headline (82vw/50vh), 80vh tall
+    3: () => placeAt(3, 0.82, 0.50, 0.80),            // hero portrait: full-image box 80vh tall, centred at 82vw/50vh (under the <img>)
   };
   const slicePlace = { lo: -1, hi: 1, cx: 0, cz: 0, s: 1 };
   function placeShape(k) {
@@ -229,6 +246,13 @@ export function createParticles(opts = {}) {
       uniforms.uSliceLo.value = lo; uniforms.uSliceHi.value = hi;
     }
     if (k === 2) { uniforms.uCubeCx.value = p.cx; uniforms.uCubeCz.value = p.cz; }
+    if (k === 3) {
+      // drift centre = centre of the placed full-image box (the subject sits centred in it)
+      const b3 = shapeBounds[3];
+      const ncx = (b3.minx + b3.maxx) * 0.5, ncy = (b3.miny + b3.maxy) * 0.5;
+      uniforms.uPortCx.value = ncx * p.s + p.cx;
+      uniforms.uPortCy.value = ncy * p.s + p.cy;
+    }
   }
   let forcedK = -1;   // shape-debug: force this morph to 1 once its data is placed
   function loadShape(k, url) {
@@ -267,8 +291,7 @@ export function createParticles(opts = {}) {
   // the PNG alpha. The samples are stored stride-4 (x,y,z,cls) like the other shapes, plus a
   // parallel darkness value per point, and sorted by the SAME y-band/x key for coherent
   // crossfades. y is flipped so the portrait stands upright.
-  const PORTRAIT_TARGET = Math.min(95000, maxCount);
-  const PORTRAIT_POW = 2.8;
+  const PORTRAIT_TARGET = Math.min(90000, maxCount);
   function loadPortraitShape(k, url) {
     const img = new Image();
     img.crossOrigin = 'anonymous';
@@ -278,7 +301,7 @@ export function createParticles(opts = {}) {
       const ctx = cv.getContext('2d', { willReadFrequently: true });
       ctx.drawImage(img, 0, 0);
       const data = ctx.getImageData(0, 0, cw, ch).data;
-      const xs = [], ys = [], sh = [];
+      const xs = [], ys = [], sh = [], cr = [], cg = [], cb = [];
       const guardMax = PORTRAIT_TARGET * 60;
       let guard = 0;
       while (xs.length < PORTRAIT_TARGET && guard < guardMax) {
@@ -287,12 +310,16 @@ export function createParticles(opts = {}) {
         const py = (Math.random() * ch) | 0;
         const idx = (py * cw + px) * 4;
         if (data[idx + 3] < 20) continue;                      // backdrop keyed out by alpha
-        const lum = (0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2]) / 255;
-        const w = Math.pow(Math.max(0, 1 - lum), PORTRAIT_POW);
-        if (Math.random() > w) continue;
+        const r = data[idx], g = data[idx + 1], bch = data[idx + 2];
+        const lum = (0.299 * r + 0.587 * g + 0.114 * bch) / 255;
+        const dark = Math.min(1, Math.max(0, 1 - lum));
+        // uniform over the silhouette, gently biased to the darks so hair/suit stay densest
+        // and the face and shirt still read: p = 0.55 + 0.45 * darkness.
+        if (Math.random() > 0.55 + 0.45 * dark) continue;
         xs.push(px + 0.5);
         ys.push(-(py + 0.5));                                   // flip: image is top-down, world is y-up
-        sh.push(Math.min(1, Math.max(0, 1 - lum)));
+        sh.push(dark);
+        cr.push(r / 255); cg.push(g / 255); cb.push(bch / 255);
       }
       const M = xs.length;
       let minx = Infinity, maxx = -Infinity, miny = Infinity, maxy = -Infinity;
@@ -300,7 +327,9 @@ export function createParticles(opts = {}) {
         if (xs[i] < minx) minx = xs[i]; if (xs[i] > maxx) maxx = xs[i];
         if (ys[i] < miny) miny = ys[i]; if (ys[i] > maxy) maxy = ys[i];
       }
-      shapeBounds[k] = { minx, maxx, miny, maxy };
+      // placement frame is the FULL image rectangle (not the sampled subject bounds), so the
+      // dots land exactly under the <img> element that shows the same file at the same box.
+      shapeBounds[k] = { minx: 0.5, maxx: cw - 0.5, miny: -(ch - 0.5), maxy: -0.5 };
       // same coherent-crossfade key as loadShape: 12 horizontal bands bottom-first, then x
       const BANDS = 12, yr = (maxy - miny) || 1;
       const order = new Array(M);
@@ -312,11 +341,14 @@ export function createParticles(opts = {}) {
         const o = order[i];
         sorted[i * 4] = xs[o]; sorted[i * 4 + 1] = ys[o]; sorted[i * 4 + 2] = 0; sorted[i * 4 + 3] = 0;   // cls 0 = fill
         shade3[i] = sh[o];
+        color3[i * 3] = cr[o]; color3[i * 3 + 1] = cg[o]; color3[i * 3 + 2] = cb[o];
       }
-      for (let i = M; i < maxCount; i++) shade3[i] = 0;
+      for (let i = M; i < maxCount; i++) { shade3[i] = 0; color3[i * 3] = color3[i * 3 + 1] = color3[i * 3 + 2] = 0; }
       shade3Attr.needsUpdate = true;
+      color3Attr.needsUpdate = true;
       shapeNorm[k] = sorted;
-      placeShape(k); calibrate(k); placeShape(k); shapeLoaded[k] = true;
+      placeShape(k); calibrate(k); placeShape(k);
+      shapeLoaded[k] = true;
       if (forcedK === k) uniforms['uMorph' + k].value = 1;
       // the portrait loads async; let the hero driver re-assert its morph for the current
       // scroll position (setMorph is a no-op until the shape is loaded).
@@ -327,7 +359,7 @@ export function createParticles(opts = {}) {
   loadShape(0, 'assets/shapes/forklift.bin');
   loadShape(1, 'assets/shapes/slicer.bin');
   loadShape(2, 'assets/shapes/cube.bin');
-  loadPortraitShape(3, 'assets/shapes/portrait.png');
+  loadPortraitShape(3, 'assets/shapes/portrait-color.png');
 
   function resize() {
     renderer.setSize(window.innerWidth, window.innerHeight, false);
@@ -369,6 +401,7 @@ export function createParticles(opts = {}) {
 
   // tune adj[k] so the shape's projected screen height converges on the 62vh target
   function calibrate(k) {
+    if (k === 3) return;   // portrait is a flat shape placed by its full-image box; no depth to correct
     if (!shapeNorm[k]) return;
     const tgt = calTarget[k];
     adj[k] = 1;
@@ -381,6 +414,24 @@ export function createParticles(opts = {}) {
   }
 
   function setDark(v) { uniforms.uDark.value = Math.min(1, Math.max(0, v)); }
+  function setPortraitColor(v) { uniforms.uPortraitColor.value = Math.min(1, Math.max(0, v)); }
+  function setPortraitDrift(v) { uniforms.uPortraitDrift.value = Math.min(1, Math.max(0, v)); }
+  // verification: distribution of portrait points over the vertical extent (10 bands, top-first)
+  function portraitStats() {
+    const src = shapeNorm[3]; if (!src) return null;
+    const M = src.length / 4;
+    let lo = Infinity, hi = -Infinity;
+    for (let i = 0; i < M; i++) { const y = src[i * 4 + 1]; if (y < lo) lo = y; if (y > hi) hi = y; }
+    const range = (hi - lo) || 1, NB = 10;
+    const bands = new Array(NB).fill(0);
+    for (let i = 0; i < M; i++) {
+      const topFrac = (hi - src[i * 4 + 1]) / range;           // 0 = very top, 1 = bottom
+      bands[Math.min(NB - 1, Math.max(0, Math.floor(topFrac * NB)))]++;
+    }
+    const top22 = (bands[0] + bands[1] + bands[2] * 0.2) / M;    // fraction in the top 22%
+    let densest = 0; for (let b = 1; b < NB; b++) if (bands[b] > bands[densest]) densest = b;
+    return { M, bands, top22, densestBand: densest };
+  }
   function frame(now, dt, scrollProgress, moving) {
     if (moving) uniforms.uTime.value = now / 1000;
     // cube outline spins while the dark stripe is active (target set rotates, not the points)
@@ -396,5 +447,22 @@ export function createParticles(opts = {}) {
   function capDpr() { renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5)); resize(); }
 
   return { frame, halveCount, capDpr, setMorph, morphBox, setSliceReveal, sliceTop, forceShape, setDark,
-    morphVal: (k) => uniforms['uMorph' + k].value, getCount: () => count };
+    setPortraitColor, setPortraitDrift, portraitStats,
+    _nudgeSize: () => { const w = window.innerWidth, h = window.innerHeight; renderer.setSize(w, h - 1, false); resize(); },
+    _resetGL: () => { try { renderer.resetState(); } catch (e) {} },
+    _reupload: () => { shapeAttr[3].needsUpdate = true; flagAttr[3].needsUpdate = true; shade3Attr.needsUpdate = true; color3Attr.needsUpdate = true; },
+    _recreate: () => {
+      const mk = (arr, n) => { const at = new THREE.BufferAttribute(arr, n); at.setUsage(THREE.DynamicDrawUsage); return at; };
+      geom.deleteAttribute('aColor3'); color3Attr = mk(color3, 3); geom.setAttribute('aColor3', color3Attr);
+      geom.deleteAttribute('aFlag3'); flagAttr[3] = mk(flag[3], 1); geom.setAttribute('aFlag3', flagAttr[3]);
+    },
+    debugPortraitColor: () => {
+      const src = shapeNorm[3]; if (!src) return null; const M = src.length / 4;
+      // index correlates with the y-band sort (low = bottom/suit, high = top/head)
+      const seg = (lo, hi) => { let r = 0, g = 0, b = 0, y = 0, f0 = 0, n = 0; for (let i = lo; i < hi; i++) { r += color3[i*3]; g += color3[i*3+1]; b += color3[i*3+2]; y += src[i*4+1]; if (flag[3][i] < 0.5) f0++; n++; } return { rgb: [r/n, g/n, b/n], meanY: y/n, flagZeroFrac: f0/n }; };
+      return { M, flagLen: flag[3].length, bottom: seg(0, 5000), mid: seg(Math.floor(M/2), Math.floor(M/2)+5000), top: seg(M - 5000, M) };
+    },
+    morphVal: (k) => uniforms['uMorph' + k].value,
+    portraitColorVal: () => uniforms.uPortraitColor.value, portraitDriftVal: () => uniforms.uPortraitDrift.value,
+    getCount: () => count };
 }

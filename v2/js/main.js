@@ -176,21 +176,37 @@ function updateProgress() {
 // away the points scatter back to the attractor and become the background dust that later
 // forms the forklift and the slice stack. Reversible on scroll up. The headline does not move.
 const heroSec = document.querySelector('#hero');
+const heroImg = document.querySelector('.hero-photo');
 if (heroSec && !reduced && !mobile) {
-  const heroEase = gsap.parseEase('power2.inOut');
+  const clamp01 = (x) => Math.min(1, Math.max(0, x));
+  // Photo-to-dust choreography, scrubbed and reversible, keyed on the hero progress p:
+  //   p 0.00 -> 0.20  photo fades out while the coloured dots hold in place under it
+  //   p 0.20 -> 0.55  the dot colour drains from the photo colour to the field grey (slight drift)
+  //   p 0.55 -> 0.85  the grey dots scatter from the face into the attractor field
+  // Everything is 0 by ~0.85, well before the experience forklift assembles.
+  const applyHero = (p) => {
+    const imgO = 1 - clamp01(p / 0.20);
+    const pc = 1 - clamp01((p - 0.20) / 0.35);
+    const m3 = 1 - clamp01((p - 0.55) / 0.30);
+    const dr = clamp01((p - 0.20) / 0.35) * (1 - clamp01((p - 0.55) / 0.30));
+    if (heroImg) heroImg.style.opacity = imgO;
+    particles.setPortraitColor(pc);
+    particles.setPortraitDrift(dr * 0.35);
+    particles.setMorph(3, m3);
+  };
   const heroST = ScrollTrigger.create({
-    trigger: heroSec, start: 'top top', end: '70% top', scrub: 0.6,
-    onUpdate: (self) => { particles.setMorph(3, 1 - heroEase(self.progress)); },
-    onEnterBack: () => { particles.setMorph(3, 1); },
-    onLeaveBack: () => { particles.setMorph(3, 1); },
-    onLeave: () => { particles.setMorph(3, 0); },   // fully dust before the forklift assembles
+    trigger: heroSec, start: 'top top', end: '85% top', scrub: 0.6,
+    onUpdate: (self) => applyHero(self.progress),
+    onEnterBack: (self) => applyHero(self.progress),
+    onLeaveBack: () => applyHero(0),   // above the top: photo and colour full, dots on the face
+    onLeave: () => applyHero(1),        // past the hero: photo gone, dots fully dust
   });
-  // the portrait shape samples its PNG asynchronously; setMorph is a no-op until then, so
-  // re-assert the morph for the current scroll position once the shape is ready (at rest at
-  // the top that is 1, so the portrait is the first thing on the page, before any scroll).
-  const assertHeroMorph = () => particles.setMorph(3, 1 - heroEase(heroST.progress));
-  window.addEventListener('v2:portrait-ready', assertHeroMorph);
-  assertHeroMorph();
+  // the portrait shape samples its PNG asynchronously; the setters are no-ops until then, so
+  // re-assert the whole state for the current scroll position once the shape is ready (at rest
+  // at the top that is p 0, so the photo is the first thing on the page, before any scroll).
+  const assertHero = () => applyHero(heroST.progress);
+  window.addEventListener('v2:portrait-ready', assertHero);
+  assertHero();
 }
 
 // ---- Experience: dots reform into the forklift; content reveals line by line ----
@@ -400,6 +416,18 @@ window.__v2.meshBox = (i) => cubes.meshBox(i);
 window.__v2.setMorph = (k, v) => particles.setMorph(k, v);
 window.__v2.morphBox = (k) => particles.morphBox(k);
 window.__v2.morphVal = (k) => particles.morphVal(k);
+window.__v2.portraitColorVal = () => particles.portraitColorVal();
+window.__v2.portraitDriftVal = () => particles.portraitDriftVal();
+window.__v2.portraitStats = () => particles.portraitStats();
+window.__v2.setPortraitColor = (v) => particles.setPortraitColor(v);
+window.__v2.setPortraitDrift = (v) => particles.setPortraitDrift(v);
+window.__v2.portraitBox = () => particles.morphBox(3);
+window.__v2.debugPortraitColor = () => particles.debugPortraitColor();
+window.__v2._nudgeSize = () => particles._nudgeSize();
+window.__v2._resetGL = () => particles._resetGL();
+window.__v2._reupload = () => particles._reupload();
+window.__v2._recreate = () => particles._recreate();
+window.__v2.heroImgOpacity = () => (heroImg ? parseFloat(getComputedStyle(heroImg).opacity || '1') : null);
 window.__v2.allCubes = () => Array.from({ length: cubes.count }, (_, i) => ({ box: cubes.meshBox(i), op: cubes.cubeOpacity(i) }));
 window.__v2.state = () => cubes.getState();
 // verifier: drive + read the projects unfold (deterministic open, real X/Escape close)
