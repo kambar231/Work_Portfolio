@@ -77,6 +77,20 @@ def shrink(box, f=CUBE_SHRINK):
             "w": box["w"] * f, "h": box["h"] * f}
 
 
+def box_in_viewport(box, vw, vh, max_factor=2.0):
+    # A cube that has exited (parked ~1.3x outside the viewport) or whose projection blew up
+    # (behind the camera / off the frustum) must not be tested against text or other cubes: its
+    # projected box either does not overlap the viewport or comes out degenerately large.
+    w, h = box["w"], box["h"]
+    if w <= 0 or h <= 0:
+        return False                      # inverted / empty projection
+    if w > max_factor * vw or h > max_factor * vh:
+        return False                      # degenerate blow-up
+    ix = min(box["x"] + w, vw) - max(box["x"], 0.0)
+    iy = min(box["y"] + h, vh) - max(box["y"], 0.0)
+    return ix > 0 and iy > 0              # positive area inside the viewport
+
+
 def launch(pw, headless):
     # headed launch drives the real GPU (RTX -> 60 fps, fps gate enforced). Headless falls back
     # to SwiftShader on this box, which caps ~35-45 fps, so run headed unless --headless is set.
@@ -167,6 +181,7 @@ def main():
 
         sh = pg.evaluate("() => document.documentElement.scrollHeight")
         vh = pg.evaluate("() => window.innerHeight")
+        vw = pg.evaluate("() => window.innerWidth")
 
         # detect a real GPU from the WebGL renderer string (SwiftShader/llvmpipe/basic =
         # software); the fps gate is enforced only on real hardware.
@@ -224,7 +239,8 @@ def main():
                     if slot > 6:
                         failures.append(("contact-end-slot", f"max slot dist {slot} px", 0))
 
-                vis = [(i, c) for i, c in enumerate(cubes) if c["op"] > 0.12 and c["box"]["w"] > 0] if cubes_visible else []
+                vis = [(i, c) for i, c in enumerate(cubes)
+                       if c["op"] > 0.12 and box_in_viewport(c["box"], vw, vh)] if cubes_visible else []
                 for m in range(len(vis)):
                     for n in range(m + 1, len(vis)):
                         ia, ca = vis[m]
@@ -248,6 +264,8 @@ def main():
                 for i, c in enumerate(cubes if cubes_visible else []):
                     if i == ray_exempt or c["op"] < MIN_CUBE_OP:
                         continue
+                    if not box_in_viewport(c["box"], vw, vh):
+                        continue  # exited / degenerate box: not really on the text
                     bx = c["box"]
                     for r in text_rects:
                         if boxes_intersect(bx, {"x": r["x"] - 40, "y": r["y"] - 40, "w": r["w"] + 80, "h": r["h"] + 80}):
@@ -261,6 +279,8 @@ def main():
                 for i, c in enumerate(cubes if cubes_visible else []):
                     if c["op"] < 0.05:
                         continue
+                    if not box_in_viewport(c["box"], vw, vh):
+                        continue  # exited / degenerate box: not really on the shape
                     for s in shape_rects:
                         if boxes_intersect(shrink(c["box"]), s, pad=-1.0):
                             on_shape_cubes.append(i)
