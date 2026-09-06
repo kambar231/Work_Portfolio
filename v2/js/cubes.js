@@ -214,15 +214,16 @@ export function createCubeHero({ onCubeClick } = {}) {
         ctx.drawImage(img, dx, dy, dw, dh);
       }
       ctx.fillStyle = '#ffffff'; ctx.fillRect(0, IMG_H, SZ, SZ - IMG_H);
-      const padX = 52; let ty = IMG_H + 44; ctx.textBaseline = 'top';
-      ctx.fillStyle = ACCENT; ctx.font = '600 26px Roboto, system-ui, sans-serif';
-      ctx.fillText(String(label || '').toUpperCase(), padX, ty); ty += 44;
-      ctx.fillStyle = '#141414'; ctx.font = '500 44px Roboto, system-ui, sans-serif';
-      ty = wrapText(ctx, title, padX, ty, SZ - 2 * padX, 52, 2) + 10;
-      if (key) { ctx.fillStyle = '#3a3a3a'; ctx.font = '400 30px Roboto, system-ui, sans-serif';
-        ty = wrapText(ctx, key, padX, ty, SZ - 2 * padX, 38, 2) + 8; }
-      ctx.fillStyle = '#5a5a5a'; ctx.font = '400 26px Roboto, system-ui, sans-serif';
-      wrapText(ctx, summary, padX, ty, SZ - 2 * padX, 34, 4);
+      // Part D: larger type so the band reads on screen (was 44/30/26, about 13 px rendered).
+      const padX = 52; let ty = IMG_H + 40; ctx.textBaseline = 'top';
+      ctx.fillStyle = ACCENT; ctx.font = '600 30px Roboto, system-ui, sans-serif';
+      ctx.fillText(String(label || '').toUpperCase(), padX, ty); ty += 48;
+      ctx.fillStyle = '#141414'; ctx.font = '500 64px Roboto, system-ui, sans-serif';
+      ty = wrapText(ctx, title, padX, ty, SZ - 2 * padX, 74, 2) + 12;
+      if (key) { ctx.fillStyle = '#3a3a3a'; ctx.font = '500 44px Roboto, system-ui, sans-serif';
+        ty = wrapText(ctx, key, padX, ty, SZ - 2 * padX, 54, 2) + 10; }
+      ctx.fillStyle = '#5a5a5a'; ctx.font = '400 34px Roboto, system-ui, sans-serif';
+      wrapText(ctx, summary, padX, ty, SZ - 2 * padX, 44, 4);
       tex.needsUpdate = true;
     }
     // an already-decoded texture image (no network load, so no 404 for stale data paths)
@@ -234,6 +235,41 @@ export function createCubeHero({ onCubeClick } = {}) {
     if (!name) return null;
     if (name.indexOf('/') >= 0) return name;                       // already a path
     return 'assets/cubes/' + (name.endsWith('.png') ? name.slice(0, -4) : name) + '.webp';
+  }
+  // Part D: Raymond faces are TEXT-FIRST (5 of 6 images are the forklift placeholder). White
+  // face, big system name, key number in the accent, one line, small "RAYMOND" label. Only a
+  // real (non-placeholder) image gets a 30% bottom strip.
+  function makeRaymondFace({ name, number, line, image }) {
+    const SZ = 1024;
+    const cv = document.createElement('canvas'); cv.width = SZ; cv.height = SZ;
+    const ctx = cv.getContext('2d');
+    const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
+    const hasImg = !!image && image.indexOf('raymond-forklift') < 0;   // forklift = placeholder
+    const stripH = hasImg ? Math.round(SZ * 0.30) : 0;
+    function draw(img) {
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, SZ, SZ);
+      const padX = 56; let ty = 52; ctx.textBaseline = 'top';
+      ctx.fillStyle = ACCENT; ctx.font = '600 30px Roboto, system-ui, sans-serif';
+      ctx.fillText('RAYMOND', padX, ty); ty += 56;
+      ctx.fillStyle = '#141414'; ctx.font = '500 104px Roboto, system-ui, sans-serif';
+      ty = wrapText(ctx, name, padX, ty, SZ - 2 * padX, 116, 3) + 20;
+      ctx.fillStyle = ACCENT; ctx.font = '500 72px Roboto, system-ui, sans-serif';
+      ty = wrapText(ctx, number, padX, ty, SZ - 2 * padX, 84, 2) + 16;
+      ctx.fillStyle = '#4a4a4a'; ctx.font = '400 40px Roboto, system-ui, sans-serif';
+      wrapText(ctx, line, padX, ty, SZ - 2 * padX, 50, 4);
+      if (hasImg && img && img.width) {
+        const y0 = SZ - stripH, ar = img.width / img.height, box = SZ / stripH;
+        let dw, dh, dx, dy;
+        if (ar > box) { dh = stripH; dw = dh * ar; dx = (SZ - dw) / 2; dy = y0; }
+        else { dw = SZ; dh = dw / ar; dx = 0; dy = y0 + (stripH - dh) / 2; }
+        ctx.save(); ctx.beginPath(); ctx.rect(0, y0, SZ, stripH); ctx.clip();
+        ctx.drawImage(img, dx, dy, dw, dh); ctx.restore();
+      }
+      tex.needsUpdate = true;
+    }
+    draw(null);
+    if (hasImg) { const im = new Image(); im.onload = () => draw(im); im.onerror = () => {}; im.src = image; }
+    return tex;
   }
 
   // ---- camera + grid placement ----
@@ -822,8 +858,7 @@ export function createCubeHero({ onCubeClick } = {}) {
     raymondFaceMeshes = [];
     for (let j = 0; j < 6; j++) {
       const f = faces[j] || {};
-      const tex = makeBakedFace({ image: f.image, title: f.name || '', key: f.number || '',
-        summary: f.line || '', label: f.name || 'SYSTEM' });
+      const tex = makeRaymondFace({ name: f.name || '', number: f.number || '', line: f.line || '', image: f.image });
       const mat = new THREE.MeshBasicMaterial({ map: tex, color: 0xffffff, side: THREE.FrontSide, toneMapped: false, transparent: false });
       const m = new THREE.Mesh(plane, mat);
       raymondRig.add(m); raymondFaceMeshes.push(m);
@@ -842,11 +877,29 @@ export function createCubeHero({ onCubeClick } = {}) {
     if (t <= 0.001) { disposeRaymondRig(); return; }
     if (!raymondRig) buildRaymondRig();
   }
-  function raymondSlotPx(j) {
+  // Part D: measure the free band live (between the employer lines and achievements, right of
+  // the text, left of the forklift) and size the 3x2 grid to fill it. Cached per frame in these.
+  let bandCx = 0, bandCy = 0, bandFace = 0, bandGap = 0;
+  function raymondBand() {
     const vw = window.innerWidth, vh = window.innerHeight;
-    const face = (RAY_FACE_VH / 100) * vh, gap = (RAY_GAP_VH / 100) * vh, step = face + gap;
+    const hb = document.querySelector('.exp2-head');
+    const ab = document.querySelector('.exp2-ach');
+    const hr = hb ? hb.getBoundingClientRect() : null;
+    const ar = ab ? ab.getBoundingClientRect() : null;
+    const top = (hr && hr.height > 4 ? hr.bottom : 0.32 * vh) + 40;
+    const bottom = (ar && ar.height > 4 ? ar.top : 0.70 * vh) - 40;
+    const left = 0.05 * vw;
+    const forkX = (shapeRects[0] && shapeRects[0].w > 4) ? shapeRects[0].x - 24 : 0.47 * vw;
+    const right = Math.min(0.47 * vw, forkX);
+    const bandW = Math.max(120, right - left), bandH = Math.max(120, bottom - top);
+    bandGap = 0.012 * vh;
+    bandFace = Math.max(60, Math.min((bandW - 2 * bandGap) / 3, (bandH - bandGap) / 2));
+    bandCx = (left + right) / 2; bandCy = (top + bottom) / 2;
+  }
+  function raymondSlotPx(j) {
+    const stepX = bandFace + bandGap, stepY = bandFace + bandGap;
     const col = j % 3, row = Math.floor(j / 3);
-    return { x: (RAY_CENTER_VW / 100) * vw + (col - 1) * step, y: (RAY_CENTER_VH / 100) * vh + (row - 0.5) * step, size: face };
+    return { x: bandCx + (col - 1) * stepX, y: bandCy + (row - 0.5) * stepY, size: bandFace };
   }
   // C4: cross-net layout (face units), standard cube unfold, one entry per face in j order.
   //   [ ][T][ ][ ]
@@ -857,10 +910,11 @@ export function createCubeHero({ onCubeClick } = {}) {
   function updateRaymondRig() {
     if (!raymondRig || !raymondFaceMeshes.length) return;
     const vw = window.innerWidth, vh = window.innerHeight;
+    raymondBand();                                              // Part D: size to the live band
     const halfHz = (camera.position.z - PARK_Z) * tanHalf();
-    const faceWorld = (RAY_FACE_VH / 100) * 2 * halfHz;         // grid face size in world units
+    const faceWorld = bandFace * 2 * halfHz / vh;               // band face px -> world at PARK_Z
     const netStep = faceWorld * 1.04;                          // net cells touch with a hair of gap
-    const centerLocal = anchorLocalXY(RAY_CENTER_VW, RAY_CENTER_VH);
+    const centerLocal = anchorLocalXY((bandCx / vw) * 100, (bandCy / vh) * 100);
     // C4 two phases: t 0..0.55 HINGE the six faces open into the cross net at the park pose,
     // t 0.55..1 SLIDE the open faces from the net into the 3x2 grid. Never a jump-cut.
     const a = easeInOut(Math.min(1, raymondT / 0.55));         // hinge open into the net
