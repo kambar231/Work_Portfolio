@@ -430,9 +430,15 @@ export function createCubeHero({ onCubeClick } = {}) {
 
   // ---- label DOM ----
   const labelLayer = document.getElementById('cube-labels');
+  // C2: labels are hover feedback only. They must NEVER intercept pointer events, or a click
+  // lands on a label div (whose slot may belong to a different cube) instead of reaching the
+  // raycast, which is exactly why clicking CNC opened the slicer. Force pointer-events off here
+  // so the fix holds regardless of the stylesheet.
+  if (labelLayer) labelLayer.style.pointerEvents = 'none';
   const labelEls = CUBES.map((c) => {
     const el = document.createElement('div');
     el.className = 'cube-label';
+    el.style.pointerEvents = 'none';
     el.textContent = c.label;
     labelLayer.appendChild(el);
     return el;
