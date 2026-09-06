@@ -337,14 +337,27 @@ export function createCubeHero({ onCubeClick } = {}) {
   const _p = new THREE.Vector3();
   function updateLabels() {
     const w = window.innerWidth, h = window.innerHeight;
+    // the projects grid names each cube (simulate/make/build/...). The cube's axis-aligned
+    // box is hugely inflated by the tumble, so pin the label a fixed pixel offset below the
+    // projected cube CENTRE (~half a 180px cube plus margin): clear of this cube, above the
+    // next row.
+    const inProjects = projT > 0.5 && openIndex < 0;
     for (let i = 0; i < meshes.length; i++) {
-      meshes[i].getWorldPosition(_p);
-      _p.y -= LABEL_DROP;
-      _p.project(camera);
-      const x = (_p.x * 0.5 + 0.5) * w;
-      const y = (-_p.y * 0.5 + 0.5) * h;
-      // labels belong to the hero/contact grid only; hidden during mobile chapters
-      const op = mobileHide ? 0 : labelOpacity * (_p.z < 1 ? 1 : 0);
+      let x, y, op;
+      if (inProjects) {
+        meshes[i].getWorldPosition(_p);
+        _p.project(camera);
+        x = (_p.x * 0.5 + 0.5) * w;
+        y = (-_p.y * 0.5 + 0.5) * h + 124;
+        op = mobileHide ? 0 : (_p.z < 1 ? 1 : 0);
+      } else {
+        meshes[i].getWorldPosition(_p);
+        _p.y -= LABEL_DROP;
+        _p.project(camera);
+        x = (_p.x * 0.5 + 0.5) * w;
+        y = (-_p.y * 0.5 + 0.5) * h;
+        op = mobileHide ? 0 : labelOpacity * (_p.z < 1 ? 1 : 0);
+      }
       const el = labelEls[i];
       el.style.opacity = op.toFixed(3);
       el.style.transform = `translate(-50%, 0) translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
@@ -461,6 +474,120 @@ export function createCubeHero({ onCubeClick } = {}) {
   // mobile: hide every non-featured cube (used between the hero grid and the contact grid)
   function setMobileHide(b) { mobileHide = !!b; }
 
+  // ---- Projects grid + cube unfold (phase 2) ----
+  // When the projects section is on screen the eight cubes settle into a centred 4x2 grid.
+  // Clicking one glides it to the centre and unfolds it into a cross net of six textured
+  // faces; DOM cards (positioned by projection, see faceAnchors) fade in over each face.
+  const PROJ_SCALE = 1.55, PROJ_SPX = 2.0, PROJ_SPY = 2.7, PROJ_CY = -0.05;
+  let projT = 0, projActive = false;          // 0..1 settle into the grid
+  let hoverIndex = -1;
+  let openIndex = -1, openT = 0;              // 0 closed, 1 fully unfolded
+  const projWorld = [];                        // centred grid slot (world) per cube
+  for (let i = 0; i < CUBES.length; i++) {
+    const col = i % 4, row = Math.floor(i / 4);
+    projWorld.push(new THREE.Vector3((col - 1.5) * PROJ_SPX, (0.5 - row) * PROJ_SPY + PROJ_CY, 0));
+  }
+  function setProjects(on) {
+    projActive = !!on;
+    const g = window.gsap;
+    if (g) g.to({ p: projT }, { p: on ? 1 : 0, duration: 1.2, ease: 'power3.out', onUpdate: function () { projT = this.targets()[0].p; } });
+    else projT = on ? 1 : 0;
+    if (!on && openIndex >= 0) closeProject();
+  }
+
+  // build a six-face cross-net rig for cube i, hinged so t=0 is a closed cube and t=1 is flat
+  let rig = null, rigPivots = null;
+  const FACE_MAP = { right: 0, left: 1, top: 2, bottom: 3, front: 4, back: 5 };
+  function unfoldScale() { return (0.8 * window.innerHeight) / (3 * CUBE_PX); }
+  function buildRig(i) {
+    disposeRig();
+    const mats = meshes[i].material;
+    const faceMat = (idx) => new THREE.MeshBasicMaterial({ map: mats[idx].map || null,
+      color: mats[idx].map ? 0xffffff : 0xe0e0e0, side: THREE.DoubleSide, transparent: true, opacity: 1 });
+    const plane = new THREE.PlaneGeometry(1, 1);
+    rig = new THREE.Group();
+    const S = unfoldScale();
+    rig.scale.setScalar(S);
+    rig.position.set(-0.5 * S * 1, 0, 1.0);   // centre the net (x spans -1.5..2.5) on screen
+    // front stays flat at the net centre
+    const front = new THREE.Mesh(plane, faceMat(FACE_MAP.front)); rig.add(front);
+    // a hinged flap: pivot at the shared edge, plane offset one half-unit beyond it
+    function flap(name, pivotPos, axis, foldSign, parent) {
+      const pv = new THREE.Group(); pv.position.copy(pivotPos);
+      const mesh = new THREE.Mesh(plane, faceMat(FACE_MAP[name]));
+      // plane centre sits half a unit outward from the hinge along the opening direction
+      if (axis === 'y') mesh.position.set(pivotPos.x >= 0 ? 0.5 : -0.5, 0, 0);
+      else mesh.position.set(0, pivotPos.y >= 0 ? 0.5 : -0.5, 0);
+      pv.add(mesh); (parent || rig).add(pv);
+      return { pv, axis, foldSign, mesh };
+    }
+    rigPivots = {
+      right: flap('right', new THREE.Vector3(0.5, 0, 0), 'y', -1),
+      left: flap('left', new THREE.Vector3(-0.5, 0, 0), 'y', 1),
+      top: flap('top', new THREE.Vector3(0, 0.5, 0), 'x', 1),
+      bottom: flap('bottom', new THREE.Vector3(0, -0.5, 0), 'x', -1),
+    };
+    // back hinges off the right flap's outer edge
+    rigPivots.back = flap('back', new THREE.Vector3(1, 0, 0), 'y', -1, rigPivots.right.pv);
+    rig.userData.front = front;
+    scene.add(rig);
+    setUnfold(0);
+  }
+  function setUnfold(t) {
+    if (!rig) return;
+    const foldAngle = (1 - t) * Math.PI / 2;   // t=1 flat (0 rad), t=0 folded (90 deg)
+    for (const key in rigPivots) {
+      const f = rigPivots[key];
+      if (f.axis === 'y') f.pv.rotation.set(0, f.foldSign * foldAngle, 0);
+      else f.pv.rotation.set(f.foldSign * foldAngle, 0, 0);
+    }
+    // fade faces up as it opens so the closed cube reads as the photo cube first
+    const o = 0.15 + 0.85 * t;
+    rig.traverse((c) => { if (c.material) c.material.opacity = o; });
+  }
+  function disposeRig() {
+    if (!rig) return;
+    scene.remove(rig);
+    rig.traverse((c) => { if (c.geometry) c.geometry.dispose(); if (c.material) c.material.dispose(); });
+    rig = null; rigPivots = null;
+  }
+  function openProject(i) {
+    if (openIndex === i) return;
+    openIndex = i;
+    buildRig(i);
+    const g = window.gsap;
+    if (g) g.fromTo({ p: 0 }, { p: 0 }, { p: 1, duration: 1.1, ease: 'power3.inOut', onUpdate: function () { openT = this.targets()[0].p; setUnfold(openT); } });
+    else { openT = 1; setUnfold(1); }
+    if (onProjectOpen) onProjectOpen(i);
+  }
+  function closeProject() {
+    if (openIndex < 0) return;
+    const g = window.gsap; const idx = openIndex;
+    if (g) g.to({ p: openT }, { p: 0, duration: 0.9, ease: 'power3.inOut',
+      onUpdate: function () { openT = this.targets()[0].p; setUnfold(openT); },
+      onComplete: () => { disposeRig(); } });
+    else { disposeRig(); }
+    openIndex = -1; openT = 0;
+    if (onProjectClose) onProjectClose(idx);
+  }
+  let onProjectOpen = null, onProjectClose = null;
+  function setProjectHandlers(o, c) { onProjectOpen = o; onProjectClose = c; }
+  // screen-space centres of the six faces (for the DOM cards); null unless a rig is open
+  function faceAnchors() {
+    if (!rig) return null;
+    const centres = { front: [0, 0, 0], right: [1, 0, 0], left: [-1, 0, 0], top: [0, 1, 0], bottom: [0, -1, 0], back: [2, 0, 0] };
+    const out = {}; const w = window.innerWidth, h = window.innerHeight; const v = new THREE.Vector3();
+    rig.updateWorldMatrix(true, true);
+    for (const k in centres) {
+      const c = centres[k];
+      v.set(c[0], c[1], c[2]); rig.localToWorld(v); v.project(camera);
+      out[k] = { x: (v.x * 0.5 + 0.5) * w, y: (-v.y * 0.5 + 0.5) * h, vis: openT };
+    }
+    return out;
+  }
+  function setHover(i) { hoverIndex = i; }
+  function projectOpenIndex() { return openIndex; }
+
   window.addEventListener('resize', resize);
   resize();
 
@@ -488,12 +615,39 @@ export function createCubeHero({ onCubeClick } = {}) {
     }
     const parked = anyParked();
 
+    // projects grid settles the whole cloud; ease parallax out while it is active
+    if (projT > 0.01) { group.rotation.x *= 0.88; group.rotation.y *= 0.88; }
+
     for (let i = 0; i < meshes.length; i++) {
       const m = meshes[i];
       let tumbleScale = 1, targetScale = 1, op = 1;
       const bob = Math.sin(t * 0.6 + i) * BOB_AMP;
       const pt = parkTargets[i];
       const tr = _tr[i];
+      if (projT > 0.01) {
+        // 4x2 centred grid; open cube hides (its unfold rig shows), the rest fade back
+        const e = ease(projT);
+        _tmp.copy(projWorld[i]).sub(group.position);
+        const px = base[i].x + (_tmp.x - base[i].x) * e;
+        const py = base[i].y + (_tmp.y - base[i].y) * e;
+        const pz = base[i].z + (_tmp.z - base[i].z) * e;
+        const lift = (i === hoverIndex && openIndex < 0) ? 0.15 : 0;
+        m.position.set(px, py + bob * 0.15, pz + lift);
+        targetScale = 1 + (PROJ_SCALE - 1) * e;
+        tumbleScale = (i === hoverIndex || projT > 0.5) ? 0 : 0.6;
+        if (projT > 0.4 && openIndex < 0) {
+          // settle nearer face-on (small 3D tilt) so each cube reads at its ~180px
+          // footprint and a label fits cleanly under it between the two rows
+          m.rotation.x += (0.16 - m.rotation.x) * 0.12;
+          m.rotation.y += (0.26 - m.rotation.y) * 0.12;
+        }
+        op = openIndex >= 0 ? (i === openIndex ? 0 : 0.15) : 1;
+        if (moving && tumbleScale > 0) { m.rotation.x += TUMBLE_X * fs * tumbleScale; m.rotation.y += TUMBLE_Y * fs * tumbleScale; }
+        m.scale.setScalar(targetScale);
+        cubeReveal[i] += (revealTargets[i] - cubeReveal[i]) * Math.min(1, 0.12 * fs);
+        setCubeOpacity(m, op * cubeReveal[i]);
+        continue;
+      }
       if (tr) {
         // follow the DOM anchor (scrolls with the content); tumble frozen so the box
         // stays face-on and clears the column titles
@@ -542,6 +696,9 @@ export function createCubeHero({ onCubeClick } = {}) {
   return {
     frame, setUnravel, setState, focus, raycast, setPointer, ready,
     cubeBoxes, labelBoxes, chapterPark, setTrack, setExclude, chapterDim, setCloudDim, setMobileHide, meshBox,
+    setProjects, setHover, openProject, closeProject, projectOpenIndex, faceAnchors, setProjectHandlers,
+    projectsActive: () => projActive,
+    labelFor: (i) => (CUBES[i] ? CUBES[i].label : ''),
     cubeOpacity: (i) => meshes[i].material[0].opacity,
     getState: () => ({ unravel, parked: Object.keys(parkTargets).map(Number) }),
     capDpr() { renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5)); resize(); },

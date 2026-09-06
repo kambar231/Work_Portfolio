@@ -91,24 +91,31 @@ export function createParticles(opts = {}) {
     color: 0xffffff, size: 1.6, sizeAttenuation: true, transparent: true, opacity: 0.9, depthWrite: false,
   });
   const uniforms = { uTime: { value: 0 }, uWarp: { value: WARP }, uFreq: { value: WFREQ }, uNoise: { value: NOISE },
-    uMorph0: { value: 0 }, uMorph1: { value: 0 }, uMorph2: { value: 0 } };
+    uMorph0: { value: 0 }, uMorph1: { value: 0 }, uMorph2: { value: 0 },
+    // slice stack builds bottom-first: shape-1 points below uReveal1 (fraction of stack height) are placed
+    uReveal1: { value: 1 }, uSliceLo: { value: -1 }, uSliceHi: { value: 1 } };
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
     // vertex: warp -> morph -> swirl, plus per-class colour/size and background dimming
     shader.vertexShader =
-      'uniform float uTime,uWarp,uFreq,uNoise,uMorph0,uMorph1,uMorph2;\n' +
+      'uniform float uTime,uWarp,uFreq,uNoise,uMorph0,uMorph1,uMorph2,uReveal1,uSliceLo,uSliceHi;\n' +
       'attribute vec3 aShape0; attribute vec3 aShape1; attribute vec3 aShape2; attribute float aHash,aFlag0,aFlag1,aFlag2;\n' +
       'varying vec3 vCol; varying float vOpa;\n' +
       shader.vertexShader.replace('#include <begin_vertex>',
         `#include <begin_vertex>
-         float m = clamp(uMorph0 + uMorph1 + uMorph2, 0.0, 1.0);
+         // slice stack builds bottom ring first: a shape-1 point is placed only once the
+         // build line uReveal1 has risen past its height fraction within the stack.
+         float hFrac1 = clamp((aShape1.y - uSliceLo) / max(0.0001, uSliceHi - uSliceLo), 0.0, 1.0);
+         float built1 = aFlag1 > 0.5 ? step(hFrac1, uReveal1) : 1.0;
+         float uM1 = uMorph1 * built1;
+         float m = clamp(uMorph0 + uM1 + uMorph2, 0.0, 1.0);
          // warped attractor, warp fades as the form assembles
          vec3 base = transformed;
          base.x += uWarp * sin(base.y * uFreq + uTime * 0.35) * (1.0 - m);
          base.y += uWarp * cos(base.x * uFreq + uTime * 0.31) * (1.0 - m);
          vec3 pos = base;
          pos = mix(pos, aShape0, uMorph0);
-         pos = mix(pos, aShape1, uMorph1);
+         pos = mix(pos, aShape1, uM1);
          pos = mix(pos, aShape2, uMorph2);
          // swirl from dust: peaks mid-transition, ZERO at both ends (so a formed shape is crisp)
          float swirl = m * (1.0 - m) * 2.6;
@@ -116,8 +123,9 @@ export function createParticles(opts = {}) {
          pos += n * uNoise * swirl;
          transformed = pos;
          // active shape = the one being morphed to (morphs are exclusive); pick its flag + amount
-         float mA = max(max(uMorph0, uMorph1), uMorph2);
-         float flag = uMorph0 >= mA ? aFlag0 : (uMorph1 >= mA ? aFlag1 : aFlag2);
+         // (shape 1 uses the height-gated amount so un-built rings stay as dust)
+         float mA = max(max(uMorph0, uM1), uMorph2);
+         float flag = uMorph0 >= mA ? aFlag0 : (uM1 >= mA ? aFlag1 : aFlag2);
          float inShape = step(0.5, flag);          // 1 = fill or edge point of the active shape
          float isEdge  = step(1.5, flag);          // 1 = edge point
          // colour: dust -> per-class shape colour as the morph proceeds
@@ -150,9 +158,10 @@ export function createParticles(opts = {}) {
       const maxx = shapeBounds[0] ? shapeBounds[0].maxx : 0.4;
       return { s, cx: 0.84 * halfW - maxx * s, cy: 0, cz: 0 };   // right edge at 92vw
     },
-    1: () => ({ s: 0.52 * visH, cx: 0, cy: 0, cz: 0 }),        // slicer stack, centre
+    1: () => { const halfW = visH * aspect() * 0.5; return { s: 0.62 * visH, cx: 0.5 * halfW, cy: 0, cz: 0 }; }, // slice stack, right 45%
     2: () => ({ s: 0.46 * visH, cx: 0, cy: 0, cz: 0 }),        // cube outline, centre
   };
+  const slicePlace = { lo: -1, hi: 1, cx: 0, cz: 0, s: 1 };
   function placeShape(k) {
     const src = shapeNorm[k]; if (!src) return;
     const p = PLACE[k](); const arr = shapeArrays[k]; const fl = flag[k]; const M = src.length / 4;
@@ -164,6 +173,13 @@ export function createParticles(opts = {}) {
     }
     shapeAttr[k].needsUpdate = true;
     flagAttr[k].needsUpdate = true;
+    if (k === 1) {
+      // world-y bounds of the slice stack, for the bottom-first build gate + the hairline
+      let lo = Infinity, hi = -Infinity;
+      for (let i = 0; i < M && i < maxCount; i++) { const y = arr[i * 3 + 1]; if (y < lo) lo = y; if (y > hi) hi = y; }
+      slicePlace.lo = lo; slicePlace.hi = hi; slicePlace.cx = p.cx; slicePlace.cz = p.cz; slicePlace.s = p.s;
+      uniforms.uSliceLo.value = lo; uniforms.uSliceHi.value = hi;
+    }
   }
   function loadShape(k, url) {
     fetch(url).then((r) => r.arrayBuffer()).then((buf) => {
@@ -194,6 +210,15 @@ export function createParticles(opts = {}) {
     v = shapeLoaded[k] ? Math.min(1, Math.max(0, v)) : 0;   // never morph to an unloaded shape
     uniforms['uMorph' + k].value = v;
   }
+  const SLICE_RINGS = 40;
+  function setSliceReveal(v) { uniforms.uReveal1.value = Math.min(1, Math.max(0, v)); }
+  function sliceTop() {
+    // screen y of the current top built ring + its ring index, for the DOM layer hairline
+    const rev = uniforms.uReveal1.value;
+    const topY = slicePlace.lo + rev * (slicePlace.hi - slicePlace.lo);
+    const v = new THREE.Vector3(slicePlace.cx, topY, slicePlace.cz).project(camera);
+    return { y: (-v.y * 0.5 + 0.5) * window.innerHeight, ring: Math.max(1, Math.round(rev * SLICE_RINGS)), rings: SLICE_RINGS };
+  }
   function morphBox(k) {
     // screen bounding box of shape k's placed points (for the exclusion verifier)
     if (!shapeNorm[k]) return null;
@@ -220,5 +245,5 @@ export function createParticles(opts = {}) {
   function halveCount() { if (!halved) { halved = true; count = Math.floor(count / 2); } }
   function capDpr() { renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5)); resize(); }
 
-  return { frame, halveCount, capDpr, setMorph, morphBox, getCount: () => count };
+  return { frame, halveCount, capDpr, setMorph, morphBox, setSliceReveal, sliceTop, getCount: () => count };
 }

@@ -99,59 +99,39 @@
     </section>
 
     <!-- Chapter 5: 3D Slicer and G-code -->
-    <section id="slicer" class="ch" data-side="left" data-cube="3">
-      <div class="ch-pin"><div class="col ch-inner">
-        <h2 class="ch-word" data-word="slicer">slicer</h2>
-        <ul class="ch-list">
-          <li>STL to G-code in Python and PyQt</li>
-          <li>Every stage exposed, not hidden</li>
-          <li>Foundation for tilted-plane slicing</li>
-        </ul>
-        <p class="ch-story">I got tired of treating my slicer like a black box, so I wrote my own in Python. You load an STL, set a layer height, then slice and generate G-code, and each stage shows its own state instead of hiding it. Every layer is computed and drawn, so I can check the wall paths at any height. Doing it from scratch is humbling. Every smooth print is hiding a stack of geometry decisions you never had to think about.</p>
-        <p class="ch-key">STL to G-code, written from scratch.</p>
-        <button class="ch-open" type="button" data-panel="slicer">Read the full breakdown</button>
+    <!-- Slicer (slice-stack morph on the right; the print grows ring by ring with scroll) -->
+    <section id="slicer" class="exp2 slicer2">
+      <div class="exp2-pin"><div class="col">
+        <div class="exp2-col">
+          <h2 class="exp-word">slicer</h2>
+          <ul class="exp2-head reveal-line">
+            <li>STL to G-code in Python and PyQt</li>
+            <li>Every stage exposed, not hidden</li>
+            <li>Foundation for tilted-plane slicing</li>
+          </ul>
+          <p class="slicer-story reveal-line">I got tired of treating my slicer like a black box, so I wrote my own in Python. You load an STL, set a layer height, then slice and generate G-code, and each stage shows its own state instead of hiding it. Every layer is computed and drawn, so I can check the wall paths at any height. Doing it from scratch is humbling.</p>
+          <p class="slicer-key reveal-line">STL to G-code, written from scratch.</p>
+          <div class="ev-strip reveal-line">
+            <figure><span class="ev-label">Designed</span><img loading="lazy" decoding="async" src="assets/img/slicer-software.jpg" alt="The custom Python slicer interface built in PyQt" /></figure>
+            <figure><span class="ev-label">Analyzed</span><img loading="lazy" decoding="async" src="assets/img/slicer-layer-plot.jpg" alt="Slicer layer outlines with current and next walls overlaid" /></figure>
+            <figure><span class="ev-label">Built</span><img loading="lazy" decoding="async" src="assets/img/slicer-stl-viewer.jpg" alt="Custom STL viewer with a model on the build plate" /></figure>
+            <figure><span class="ev-label">Proved</span><img loading="lazy" decoding="async" src="assets/img/slicer-stl-detail.jpg" alt="Slicer viewer close up at 0.2 mm layer height" /></figure>
+          </div>
+          <button class="ch-open reveal-line" type="button" data-panel="slicer">Read the full breakdown</button>
+        </div>
       </div></div>
-      <div class="ch-tail"><div class="col evidence">
-        <div class="ev-col"><span class="ev-label">Designed</span><img loading="lazy" decoding="async" src="assets/img/slicer-software.jpg" alt="The custom Python slicer interface built in PyQt" /><p>A small pipeline that exposes every stage. Load an STL, set layer height and resolution, slice, generate.</p></div>
-        <div class="ev-col"><span class="ev-label">Analyzed</span><img loading="lazy" decoding="async" src="assets/img/slicer-layer-plot.jpg" alt="Slicer layer outlines with current and next walls overlaid" /><p>Every layer is computed and drawn, so I can see the wall paths and check geometry at each height.</p></div>
-        <div class="ev-col"><span class="ev-label">Built</span><img loading="lazy" decoding="async" src="assets/img/slicer-stl-viewer.jpg" alt="Custom STL viewer with a model on the build plate" /><p>The working program slices a real STL and writes G-code end to end.</p></div>
-        <div class="ev-col"><span class="ev-label">Proved</span><img loading="lazy" decoding="async" src="assets/img/slicer-stl-detail.jpg" alt="Slicer viewer close up at 0.2 mm layer height" /><p>It generates usable G-code from an arbitrary STL. It's the base for research on tilted and curved slicing planes, which is why I wrote it.</p></div>
-      </div></div>
+      <div class="slice-hairline" aria-hidden="true"><span class="slice-label">layer 1 / 40</span></div>
     </section>
-    <!-- Chapter 8: Other work -->
-    <section id="others" class="ch-flat" data-trio="5,6,7">
-      <div class="col">
+    <!-- Projects: the eight cubes settle into a grid; click one to unfold it into its net -->
+    <section id="projects" class="projects2">
+      <div class="col projects-head">
         <h2 class="flat-head">projects</h2>
-        <div class="others-grid">
-          <div class="oth-col">
-            <div class="oth-anchor" data-cube="5" aria-hidden="true"></div>
-            <h3 class="oth-title">3D Printing and Fabrication</h3>
-            <p>A hand-wound electric motor with a printed stator and rotor. It spins, and it overheats, because the load-bearing parts are PLA that softens under heat. The fix is PETG or PA-CF, and that's the finding.</p>
-            <p class="oth-key">The MagSafe stand costs about 4 dollars of PLA against a 69 dollar store version.</p>
-            <button type="button" class="ch-open sm" data-panel="printing">Read</button>
-          </div>
-          <div class="oth-col">
-            <div class="oth-anchor" data-cube="6" aria-hidden="true"></div>
-            <h3 class="oth-title">Dynamics experiments</h3>
-            <p>A double pendulum, model against rig, and a vacuum cannon, prediction against measured. Both are about where and when the model stops matching the real thing.</p>
-            <p class="oth-key">Pendulum agrees for about 1.5 seconds. Cannon: 10 runs at 2 and 8 kPa.</p>
-            <button type="button" class="ch-open sm" data-panel="pendulum">Double pendulum</button>
-            <button type="button" class="ch-open sm" data-panel="cannon">Vacuum cannon</button>
-          </div>
-          <div class="oth-col">
-            <div class="oth-anchor" data-cube="7" aria-hidden="true"></div>
-            <h3 class="oth-title">Flight and structures</h3>
-            <p>A quaternion flight-dynamics model run against real flight-test data across nine aircraft, and a Saturn V F-1 nozzle FEA that is still in progress.</p>
-            <p class="oth-key">Nine aircraft through the same step inputs. Saturn V: writeup pending.</p>
-            <button type="button" class="ch-open sm" data-panel="flight">Flight dynamics</button>
-            <button type="button" class="ch-open sm" data-panel="saturn">Saturn V FEA</button>
-          </div>
-        </div>
-        <div class="rit-row">
-          <div><h4>RIT Space Exploration CubeSat</h4><p>Structures and integration on the first RIT student project built to fly. <button type="button" class="ch-open sm" data-panel="cubesat">Read</button></p><p class="slot">Image slot: CubeSat photos pending.</p></div>
-          <div><h4>CatBot Robotics</h4><p>Joint-movement control on the club's quadruped. <button type="button" class="ch-open sm" data-panel="catbot">Read</button></p><p class="slot">Image slot: CatBot photos pending.</p></div>
-        </div>
+        <p class="projects-hint">Eight builds. Click a cube to open its faces.</p>
       </div>
+      <div id="project-cards" class="project-cards" aria-hidden="true"></div>
+      <button id="project-close" class="project-close" type="button" hidden aria-label="Close project">&times;</button>
+      <!-- mobile: click opens a vertical stack of the six face cards here -->
+      <div id="project-stack" class="project-stack" hidden aria-hidden="true"></div>
     </section>
 
     <!-- Chapter 9: Websites -->

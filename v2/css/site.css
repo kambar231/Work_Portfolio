@@ -431,9 +431,54 @@ html.lenis, html.lenis body { height: auto; }
 .exp2-rowtext h4 span { font-size: 13px; color: var(--label); font-weight: 400; margin-left: 6px; }
 .exp2-rowtext p { font-size: 14px; color: var(--grey2); line-height: 1.6; margin: 0 0 8px; max-width: 52ch; }
 
+.slicer-story { font-size: 16px; line-height: 1.7; color: var(--grey2); margin: 20px 0 0; max-width: 46ch; }
+.slicer-key { font-size: 18px; font-weight: 500; color: var(--ink); margin: 14px 0 0; }
+.ev-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 24px 0 0; }
+.ev-strip figure { margin: 0; }
+.ev-strip .ev-label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--label); margin: 0 0 5px; }
+.ev-strip img { width: 100%; height: 78px; object-fit: cover; border-radius: 3px; display: block; }
+.slicer2 .ch-open { margin-top: 22px; }
+/* build hairline: a thin line pinned at the current top ring's screen y while the stack grows */
+.slice-hairline { position: fixed; left: 52vw; right: 4vw; top: 0; height: 0; border-top: 1px solid var(--ink);
+  z-index: 3; pointer-events: none; opacity: 0; transition: opacity .25s ease; will-change: transform; }
+.slice-label { position: absolute; right: 0; top: 6px; font-size: 12px; color: var(--ink); letter-spacing: .02em; }
+
+/* ---- Projects: cube grid + unfold ---- */
+.projects2 { position: relative; min-height: 140vh; }
+.projects-head { position: sticky; top: 12vh; z-index: 2; transition: opacity .4s ease; }
+.projects-head.dim { opacity: 0.15; pointer-events: none; }
+.projects-hint { font-size: 14px; color: var(--label); margin: 8px 0 0; }
+.project-cards { position: fixed; inset: 0; z-index: 4; pointer-events: none; }
+.project-cards[aria-hidden="true"] { pointer-events: none; }
+.pc { position: absolute; left: 0; top: 0; width: 190px; background: rgba(255,255,255,0.92);
+  border: 1px solid var(--hair); border-radius: 5px; padding: 12px 14px; box-shadow: 0 6px 24px rgba(0,0,0,0.06);
+  pointer-events: auto; will-change: transform, opacity; }
+.pc-front { width: 220px; }
+.pc-kick { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: .12em; color: var(--label); margin: 0 0 5px; }
+.pc h3 { font-size: 17px; font-weight: 500; margin: 0 0 3px; color: var(--ink); }
+.pc-year { display: block; font-size: 12px; color: var(--label); margin: 0 0 7px; }
+.pc p { font-size: 13.5px; line-height: 1.5; color: var(--grey2); margin: 0; }
+.pc-key { font-weight: 600; color: var(--ink); margin-top: 6px !important; }
+.pc-full { margin-top: 9px; font-size: 12px; font-family: inherit; background: none; border: 0; padding: 0;
+  color: var(--ink); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.project-close { position: fixed; top: 22px; right: 24px; z-index: 6; width: 44px; height: 44px;
+  border-radius: 999px; border: 1px solid var(--ink); background: var(--bg); color: var(--ink);
+  font-size: 22px; line-height: 1; cursor: pointer; }
+.project-mgrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 24px 0 0; }
+.project-tile { font-family: inherit; font-size: 16px; text-transform: lowercase; text-align: left;
+  background: none; border: 1px solid var(--hair); border-radius: 5px; padding: 22px 16px; color: var(--ink); cursor: pointer; }
+.project-stack { position: fixed; inset: 0; z-index: 6; background: var(--bg); overflow-y: auto; padding: 64px 20px 40px; }
+.pms-card { border-top: 1px solid var(--hair); padding: 16px 0; }
+.pms-close { position: fixed; top: 14px; right: 16px; width: 44px; height: 44px; border-radius: 999px;
+  border: 1px solid var(--ink); background: var(--bg); font-size: 22px; cursor: pointer; }
+
 @media (max-width: 819px) {
   .exp2-pin { min-height: auto; padding: 12vh 0 6vh; }
   .exp2-col { max-width: 100%; }
   .exp2-row { grid-template-columns: 1fr; }
   .exp2-row .vct { width: 60%; margin-top: 10px; }
+  .ev-strip { grid-template-columns: repeat(2, 1fr); }
+  .slice-hairline { display: none; }
+  .projects2 { min-height: auto; padding-bottom: 8vh; }
+  .project-cards, .project-close { display: none; }
 }
