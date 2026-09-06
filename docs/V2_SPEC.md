@@ -178,3 +178,46 @@ from dust and dissolves back. uMorph driven by ScrollTrigger scrub 0.8, power2.i
 Hero (headline, floating cubes, dense ribbons) -> Experience (forklift morph) -> Slicer (stack
 morph) -> Projects (cube grid + unfold) -> Websites (small) -> Dark stripe (cube-outline morph +
 manifesto) -> Contact (cubes settle into a grid, details).
+
+## 8. Round 3 (Kambar, 2026-09-06 "go ahead and cook"): motion engine, Raymond cube, baked faces
+Order: engine -> experience -> unfold. Every step passes v2/verify_all.py (extended) before review.
+
+### 8.1 Cube motion engine (v2/js/cubes.js rewrite of the movement layer)
+- Each cube: position, velocity, target, plus rotation and angular velocity. Sections only set
+  targets (grid slot, side lane, off-screen exit point). A critically damped spring (omega ~2.2,
+  zeta 1) moves the cube; angular velocity damps toward a slow tumble or to zero when parked.
+- Repulsion between cubes and lane-avoidance around text are soft forces added to velocity
+  (never position writes), so no snapping and no oscillation.
+- Visibility is never opacity: unneeded cubes drift out past the nearest viewport edge (target
+  1.3x outside) and drift back when needed. Opacity stays 1.0 always (except the projects
+  scrim state, where non-open cubes drop to 0.06 as before).
+- Lanes: every visible text block registers a rect; the engine steers cubes into the free
+  region (usually the opposite column) instead of dimming them.
+- Checker additions: max per-frame displacement of any cube <= 14 px at 60 fps (no pops), no
+  cube below opacity 0.98 outside the scrim state, zero overlaps, zero cube-on-text.
+
+### 8.2 Experience choreography
+- Morph geometry: forklift and slice stack centred at 62vw, 50vh (not the right edge), ~62vh
+  tall. Forklift assembles over the first 30 percent of experience, HOLDS to the end of
+  experience, then crossfades into the slice stack as slicer begins (uMorph0 down while
+  uMorph1 up over the same 40vh). No plain-background gap between them.
+- RAYMOND CUBE replaces the six-line list: at experience start the raymond cube flies in from
+  the right, parks at 30vw / 52vh at scale 2.4 (left of the forklift, right of the text), then
+  unfolds scroll-driven (progress 0.25 to 0.55) into its cross net; the six faces ARE the six
+  systems (baked textures, see 8.3): name, key number, one line. Each face is clickable and
+  opens that system's reading panel. It folds back and returns to drift as slicer begins.
+- Left column keeps: heading "experience", employer, role, dates, achievements. BorgWarner and
+  Boston Beer move to their own band 60vh lower with the small VCT loop.
+- Reading panels scroll internally (data-lenis-prevent, overflow auto, max-height 100vh) and a
+  test opens the longest panel and scrolls it 600 px.
+- Other cubes exit to the edges during experience (no dimming).
+
+### 8.3 Baked faces for every unfold (projects and Raymond)
+- Face textures are drawn on 1024 px canvases: image (cover, top 58 percent), a white band
+  with title (Roboto 500 44 px), key line (Roboto 400 30 px), one-line summary (26 px), a small
+  label (DESIGNED / ANALYZED / BUILT / PROVED / TOOLS / the system name). CanvasTexture with
+  sRGB colourSpace, anisotropy 8. The DOM overlay is reduced to one "Full breakdown" link and
+  the Close button; no cards over faces.
+- Remove the diagonal seam: use PlaneGeometry(1,1,1,1) with MeshBasicMaterial for open faces
+  (no lighting-induced diagonal), toneMapped false, no alpha edges; verify with 400 px crops of
+  every open face (assert no diagonal line via a Hough-style check or by eye in the report).
