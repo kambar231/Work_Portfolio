@@ -26,3 +26,10 @@ webgen-shots/
 # parallel scratch builds, not part of the site
 codex-portfolio/
 docs/scratch/
+
+# nirnor.jp study - frames git-ignored, only markdown + scripts committed
+docs/nirnor-study/**/*.png
+docs/nirnor-study/run_*/
+
+# codex build study - frames git-ignored, markdown committed
+docs/codex-study/**/*.png
