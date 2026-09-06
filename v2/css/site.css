@@ -89,19 +89,6 @@ body { background: transparent; overflow-x: hidden; }
   font-weight: 400; max-width: 46ch;
 }
 
-.scroll-cue {
-  margin-top: 40px; display: inline-flex; flex-direction: column; align-items: flex-start;
-  gap: 10px;
-}
-.scroll-cue .lbl {
-  font-size: 12px; text-transform: uppercase; letter-spacing: .2em; color: var(--label);
-}
-.scroll-cue .hair {
-  width: 1px; height: 56px; background: var(--label); transform-origin: top;
-  transform: scaleY(0);
-}
-.loaded .scroll-cue .hair { transition: transform .9s ease .3s; transform: scaleY(1); }
-
 /* Blink reveal: each glyph strobes in like a signal locking on, then settles to 1.
    Verbatim stops from the nirnor study. Fires once on load after fonts are ready. */
 @keyframes blink {
@@ -241,7 +228,6 @@ body { background: transparent; overflow-x: hidden; }
 /* ---- Reduced motion ---- */
 @media (prefers-reduced-motion: reduce) {
   .display .glyph, .ch-word .glyph { opacity: 1 !important; animation: none !important; }
-  .loaded .scroll-cue .hair { transition: none; transform: scaleY(1); }
   .ch-list li, .ch-facts li, .ch-story, .ch-key { opacity: 1 !important; transform: none !important; }
   .ray-sys .ray-open { opacity: 1 !important; transform: none !important; }
   /* cubes: the sorted grid at the hero only, hidden past it */
